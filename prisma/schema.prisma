@@ -142,6 +142,7 @@ model Bill {
   notes String?
   journalEntryId String? @map("journal_entry_id")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  openingBalance Boolean @default(false) @map("opening_balance")
   contactRel Contact @relation("bills_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   journalEntryRel JournalEntry? @relation("bills_journal_entry_id", fields: [journalEntryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   organizationRel Organization @relation("bills_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -270,6 +271,7 @@ model Invoice {
   notes String?
   journalEntryId String? @map("journal_entry_id")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  openingBalance Boolean @default(false) @map("opening_balance")
   creditTotal Decimal @default(0) @map("credit_total") @db.Decimal(18, 2)
   contactRel Contact @relation("invoices_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   journalEntryRel JournalEntry? @relation("invoices_journal_entry_id", fields: [journalEntryId], references: [id], onDelete: NoAction, onUpdate: NoAction)

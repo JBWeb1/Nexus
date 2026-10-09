@@ -79,6 +79,7 @@ r.get('/reports/profit-and-loss', h(rep.profitAndLoss)); r.get('/reports/balance
 r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
 
 r.post('/import/expenses/preview', h(imp.preview)); r.post('/import/expenses/commit', h(imp.commit));
+r.post('/import/opening-balances/preview', h(imp.openingPreview)); r.post('/import/opening-balances/commit', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(imp.openingCommit));
 r.get('/export/general-ledger', h(exp.generalLedger)); r.get('/export/trial-balance', h(exp.trialBalance)); r.get('/export/invoices', h(exp.invoices)); r.get('/export/bills', h(exp.bills));
 
 r.get('/quotes', h(quo.list)); r.post('/quotes', h(quo.create)); r.get('/quotes/:id', h(quo.get));

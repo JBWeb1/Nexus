@@ -35,6 +35,18 @@ While developing, use `npm run dev` instead of build + start. Pages reload as yo
 Other commands: `npm run typecheck`, `npm run test:unit` (fast checks, no database needed), `npm test` (175 end-to-end checks against a running server; set `API=http://localhost:3000`
 and `ADMIN_DATABASE_URL` to the same value as `DIRECT_URL`, and start the server with `PAYSTACK_SECRET_KEY=sk_test_regression` and `DISABLE_RATE_LIMIT=1`).
 
+## Try it with sample books
+
+`samples/` holds a quarter of books for a fictional coffee roaster, ready to upload on the Import screen:
+
+- `karoo-coffee-books-q3-2026.xlsx`: a hand-kept expense book (mixed date and number formats, a refund in brackets,
+  a totals row) plus the sales, purchases and bank lines for July to September 2026.
+- `karoo-opening-debtors-2026-07-01.xlsx` and `karoo-opening-creditors-2026-07-01.xlsx`: what was still owed when the
+  books moved over (Import > Opening debtors and creditors).
+- `karoo-card-export-sep-2026.csv`: a bank-style export (spending negative) that overlaps the expense book.
+
+`npm run test:business` runs the whole quarter through a running server and checks every report against the workbook.
+
 ## How it is put together
 
 ```

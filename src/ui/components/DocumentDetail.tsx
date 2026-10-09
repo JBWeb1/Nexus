@@ -16,8 +16,10 @@ export default function DocumentDetail({ kind }) {
   const outstanding = doc ? Math.round((doc.total - (doc.amountPaid || 0)) * 100) / 100 : 0;
   async function act(label, suffix, confirm) {
     if (confirm && !window.confirm(`${label} this ${cfg.singular.toLowerCase()}?`)) return;
+    // Converting a quote: date the invoice the day the work was agreed, which is not always today.
+    let body; if (suffix === "convert") { const d = window.prompt("Date for the new invoice (YYYY-MM-DD)", today()); if (d === null) return; body = { issueDate: d.trim() }; }
     setBusy(true); setError(null);
-    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`); if (suffix === "convert") nav(`/invoices/${d.invoice.id}`); else { setDoc(d[cfg.itemKey]); } }
+    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`, body); if (suffix === "convert") nav(`/invoices/${d.invoice.id}`); else { setDoc(d[cfg.itemKey]); } }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   async function submitPay(e) {

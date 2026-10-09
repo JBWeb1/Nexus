@@ -7,14 +7,14 @@ async function compute(c, orgId, from, to) {
   const out = bal.find((a) => a.code === '2100'), inn = bal.find((a) => a.code === '2110');
   const outputVat = money(out.credit - out.debit), inputVat = money(inn.debit - inn.credit);
   const sales = (await c.query(`SELECT COALESCE(SUM(l.line_total*i.exchange_rate),0) AS std FROM invoice_lines l JOIN invoices i ON i.id=l.invoice_id
-     WHERE i.organization_id=$1 AND i.status IN ('SENT','PARTIAL','PAID','CREDITED') AND i.issue_date BETWEEN $2 AND $3 AND l.tax_amount > 0`, [orgId, from, to])).rows[0].std;
+     WHERE i.organization_id=$1 AND i.status IN ('SENT','PARTIAL','PAID','CREDITED') AND NOT i.opening_balance AND i.issue_date BETWEEN $2 AND $3 AND l.tax_amount > 0`, [orgId, from, to])).rows[0].std;
   const zero = (await c.query(`SELECT COALESCE(SUM(l.line_total*i.exchange_rate),0) AS z FROM invoice_lines l JOIN invoices i ON i.id=l.invoice_id
-     WHERE i.organization_id=$1 AND i.status IN ('SENT','PARTIAL','PAID','CREDITED') AND i.issue_date BETWEEN $2 AND $3 AND l.tax_amount = 0`, [orgId, from, to])).rows[0].z;
+     WHERE i.organization_id=$1 AND i.status IN ('SENT','PARTIAL','PAID','CREDITED') AND NOT i.opening_balance AND i.issue_date BETWEEN $2 AND $3 AND l.tax_amount = 0`, [orgId, from, to])).rows[0].z;
   const cn = async (taxed) => Number((await c.query(`SELECT COALESCE(SUM(l.line_total*n.exchange_rate),0) AS v FROM credit_note_lines l JOIN credit_notes n ON n.id=l.credit_note_id
      WHERE n.organization_id=$1 AND n.status='POSTED' AND n.issue_date BETWEEN $2 AND $3 AND ${taxed ? 'l.tax_amount > 0' : 'l.tax_amount = 0'}`, [orgId, from, to])).rows[0].v);
   const stdNet = money(Number(sales) - await cn(true)), zeroNet = money(Number(zero) - await cn(false));
   const purch = (await c.query(`SELECT COALESCE(SUM(l.line_total*b.exchange_rate),0) AS p FROM bill_lines l JOIN bills b ON b.id=l.bill_id
-     WHERE b.organization_id=$1 AND b.status IN ('APPROVED','PARTIAL','PAID') AND b.issue_date BETWEEN $2 AND $3 AND l.tax_amount > 0`, [orgId, from, to])).rows[0].p;
+     WHERE b.organization_id=$1 AND b.status IN ('APPROVED','PARTIAL','PAID') AND NOT b.opening_balance AND b.issue_date BETWEEN $2 AND $3 AND l.tax_amount > 0`, [orgId, from, to])).rows[0].p;
   return { periodStart: from, periodEnd: to, standardRatedSales: stdNet, zeroRatedSales: zeroNet, standardRatedPurchases: money(purch), outputVat, inputVat, netVat: money(outputVat - inputVat) };
 }
 const preview = async (req, res, c) => res.json({ vat201: await compute(c, req.user.orgId, req.query.from, req.query.to) });

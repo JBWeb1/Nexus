@@ -90,6 +90,7 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   const buf = Buffer.from(await wb.xlsx.writeBuffer()); const fd = new FormData(); fd.append('file', new Blob([buf]), 'exp.xlsx');
   const pr = await (await fetch(BASE + '/api/import/expenses/preview', { method: 'POST', headers: { Authorization: `Bearer ${ta}` }, body: fd })).json();
   ok('preview auto-detects columns and parses 3 rows (SA date + R amount)', pr.rows?.length === 3 && pr.rows[0].amount === 450.5 && pr.rows[1].date === '2026-06-03', JSON.stringify(pr));
+  ok('a negative amount in a mostly-positive sheet is read as a refund', pr.rows?.[1].direction === 'REFUND' && pr.rows[1].amount === 120 && pr.rows[0].direction === 'EXPENSE', JSON.stringify(pr.rows));
   const cm = await call('POST', '/api/import/expenses/commit', ta, { bankAccountId: bnk.id, rows: pr.rows.map((r) => ({ ...r, accountId: acc('6600') })) });
   ok('commit: bad (locked-period) row does not sink batch', cm.body.imported === 2 && cm.body.failed.length === 1, JSON.stringify(cm.body));
   const gl = await fetch(BASE + '/api/export/general-ledger', { headers: { Authorization: `Bearer ${ta}` } }); const gb = Buffer.from(await gl.arrayBuffer());
