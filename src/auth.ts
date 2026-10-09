@@ -11,7 +11,8 @@ import { verifyToken } from '@/server/utils/auth';
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: '/api/session',
   trustHost: true,
-  secret: process.env.AUTH_SECRET || process.env.JWT_SECRET || 'dev-only-change-me',
+  // No public fallback in production: Auth.js then refuses to run instead of signing sessions with a known value.
+  secret: process.env.AUTH_SECRET || process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? undefined : 'dev-only-change-me'),
   session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 },
   pages: { signIn: '/login' },
   providers: [
@@ -21,7 +22,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) { if (user) { token.userId = user.id; token.orgId = (user as any).orgId; } return token; },
-    session({ session, token }) { (session as any).userId = token.userId; (session as any).orgId = token.orgId; return session; },
+    jwt({ token, user }) { if (user) { token.userId = user.id; token.orgId = (user as any).orgId; token.authAt = Math.floor(Date.now() / 1000); } return token; },
+    session({ session, token }) { (session as any).userId = token.userId; (session as any).orgId = token.orgId; (session as any).authAt = token.authAt; return session; },
   },
 });

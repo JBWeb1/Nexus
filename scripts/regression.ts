@@ -210,8 +210,10 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   ok('forgot-password answers the same for unknown emails', (await call('POST', '/api/auth/forgot', null, { email: 'nobody@nowhere.co.za' })).status === 200 && (await call('POST', '/api/auth/forgot', null, { email: secEmail })).status === 200);
   const rtok = crypto.randomBytes(16).toString('hex'); await authPool.query("INSERT INTO password_resets (id, user_id, token_hash, expires_at) VALUES ('pr_'||substr(md5(random()::text),1,12),$1,$2, now() + interval '1 hour')", [SecU.user.id, crypto.createHash('sha256').update(rtok).digest('hex')]);
   ok('reset with a short password rejected', (await call('POST', '/api/auth/reset', null, { token: rtok, password: 'short' })).status === 400);
+  await new Promise((r) => setTimeout(r, 1100)); // token times are whole seconds: keep the pre-reset token clearly older
   ok('reset with a valid token works', (await call('POST', '/api/auth/reset', null, { token: rtok, password: 'brandnew123' })).status === 200 && (await call('POST', '/api/auth/login', null, { email: secEmail, password: 'brandnew123' })).status === 200);
   ok('old password no longer works, and the token cannot be reused', (await call('POST', '/api/auth/login', null, { email: secEmail, password: 'password123' })).status === 401 && (await call('POST', '/api/auth/reset', null, { token: rtok, password: 'another12345' })).status === 400);
+  ok('a password reset signs out tokens issued before it', (await call('GET', '/api/auth/me', SecU.token)).status === 401);
   const rtok2 = crypto.randomBytes(16).toString('hex'); await authPool.query("INSERT INTO password_resets (id, user_id, token_hash, expires_at) VALUES ('pr_'||substr(md5(random()::text),1,12),$1,$2, now() - interval '1 minute')", [SecU.user.id, crypto.createHash('sha256').update(rtok2).digest('hex')]);
   ok('expired reset token rejected', (await call('POST', '/api/auth/reset', null, { token: rtok2, password: 'another12345' })).status === 400);
   const sTok = (await call('POST', '/api/auth/login', null, { email: secEmail, password: 'brandnew123' })).body.token;

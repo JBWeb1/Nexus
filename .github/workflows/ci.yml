@@ -25,14 +25,15 @@ jobs:
       PAYSTACK_SECRET_KEY: sk_test_regression
       DISABLE_RATE_LIMIT: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: cp .env.example .env
       - run: npm run typecheck
+      - run: npm run test:unit
       - name: Create database and apply migrations
         run: npm run setup
       - run: npm run build
@@ -45,9 +46,10 @@ jobs:
           done
           echo "Server did not start"; cat server.log; exit 1
       - name: Regression tests
-        run: |
-          set -a; . ./.env; set +a
-          ADMIN_DATABASE_URL="$DIRECT_URL" npm test
+        # npm test reads .env itself; the suite also needs the owner connection for its database checks.
+        env:
+          ADMIN_DATABASE_URL: postgres://postgres:devpassword@localhost:5432/nexus_ledger
+        run: npm test
       - name: Server log
         if: failure()
         run: cat server.log

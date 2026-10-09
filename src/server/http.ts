@@ -73,7 +73,7 @@ async function readBody(request: Request, req: Req) {
 export async function dispatch(router: Router, request: Request, prefix: string): Promise<Response> {
   const url = new URL(request.url); const path = url.pathname.slice(prefix.length) || '/';
   const headers: Record<string, string> = {}; request.headers.forEach((v, k) => { headers[k.toLowerCase()] = v; });
-  const req: Req = { method: request.method, path, originalUrl: url.pathname + url.search, query: Object.fromEntries(url.searchParams), params: {}, headers, body: {}, ip: (headers['x-forwarded-for'] || '').split(',')[0].trim() || headers['x-real-ip'] || 'local' };
+  const req: Req = { method: request.method, path, originalUrl: url.pathname + url.search, query: Object.fromEntries(url.searchParams), params: {}, headers, body: {}, ip: (headers['x-forwarded-for'] || '').split(',').pop().trim() || headers['x-real-ip'] || 'local' };
   const res = new Res();
   try {
     await readBody(request, req);

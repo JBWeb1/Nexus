@@ -12,6 +12,7 @@
     "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
     "db:migrate:prisma": "prisma migrate deploy",
     "test": "tsx --env-file=.env scripts/regression.ts",
+    "test:unit": "tsx scripts/unit.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

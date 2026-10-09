@@ -9,7 +9,7 @@ const secret = jwtSecret;
 export const hashPassword = (p: string) => bcrypt.hash(p, 10);
 export const comparePassword = (p: string, h: string) => bcrypt.compare(p, h);
 export const signToken = (u: { id: string; organization_id: string; role: string }) => jwt.sign({ userId: u.id, orgId: u.organization_id, role: u.role }, secret(), { expiresIn: '7d' });
-export const verifyToken = (t: string) => jwt.verify(t, secret()) as { userId: string; orgId: string; role: string };
+export const verifyToken = (t: string) => jwt.verify(t, secret()) as { userId: string; orgId: string; role: string; iat: number };
 
 // ---- Two-factor (TOTP, RFC 6238: SHA-1, 30 s steps, 6 digits) and secret encryption at rest ----
 import crypto from 'crypto';

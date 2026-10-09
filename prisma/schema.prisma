@@ -599,6 +599,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   totpSecret String? @map("totp_secret")
   totpEnabled Boolean @default(false) @map("totp_enabled")
+  passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(6)
   organizationRel Organization @relation("users_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   invitationsByInvitedBy Invitation[] @relation("invitations_invited_by")
   membershipsByUserId Membership[] @relation("memberships_user_id")

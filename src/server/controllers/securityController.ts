@@ -13,7 +13,9 @@ async function forgot(req, res, c) {
     await c.query('INSERT INTO password_resets (id, user_id, token_hash, expires_at) VALUES ($1,$2,$3, now() + interval \'1 hour\')', [newId('pr'), u.id, sha(token)]);
     const link = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
     if (configured()) sendMail({ to: email, subject: 'Reset your Nexus Ledger password', text: `Hi ${u.name},\n\nUse this link within one hour to choose a new password:\n${link}\n\nIf you did not ask for this, ignore this email.` }).catch((e) => console.error('[mail]', e.message));
-    else console.log(`[password reset] email is not configured; reset link for ${email}: ${link}`);
+    // The link is a password for the account, so it is only printed in development.
+    else if (process.env.NODE_ENV !== 'production') console.log(`[password reset] email is not configured; reset link for ${email}: ${link}`);
+    else console.error('[password reset] email is not configured, so the reset link could not be sent');
   }
   res.json({ ok: true, message: 'If that email has an account, a reset link is on its way.' });
 }
@@ -22,7 +24,7 @@ async function reset(req, res, c) {
   if (!token || !password || password.length < 8) throw new ApiError(400, 'Choose a password of at least 8 characters');
   const r = (await c.query('SELECT id, user_id FROM password_resets WHERE token_hash=$1 AND used_at IS NULL AND expires_at > now() FOR UPDATE', [sha(String(token))])).rows[0];
   if (!r) throw new ApiError(400, 'This reset link has expired or was already used. Ask for a new one.');
-  await c.query('UPDATE users SET password_hash=$2 WHERE id=$1', [r.user_id, await hashPassword(password)]);
+  await c.query('UPDATE users SET password_hash=$2, password_changed_at=now() WHERE id=$1', [r.user_id, await hashPassword(password)]);
   await c.query('UPDATE password_resets SET used_at=now() WHERE user_id=$1 AND used_at IS NULL', [r.user_id]);
   res.json({ ok: true });
 }

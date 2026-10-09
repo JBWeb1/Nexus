@@ -2,6 +2,7 @@ import { acceptInvitations } from './teamController'; import { authPool } from '
 import { ApiError,newId,toCamel } from '../utils/helpers';
 import { hashPassword,comparePassword,signToken,totp,unseal } from '../utils/auth';
 import { seedChartOfAccounts } from '../utils/chart';
+import { accountLock } from '../middleware/rateLimit';
 
 async function register(req, res, client) {
   const { organizationName, name, email, password } = req.body || {};
@@ -22,14 +23,16 @@ async function register(req, res, client) {
 async function login(req, res, client) {
   const { email, password } = req.body || {};
   if (!email || !password) throw new ApiError(400, 'Email and password are required');
+  const key = String(email).trim().toLowerCase(); accountLock.check(key);
   const u = (await client.query(`SELECT u.*, o.name AS org_name, o.currency, m.role AS member_role FROM users u
       JOIN memberships m ON m.user_id=u.id AND m.organization_id=u.organization_id JOIN organizations o ON o.id=u.organization_id WHERE u.email=$1`, [String(email).trim().toLowerCase()])).rows[0];
-  if (!u || !(await comparePassword(password, u.password_hash))) throw new ApiError(401, 'Invalid email or password');
+  if (!u || !(await comparePassword(password, u.password_hash))) { accountLock.fail(key); throw new ApiError(401, 'Invalid email or password'); }
   u.role = u.member_role;
   if (u.totp_enabled) {
     if (!req.body.code) return res.json({ needs2fa: true });
-    if (!totp.verify(unseal(u.totp_secret), req.body.code)) throw new ApiError(401, 'That two-factor code is not right');
+    if (!totp.verify(unseal(u.totp_secret), req.body.code)) { accountLock.fail(key); throw new ApiError(401, 'That two-factor code is not right'); }
   }
+  accountLock.clear(key);
   res.json({ token: signToken(u), user: { id: u.id, name: u.name, email: u.email, role: u.role }, organization: { id: u.organization_id, name: u.org_name, currency: u.currency } });
 }
 async function me(req, res, client) {
