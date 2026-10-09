@@ -1,5 +1,11 @@
 import bcrypt from 'bcryptjs'; import jwt from 'jsonwebtoken';
-const secret = () => process.env.JWT_SECRET || 'dev-only-change-me';
+/** Falls back to a public dev value only outside production, so a missing JWT_SECRET can never let anyone forge sign-in tokens. */
+export const jwtSecret = () => {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET is not set');
+  return 'dev-only-change-me';
+};
+const secret = jwtSecret;
 export const hashPassword = (p: string) => bcrypt.hash(p, 10);
 export const comparePassword = (p: string, h: string) => bcrypt.compare(p, h);
 export const signToken = (u: { id: string; organization_id: string; role: string }) => jwt.sign({ userId: u.id, orgId: u.organization_id, role: u.role }, secret(), { expiresIn: '7d' });
@@ -11,7 +17,7 @@ const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 const b32encode = (buf) => { let bits = '', out = ''; for (const b of buf) bits += b.toString(2).padStart(8, '0'); for (let i = 0; i < bits.length; i += 5) out += B32[parseInt(bits.slice(i, i + 5).padEnd(5, '0'), 2)]; return out; };
 const b32decode = (s) => { let bits = ''; for (const ch of s.replace(/=+$/, '').toUpperCase()) bits += B32.indexOf(ch).toString(2).padStart(5, '0'); const bytes = []; for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2)); return Buffer.from(bytes); };
 const hotp = (secret, counter) => { const b = Buffer.alloc(8); b.writeBigUInt64BE(BigInt(counter)); const h = crypto.createHmac('sha1', b32decode(secret)).update(b).digest(); const o = h[h.length - 1] & 15; return String(((h.readUInt32BE(o) & 0x7fffffff) % 1e6)).padStart(6, '0'); };
-const key = () => crypto.createHash('sha256').update((process.env.JWT_SECRET || 'dev-only-change-me') + ':totp').digest();
+const key = () => crypto.createHash('sha256').update(jwtSecret() + ':totp').digest();
 export const totp = {
   newSecret: () => b32encode(crypto.randomBytes(20)),
   token: (secret, at = Date.now()) => hotp(secret, Math.floor(at / 30000)),
