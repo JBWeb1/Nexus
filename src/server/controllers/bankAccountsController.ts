@@ -7,14 +7,16 @@ async function list(req, res, c) {
   res.json({ bankAccounts: toCamel(r.rows) });
 }
 async function create(req, res, c) {
-  const orgId = req.user.orgId, { name, bankName, openingBalance = 0 } = req.body || {};
+  const orgId = req.user.orgId, { name, bankName, openingBalance = 0, openingDate } = req.body || {};
   if (!name?.trim()) throw new ApiError(400, 'Account name is required');
   const ob = money(openingBalance); if (ob < 0) throw new ApiError(400, 'Opening balance cannot be negative');
+  // The balance as at the day the books start, so reports for earlier dates in that history include it.
+  const asAt = openingDate ?? today(); if (!isDate(asAt) || asAt > today()) throw new ApiError(400, 'Opening balance date must be a valid date that is not in the future');
   const codes = (await c.query("SELECT code FROM accounts WHERE organization_id=$1 AND code ~ '^10[0-9][0-9]$'", [orgId])).rows.map((r) => +r.code);
   const code = String(Math.max(1009, ...codes) + 1); if (+code > 1099) throw new ApiError(409, 'No free bank account codes');
   const acc = (await c.query("INSERT INTO accounts (organization_id, code, name, type, subtype) VALUES ($1,$2,$3,'ASSET','bank') RETURNING id", [orgId, code, `Bank - ${name.trim()}`])).rows[0];
   const b = (await c.query('INSERT INTO bank_accounts (organization_id, account_id, name, bank_name) VALUES ($1,$2,$3,$4) RETURNING *', [orgId, acc.id, name.trim(), bankName || null])).rows[0];
-  if (ob > 0) await postJournalEntry(c, { orgId, date: today(), description: `Opening balance - ${name.trim()}`, sourceType: 'JOURNAL', createdBy: req.user.userId,
+  if (ob > 0) await postJournalEntry(c, { orgId, date: asAt, description: `Opening balance - ${name.trim()}`, sourceType: 'JOURNAL', createdBy: req.user.userId,
     lines: [{ accountId: acc.id, debit: ob }, { accountId: await accountByCode(c, orgId, '3000'), credit: ob }] });
   res.status(201).json({ bankAccount: toCamel({ ...b, current_balance: ob }) });
 }

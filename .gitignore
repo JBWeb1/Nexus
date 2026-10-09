@@ -5,3 +5,7 @@ node_modules
 .uploads
 next-env.d.ts
 *.tsbuildinfo
+
+# Business simulation output
+samples/output/
+samples/screenshots/
