@@ -1,0 +1,86 @@
+# Nexus Ledger
+
+Accounting for South African businesses and their accountants.
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router) + React 19 + TypeScript |
+| Styling | Tailwind CSS + shadcn/ui components, Lucide icons, Framer Motion |
+| Backend | Next.js route handlers on Node.js |
+| Database | PostgreSQL |
+| ORM | Prisma 6 (pg driver adapter) |
+| Sign-in | Auth.js (next-auth v5) |
+| Payments | Paystack |
+| Email | Resend |
+| File storage | AWS S3 or Cloudflare R2 (local disk in development) |
+| Charts | Recharts |
+| Hosting | Vercel + Neon or Supabase (see DEPLOY.md) |
+
+## Run it on your computer
+
+You need Node.js 20.6 or newer and PostgreSQL 16.
+
+```bash
+copy .env.example .env        # macOS/Linux: cp .env.example .env
+npm install
+npm run setup                 # creates the database and applies the migrations
+npm run build
+npm start                     # http://localhost:3000
+```
+
+If your PostgreSQL `postgres` password is not `devpassword`, change it in `DIRECT_URL` inside `.env` before `npm run setup`.
+
+While developing, use `npm run dev` instead of build + start. Pages reload as you edit.
+
+Other commands: `npm run typecheck`, `npm test` (174 end-to-end checks against a running server; set `API=http://localhost:3000`
+and `ADMIN_DATABASE_URL` to the same value as `DIRECT_URL`, and start the server with `PAYSTACK_SECRET_KEY=sk_test_regression` and `DISABLE_RATE_LIMIT=1`).
+
+## How it is put together
+
+```
+prisma/schema.prisma        data model (34 models)
+prisma/migrations/          SQL migrations: tables, roles, row-level security, ledger triggers
+src/app/                    Next.js routes: pages, /api/[...path], /api/session (Auth.js), /webhooks
+src/auth.ts                 Auth.js configuration
+src/server/routes.ts        every API endpoint in one list
+src/server/controllers/     request handlers
+src/server/services/        payments, subscriptions, exceptions, import/export
+src/server/db.ts            Prisma clients and the tenant transaction
+src/ui/                     screens (views), components, shadcn/ui primitives
+scripts/                    setup, migrate, regression suite
+```
+
+### Design rules worth knowing before you change things
+
+- **Ledger first.** Invoices, bills, payments and credit notes post journal entries. Journal lines cannot be edited or deleted
+  (database trigger); corrections are reversing entries. Closed periods are locked in the database.
+- **One company can never see another's data.** Every tenant table has PostgreSQL row-level security keyed on
+  `app.current_org`. Each request runs in one transaction that sets it (`Db.tx` in `src/server/db.ts`). The app connects as three
+  roles: `nexus_app` (tenant-scoped), `nexus_authn` (sign-in and memberships) and `nexus_service` (billing and webhooks).
+- **Prisma, two ways.** Simple modules (contacts, tax rates, attachments) use the typed client: `c.prisma.contact.findMany(...)`.
+  Ledger, VAT and reporting use SQL through Prisma (`c.query(sql, params)`), because they rely on aggregates, locks and
+  database rules the Prisma query API does not express. Both run on the same transaction, so both are tenant-scoped.
+- **Sign-in.** `/api/auth/login` checks the password, two-factor code and company membership, then the browser exchanges the
+  result for an Auth.js session cookie (httpOnly). Scripts and integrations may send the same proof as a Bearer token.
+- **TypeScript.** The code compiles with `strict` off. Shared components, the database layer and the HTTP layer are typed;
+  most handlers still take loosely typed request bodies. Tightening that is a good next step.
+
+## Features
+
+Multi-company with a company switcher, team roles (Owner, Admin, Accountant, Viewer) and invitations, invoices, quotes,
+recurring invoices, credit notes, bills, payments and reversals, bank accounts, bank matching, bank rules, spreadsheet import,
+VAT201 preview and period finalisation, month-end close, reports (P&L, balance sheet, trial balance, aged debtors and
+creditors), Excel and PDF export, insights with rule-based explanations, work queue, tasks and monthly checklists, notes, file
+attachments, activity log, guided tutorials, two-factor sign-in, password reset, company data export, and subscriptions
+(R250 a month for one company, R470 for all the companies a payer owns, 14-day trial).
+
+## Not built
+
+Payroll, PAYE/UIF/SDL and a statutory deadline calendar (they need verified current SARS rules), receipt OCR, a client portal,
+audit preparation pack, practice billing, bank feeds, purchase orders, SARS e-filing. The VAT201 screen is a preview; you
+submit the return yourself on eFiling.
+
+## Not tested against live services
+
+Paystack (checkout, renewals, plan switching), Resend, and S3/R2 are implemented and covered with simulated webhooks and the
+local-disk storage driver, but have not been run against the real services. Test each with a sandbox key before launch.

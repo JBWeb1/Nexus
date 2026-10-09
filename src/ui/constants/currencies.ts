@@ -1,0 +1,1 @@
+export const CURRENCIES = [["ZAR", "South African Rand"], ["USD", "US Dollar"], ["EUR", "Euro"], ["GBP", "British Pound"], ["BWP", "Botswana Pula"], ["NAD", "Namibian Dollar"], ["MZN", "Mozambican Metical"], ["ZMW", "Zambian Kwacha"]];
