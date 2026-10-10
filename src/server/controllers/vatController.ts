@@ -3,7 +3,8 @@ import { getAccountBalances,postJournalEntry,accountByCode } from '../utils/ledg
 
 async function compute(c, orgId, from, to) {
   if (!isDate(from) || !isDate(to) || to < from) throw new ApiError(400, 'Valid from/to dates are required');
-  const bal = await getAccountBalances(c, orgId, { from, to });
+  // The settlement entry that finalizing posts clears VAT Output/Input; it is not VAT activity, so a finalized period still shows its figures.
+  const bal = await getAccountBalances(c, orgId, { from, to, excludeSourceTypes: ['VAT_SETTLEMENT'] });
   const out = bal.find((a) => a.code === '2100'), inn = bal.find((a) => a.code === '2110');
   const outputVat = money(out.credit - out.debit), inputVat = money(inn.debit - inn.credit);
   const sales = (await c.query(`SELECT COALESCE(SUM(l.line_total*i.exchange_rate),0) AS std FROM invoice_lines l JOIN invoices i ON i.id=l.invoice_id

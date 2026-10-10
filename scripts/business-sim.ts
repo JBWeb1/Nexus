@@ -240,6 +240,8 @@ const val = (v: any) => (v && typeof v === 'object' && 'result' in v ? v.result 
   ok(`net VAT ${R(v.netVat)}: ${v.netVat < 0 ? 'refund due from SARS' : 'payable to SARS'}`, near(v.netVat, r2(outVat - inVat)), v);
   const fin = await call('POST', '/vat-periods/finalize', { periodStart: '2026-07-01', periodEnd: '2026-08-31' });
   ok('VAT period July-August finalized', fin.status < 300, fin.body);
+  const vAfter = (await call('GET', '/reports/vat201?from=2026-07-01&to=2026-08-31')).body.vat201;
+  ok('the finalized period still shows the same VAT figures afterwards', near(vAfter.outputVat, v.outputVat) && near(vAfter.inputVat, v.inputVat) && near(vAfter.netVat, v.netVat), vAfter);
 
   // ---------- Month-end ----------
   console.log('\n10. Month-end close and period lock');

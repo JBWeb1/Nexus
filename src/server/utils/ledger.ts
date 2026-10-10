@@ -52,14 +52,14 @@ async function reverseJournalEntry(client, { orgId, entryId, date, description, 
 }
 
 /** Per-account totals. opts: {from, to}. balance = debit - credit (positive = debit balance). */
-async function getAccountBalances(client, orgId, { from = null, to = null } = {}) {
+async function getAccountBalances(client, orgId, { from = null, to = null, excludeSourceTypes = [] as string[] } = {}) {
   const r = await client.query(
     `SELECT a.id, a.code, a.name, a.type, a.subtype,
             COALESCE(SUM(l.debit),0) AS debit, COALESCE(SUM(l.credit),0) AS credit
        FROM accounts a
        LEFT JOIN (SELECT jl.* FROM journal_lines jl JOIN journal_entries je ON je.id=jl.journal_entry_id
-                   WHERE je.organization_id=$1 AND ($2::date IS NULL OR je.date >= $2) AND ($3::date IS NULL OR je.date <= $3)) l ON l.account_id=a.id
-      WHERE a.organization_id=$1 GROUP BY a.id ORDER BY a.code`, [orgId, from, to]);
+                   WHERE je.organization_id=$1 AND ($2::date IS NULL OR je.date >= $2) AND ($3::date IS NULL OR je.date <= $3) AND NOT (je.source_type = ANY($4::text[]))) l ON l.account_id=a.id
+      WHERE a.organization_id=$1 GROUP BY a.id ORDER BY a.code`, [orgId, from, to, excludeSourceTypes]);
   return r.rows.map((x) => ({ ...x, balance: money(x.debit - x.credit) }));
 }
 
