@@ -35,6 +35,7 @@ import * as rules from './controllers/bankRulesController';
 import * as act from './controllers/activityController';
 import * as sec from './controllers/securityController';
 import * as att from './controllers/attachmentsController';
+import * as sys from './controllers/systemController';
 
 const r = new Router();
 const authLimit = rateLimit({ limit: 30, windowMs: 60_000, name: 'auth' }), resetLimit = rateLimit({ limit: 6, windowMs: 3_600_000, name: 'reset' });
@@ -79,6 +80,7 @@ r.get('/reports/profit-and-loss', h(rep.profitAndLoss)); r.get('/reports/balance
 r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
 
 r.post('/import/expenses/preview', h(imp.preview)); r.post('/import/expenses/commit', h(imp.commit));
+r.get('/system/update', requireRole('OWNER', 'ADMIN'), h(sys.status, { pool: servicePool, scoped: false }));
 r.post('/import/opening-balances/preview', h(imp.openingPreview)); r.post('/import/opening-balances/commit', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(imp.openingCommit));
 r.get('/export/general-ledger', h(exp.generalLedger)); r.get('/export/trial-balance', h(exp.trialBalance)); r.get('/export/invoices', h(exp.invoices)); r.get('/export/bills', h(exp.bills));
 

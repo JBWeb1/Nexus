@@ -241,6 +241,7 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   const sw = await call('POST', `/api/companies/${A.organization.id}/switch`, AC.token); const tAcc = sw.body.token;
   ok('accountant can open the client books and read invoices', sw.status === 200 && (await call('GET', '/api/invoices', tAcc)).status === 200);
   ok('accountant cannot manage the team', (await call('POST', '/api/team/invite', tAcc, { email: 'z@z.co.za', role: 'VIEWER' })).status === 403);
+  ok('accountant cannot see the update status (owners and admins only)', (await call('GET', '/api/system/update', tAcc)).status === 403);
   const ov = (await call('GET', '/api/companies/overview', AC.token)).body.companies; const ovA = ov.find((c) => c.id === A.organization.id);
   ok('overview lists every client with counters', ov.length === 2 && typeof ovA.unmatchedBank === 'number' && typeof ovA.overdueInvoices === 'number' && ovA.role === 'ACCOUNTANT');
   ok('overview counts reflect the client data (the sent invoice is not overdue yet)', ovA.drafts >= 0 && ovA.attention >= 0);
@@ -355,6 +356,13 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   console.log('Webhook');
   ok('unsigned paystack webhook -> 401', (await call('POST', '/webhooks/paystack', null, { event: 'charge.success' })).status === 401);
   ok('no token -> 401', (await call('GET', '/api/invoices')).status === 401);
+
+  console.log('Updates');
+  const pkgVersion = JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version;
+  const health = await call('GET', '/health'); ok('/health reports the running version', health.status === 200 && health.body.version === pkgVersion, JSON.stringify(health.body));
+  const upd = await call('GET', '/api/system/update', ta);
+  ok('owner sees version, release check result and database status', upd.status === 200 && upd.body.current.version === pkgVersion && upd.body.database.known && Array.isArray(upd.body.database.pending), JSON.stringify(upd.body));
+  ok('database has every migration this build expects', upd.body.database?.pending?.length === 0, JSON.stringify(upd.body.database));
 
   console.log(`\n${pass} passed, ${fail} failed`); await pool.prisma.$disconnect(); await authPool.prisma.$disconnect(); await servicePool.prisma.$disconnect(); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -1,0 +1,29 @@
+name: Release
+
+# Push a tag like v2.1.0 (matching package.json) to publish a release. Running installs see it under Settings > Updates,
+# and "npm run update" on self-hosted servers installs it.
+on:
+  push:
+    tags: ['v[0-9]*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tag must match package.json
+        run: |
+          v="$(node -p "require('./package.json').version")"
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match package.json version $v"; exit 1; }
+      - name: Release notes from CHANGELOG.md
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '/^## \[/{p = index($0, "[" v "]") > 0; next} p' CHANGELOG.md > notes.md
+          [ -s notes.md ] || { echo "CHANGELOG.md has no section for $v"; exit 1; }
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "Nexus Ledger ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag

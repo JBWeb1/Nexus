@@ -1,10 +1,10 @@
 {
   "name": "nexus-ledger",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && tsx scripts/deploy-migrate.ts && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "setup": "npm run db:create && npm run db:migrate",
@@ -14,6 +14,8 @@
     "test": "tsx --env-file=.env scripts/regression.ts",
     "test:unit": "tsx scripts/unit.ts",
     "test:business": "tsx scripts/business-sim.ts",
+    "update": "tsx scripts/self-update.ts",
+    "update:check": "tsx scripts/self-update.ts --check",
     "postinstall": "prisma generate"
   },
   "dependencies": {

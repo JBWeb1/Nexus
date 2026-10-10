@@ -9,3 +9,6 @@ next-env.d.ts
 # Business simulation output
 samples/output/
 samples/screenshots/
+
+# Database backups made by npm run update
+backups/

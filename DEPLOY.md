@@ -43,3 +43,48 @@ Both have free tiers that are enough for a demo and first testers. Check their c
   before real customers rely on it.
 - **Invoice pay links** use the same Paystack key as subscriptions, so that money lands in your account. Each company needs
   its own Paystack key before pay links are used for real.
+
+## Updating
+
+The app tells owners and admins when a newer version is out (a banner, and Settings > Updates with the release notes).
+It reads this project's GitHub releases; for a private repository set `UPDATE_CHECK_TOKEN` to a GitHub token that can
+read it, point `UPDATE_CHECK_URL` at another feed, or turn checks off with `UPDATE_CHECK=off`.
+
+**The database updates itself.** `npm run build` applies any new database changes before the new code goes live, using
+`DIRECT_URL`. If a change fails it is rolled back and the build stops, so the live site keeps running the old version.
+
+### On Vercel
+
+1. Add `DIRECT_URL` (the owner connection string) to the project's environment variables, so builds can update the database.
+2. Merge the new version into the branch Vercel deploys. Vercel builds it, the build updates the database, and the new
+   version goes live.
+
+### On your own server
+
+Install with `git clone` so the app can update itself. Then:
+
+```bash
+npm run update:check        # is there a newer version? changes nothing
+npm run update              # back up, install, update the database, restart, check, roll back on failure
+```
+
+`npm run update` backs up the database to `backups/` with `pg_dump` (needs the PostgreSQL client tools and `DIRECT_URL`),
+checks out the newest `vX.Y.Z` release, installs and builds it, restarts the app with `UPDATE_RESTART_CMD`
+(for example `pm2 restart nexus` or `sudo systemctl restart nexus`), and waits for `APP_URL/health` to report the new
+version. If the build fails or the new version does not answer within 90 seconds, it puts the previous version back.
+Database changes are additive, so the previous version keeps working; restore a backup with
+`pg_restore --clean --if-exists --dbname="$DIRECT_URL" backups/<file>.dump` only if the data itself looks wrong.
+
+Options: `--yes` (no question asked), `--channel=main` (follow the latest commit on main instead of releases),
+`--no-backup`. To update every night at 03:15, add a cron line:
+
+```
+15 3 * * * cd /srv/nexus && npm run update -- --yes >> backups/update.log 2>&1
+```
+
+### Publishing a new version
+
+1. Raise `version` in `package.json` and add a section for it at the top of `CHANGELOG.md`.
+2. Merge to main, then tag and push: `git tag v2.2.0 && git push origin v2.2.0`.
+3. The Release workflow publishes the GitHub release with the changelog section as its notes. Running installs then
+   show "2.2.0 is available", and servers on nightly updates install it.

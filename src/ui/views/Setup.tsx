@@ -1,6 +1,7 @@
 "use client";
 import TeamPanel from "../components/TeamPanel";
 import SecurityPanel from "../components/SecurityPanel";
+import UpdatesPanel from "../components/UpdatesPanel";
 import { useEffect, useState } from "react"; import { Link } from "@/ui/lib/router"; import { api } from "../api/client"; import { useAuth } from "../context/AuthContext";
 import Panel from "../components/Panel"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote"; import ProgressBar from "../components/ProgressBar";
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -54,5 +55,6 @@ export default function Setup() {
       <div className="md:col-span-2"><label className="label">Banking details (shown on invoices)</label><textarea rows={3} className="field w-full" placeholder="Bank, account holder, account number, branch code" value={f.bankDetails} onChange={set("bankDetails")} /></div>
       <div className="md:col-span-2 flex items-center gap-3"><Button type="submit" disabled={busy === "details"}>{busy === "details" ? "Saving…" : "Save"}</Button><Msg s="details" /></div></form></Panel>
     <TeamPanel />
-    <SecurityPanel /></div>);
+    <SecurityPanel />
+    <UpdatesPanel /></div>);
 }
