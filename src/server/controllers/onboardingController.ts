@@ -2,7 +2,7 @@ import { ApiError,toCamel } from '../utils/helpers';
 const TYPES = ['Construction', 'Retail', 'Restaurant / Food', 'Property', 'Freelancer / Consulting', 'Professional services', 'Manufacturing', 'Other'];
 
 import { TEMPLATES,applyAccountingStyle } from '../utils/chart';
-const ORG_COLS = 'id, name, currency, vat_number, business_type, vat_registered, accounting_style, vat_cycle, year_end_month, invoice_prefix, bill_prefix, quote_prefix, default_terms_days, registration_number, address, phone, email, bank_details';
+const ORG_COLS = 'id, name, currency, vat_number, business_type, vat_registered, accounting_style, vat_cycle, year_end_month, invoice_prefix, bill_prefix, quote_prefix, default_terms_days, registration_number, address, phone, email, bank_details, reminders_enabled, reminder_schedule';
 const VAT_CYCLES = [['A', 'Every 2 months (periods end Jan, Mar, May, Jul, Sep, Nov)'], ['B', 'Every 2 months (periods end Feb, Apr, Jun, Aug, Oct, Dec)'], ['C', 'Monthly'], ['D', 'Every 6 months (end Feb and Aug)']];
 async function getOrganization(req, res, c) {
   const o = (await c.query(`SELECT ${ORG_COLS} FROM organizations WHERE id=$1`, [req.user.orgId])).rows[0];
@@ -33,6 +33,12 @@ async function updateOrganization(req, res, c) {
   if (b.vatCycle) add('vat_cycle', b.vatCycle); if (b.yearEndMonth !== undefined) add('year_end_month', +b.yearEndMonth);
   if (b.invoicePrefix !== undefined) add('invoice_prefix', String(b.invoicePrefix).toUpperCase()); if (b.billPrefix !== undefined) add('bill_prefix', String(b.billPrefix).toUpperCase()); if (b.quotePrefix !== undefined) add('quote_prefix', String(b.quotePrefix).toUpperCase());
   if (b.defaultTermsDays !== undefined) add('default_terms_days', +b.defaultTermsDays);
+  if (b.remindersEnabled !== undefined) add('reminders_enabled', b.remindersEnabled === true);
+  if (b.reminderSchedule !== undefined) {
+    const days: number[] = Array.isArray(b.reminderSchedule) ? [...new Set<number>(b.reminderSchedule.map(Number))].sort((x, y) => x - y) : [];
+    if (!days.length || days.length > 6 || days.some((d) => !Number.isInteger(d) || d < -30 || d > 365)) throw new ApiError(400, 'Reminder days must be 1 to 6 whole numbers between -30 (before the due date) and 365');
+    add('reminder_schedule', days);
+  }
   for (const [k, col] of [['registrationNumber', 'registration_number'], ['address', 'address'], ['phone', 'phone'], ['email', 'email'], ['bankDetails', 'bank_details']]) if (b[k] !== undefined) add(col, String(b[k]).trim() || null);
   let addedAccounts = [];
   if (b.accountingStyle) { const have = new Set((await c.query('SELECT code FROM accounts WHERE organization_id=$1', [id])).rows.map((r) => r.code)); addedAccounts = await applyAccountingStyle(c, id, b.accountingStyle, have); }

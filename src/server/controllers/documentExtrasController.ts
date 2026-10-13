@@ -21,20 +21,23 @@ const email = (kind) => async (req, res, c) => {
   await sendMail({ to, subject: `${word} ${doc.number} from ${org.name}`, text: msg, attachments: [{ filename: `${doc.number}.pdf`, content: buf }] });
   res.json({ ok: true, sentTo: to });
 };
-/** Creates a Paystack checkout link for what is still owing. The existing webhook records the payment when it succeeds. */
-async function payLink(req, res, c) {
-  const orgId = req.user.orgId; const key = process.env.PAYSTACK_SECRET_KEY;
+/** A Paystack checkout link for what is still owing on an invoice. The existing webhook records the payment when it succeeds. */
+export async function invoicePayLink(c, orgId: string, invoiceId: string, email?: string) {
+  const key = process.env.PAYSTACK_SECRET_KEY;
   if (!key) throw new ApiError(503, 'Online payments are not set up yet. Add PAYSTACK_SECRET_KEY to the server settings.');
-  const inv = (await c.query('SELECT * FROM invoices WHERE id=$1 AND organization_id=$2', [req.params.id, orgId])).rows[0]; if (!inv) throw new ApiError(404, 'Invoice not found');
+  const inv = (await c.query('SELECT * FROM invoices WHERE id=$1 AND organization_id=$2', [invoiceId, orgId])).rows[0]; if (!inv) throw new ApiError(404, 'Invoice not found');
   if (!['SENT', 'PARTIAL'].includes(inv.status)) throw new ApiError(409, 'Only invoices that are owing can have a payment link');
   if (inv.currency !== 'ZAR') throw new ApiError(400, 'Payment links are for rand invoices');
   const bank = (await c.query('SELECT id FROM bank_accounts WHERE organization_id=$1 ORDER BY created_at LIMIT 1', [orgId])).rows[0]; if (!bank) throw new ApiError(400, 'Add a bank account first so payments have somewhere to land');
-  const contact = (await c.query('SELECT email FROM contacts WHERE id=$1', [inv.contact_id])).rows[0]; const to = req.body?.email || contact?.email; if (!to) throw new ApiError(400, 'The customer needs an email address for Paystack checkout');
+  const contact = (await c.query('SELECT email FROM contacts WHERE id=$1', [inv.contact_id])).rows[0]; const to = email || contact?.email; if (!to) throw new ApiError(400, 'The customer needs an email address for Paystack checkout');
   const owing = money(inv.total - inv.amount_paid);
   const r = await fetch('https://api.paystack.co/transaction/initialize', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: to, amount: Math.round(owing * 100), currency: 'ZAR', metadata: { invoice_id: inv.id, bank_account_id: bank.id } }) });
   const j = await r.json().catch(() => ({})); if (!r.ok || !j.status) throw new ApiError(502, `Paystack said: ${j.message || r.status}`);
-  res.json({ url: j.data.authorization_url, amount: owing });
+  return { url: j.data.authorization_url, amount: owing };
 }
+async function payLink(req, res, c) { res.json(await invoicePayLink(c, req.user.orgId, req.params.id, req.body?.email)); }
+/** The invoice PDF, for use outside a request (reminders, the customer portal). */
+export const invoicePdfBuffer = async (c, orgId: string, invoiceId: string) => (await build(c, orgId, 'invoice', invoiceId));
 const invoicePdf = send('invoice');
 const quotePdf = send('quote');
 const emailInvoice = email('invoice');

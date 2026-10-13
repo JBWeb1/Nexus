@@ -162,6 +162,7 @@ model Contact {
   vatNumber String? @map("vat_number")
   type String @default("CUSTOMER")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  remindersPaused Boolean @default(false) @map("reminders_paused")
   organizationRel Organization @relation("contacts_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   billsByContactId Bill[] @relation("bills_contact_id")
   creditNotesByContactId CreditNote[] @relation("credit_notes_contact_id")
@@ -368,6 +369,8 @@ model Note {
 model Organization {
   id String @id @default(dbgenerated("gen_id('org'::text)"))
   name String
+  remindersEnabled Boolean @default(false) @map("reminders_enabled")
+  reminderSchedule Int[] @default([-3, 0, 7, 30]) @map("reminder_schedule")
   currency String @default("ZAR")
   vatNumber String? @map("vat_number")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)

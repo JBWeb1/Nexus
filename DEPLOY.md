@@ -31,6 +31,9 @@ Both have free tiers that are enough for a demo and first testers. Check their c
 |---|---|---|
 | Paystack | `PAYSTACK_SECRET_KEY`, `PAYSTACK_PLAN_CODE`, `PAYSTACK_PLAN_CODE_MULTI` | Create two monthly plans (R250 and R470) in the Paystack dashboard. Set the webhook URL to `https://your-site/webhooks/paystack`. |
 | Resend | `RESEND_API_KEY`, `EMAIL_FROM` | Verify your sending domain in Resend first. |
+| Anthropic (Claude) | `ANTHROPIC_API_KEY`, optional `RECEIPT_MODEL` | Reads receipt photos on the Receipts screen (default model `claude-opus-5-5`). Without it, receipts are typed in by hand. Receipt images are sent to Anthropic to be read: mention this in your privacy policy (POPIA). |
+| Daily jobs | `CRON_SECRET` | Payment reminders go out each morning. `vercel.json` schedules `/api/cron/daily` at 05:00 UTC (07:00 SAST) and Vercel sends the secret automatically. On your own server, call it from cron: `curl -H "Authorization: Bearer $CRON_SECRET" https://your-site/api/cron/daily`. |
+| WhatsApp (Meta) | `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | Optional second channel for reminders. Create an approved template named `payment_reminder` with five body parameters: customer name, invoice number, amount, due date, pay link. |
 | S3 or R2 | `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION`, and for R2 `S3_ENDPOINT` | Required for file attachments on Vercel. Without it attachments return a clear "not set up" message. |
 
 ## Things that behave differently on serverless hosting

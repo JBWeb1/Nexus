@@ -12,3 +12,4 @@ samples/screenshots/
 
 # Database backups made by npm run update
 backups/
+.outbox/

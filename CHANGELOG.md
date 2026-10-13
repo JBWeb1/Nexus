@@ -2,6 +2,23 @@
 
 Each version's section becomes its release notes, which owners see under Settings > Updates.
 
+## [2.2.0] - 2026-10-13
+
+### New: get paid faster
+- Customer statements: opening balance, invoices, payments and credit notes with a running balance and ageing.
+  Download as PDF, email it, or share on WhatsApp. Open it from Contacts > Statement.
+- Customer portal: a private link where a customer sees everything they owe, opens their invoices, downloads their
+  statement and pays online. Links expire after a year and can be turned off per customer.
+- Automatic payment reminders (Settings > Payment reminders): a friendly note 3 days before the due date, then on the
+  day, 7 and 30 days late (you choose the days). Each email has the invoice attached and a pay link; never sent twice;
+  pause it for any customer.
+
+### New: receipts from photos
+- Snap or upload a till slip or supplier invoice on the new Receipts screen. Claude reads the supplier, date, total
+  and VAT; you check it and save it as a bill, paid or owing, with the photo attached as the tax invoice.
+- Till slips with zero-rated items (milk, bread) are split so the VAT claimed matches the slip exactly. Fuel is
+  zero-rated, and VAT is only suggested on a proper tax invoice.
+
 ## [2.1.0] - 2026-10-10
 
 ### New

@@ -271,6 +271,78 @@ const val = (v: any) => (v && typeof v === 'object' && 'result' in v ? v.result 
   fs.writeFileSync('samples/output/invoice-S4.pdf', pdf.buffer);
   const dash = await call('GET', '/dashboard'); ok('dashboard loads', dash.status === 200, dash.body);
 
+  // ---------- Getting paid ----------
+  console.log('\n12. Getting paid: statements, the customer portal, reminders');
+  const OUTBOX = process.env.MAIL_OUTBOX_DIR; const mails = () => (OUTBOX && fs.existsSync(OUTBOX) ? fs.readdirSync(OUTBOX).sort().map((f) => JSON.parse(fs.readFileSync(`${OUTBOX}/${f}`, 'utf8'))) : []);
+  const mailsBefore = mails().length; const bean = people['Bean There Cafe'], deli = people['Stellenbosch Deli'];
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const st = (await call('GET', `/contacts/${bean.id}/statement?from=2026-06-01&to=${todayIso}`)).body.statement;
+  ok(`Bean There statement: June opening invoice + S4 still owing = ${R(st?.closingBalance)}`, near(st?.closingBalance, 3450 + 14720) && near(st.openingBalance, 0), st);
+  ok('statement lists invoices and the payment with a running balance', st.lines.length === 4 && st.lines.some((l: any) => l.type === 'PAYMENT' && near(l.credit, 14720)) && near(st.lines[st.lines.length - 1].balance, st.closingBalance), st.lines);
+  const arBean = (await call('GET', `/reports/aged-receivables?asOf=${todayIso}`)).body.rows.find((r: any) => r.contactId === bean.id);
+  ok('statement balance agrees with aged debtors', near(arBean?.total, st.closingBalance), arBean);
+  const spdf = await call('GET', `/contacts/${bean.id}/statement/pdf?from=2026-06-01&to=${todayIso}`, undefined, true);
+  ok('statement PDF generated', spdf.status === 200 && spdf.buffer.subarray(0, 4).toString() === '%PDF', spdf.type); fs.writeFileSync('samples/output/statement-bean-there.pdf', spdf.buffer);
+  let ptoken = '';
+  if (OUTBOX) {
+    const em = await call('POST', `/contacts/${bean.id}/statement/email`, { from: '2026-06-01', to: todayIso });
+    const mail = mails().slice(mailsBefore).find((m: any) => /Statement/.test(m.subject));
+    ptoken = (mail?.text.match(/\/portal\/([\w-]+)/) || [])[1] || '';
+    ok('statement emailed with the PDF attached and a portal link', em.status === 200 && mail?.to === 'accounts@beanthere.example' && mail.attachments[0]?.pdf && !!ptoken, { em: em.body, mail });
+  } else { ptoken = (await call('POST', `/contacts/${bean.id}/portal-link`)).body.url?.split('/portal/')[1]; note('MAIL_OUTBOX_DIR not set: email checks skipped'); }
+  const savedToken = ptoken;
+  const portal = await fetch(`${BASE}/api/portal/${savedToken}`).then(async (r) => ({ status: r.status, body: await r.json() }));
+  ok(`customer portal (no sign-in) shows what they owe: ${R(portal.body.statement?.closingBalance)}, ${portal.body.statement?.openInvoices.length} open invoices`, portal.status === 200 && near(portal.body.statement.closingBalance, st.closingBalance) && portal.body.statement.openInvoices.length === 2, portal.body);
+  const pinv = await fetch(`${BASE}/api/portal/${savedToken}/invoices/${portal.body.statement.openInvoices[0].id}/pdf`);
+  ok('the customer can open their invoice PDF', pinv.status === 200 && (await pinv.arrayBuffer()).byteLength > 1000);
+  ok("the link cannot open another customer's invoice", (await fetch(`${BASE}/api/portal/${savedToken}/invoices/${inv.S2.id}/pdf`)).status === 404);
+  ok('a made-up link is refused', (await fetch(`${BASE}/api/portal/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`)).status === 404);
+  const rv = await call('DELETE', `/contacts/${bean.id}/portal-link`);
+  ok('turning the links off locks the portal', rv.body.revoked >= 1 && (await fetch(`${BASE}/api/portal/${savedToken}`)).status === 404, rv.body);
+
+  const rset = await call('PATCH', '/organization', { remindersEnabled: true, reminderSchedule: [-3, 0, 7, 30] });
+  ok('payment reminders switched on (3 days before, due day, 7 and 30 days late)', rset.status === 200 && rset.body.organization.remindersEnabled === true, rset.body);
+  ok('a silly schedule is refused', (await call('PATCH', '/organization', { reminderSchedule: [500] })).status === 400);
+  const before2 = mails().length; const run1 = (await call('POST', '/reminders/run')).body.results || [];
+  if (OUTBOX) {
+    ok(`reminders sent for the 3 overdue invoices (${run1.map((r: any) => `${r.invoice}: ${r.stage} days`).join(', ')})`, run1.length === 3 && run1.every((r: any) => r.status === 'SENT' && r.stage === 30 || r.status === 'SENT' && r.stage === 7), run1);
+    const rm = mails().slice(before2);
+    ok('each reminder email is marked overdue, has the invoice PDF and a pay link', rm.length === 3 && rm.every((m: any) => /^Overdue/.test(m.subject) && m.attachments[0]?.pdf && /\/portal\//.test(m.text)), rm.map((m: any) => m.subject));
+    const run2 = (await call('POST', '/reminders/run')).body.results || [];
+    ok('running again sends nothing twice', run2.length === 0, run2);
+    await call('PATCH', `/contacts/${deli.id}`, { remindersPaused: true }); await call('PATCH', '/organization', { reminderSchedule: [-3, 0, 7, 30, 60] });
+    const run3 = (await call('POST', '/reminders/run')).body.results || [];
+    ok('a paused customer gets no reminders; others get the new 60-day one', run3.length >= 1 && run3.every((r: any) => r.customer !== deli.name && r.stage === 60), run3);
+    const log = (await call('GET', '/reminders')).body;
+    ok('the reminder log shows what went out', log.reminders.filter((r: any) => r.status === 'SENT').length === 3 + run3.length && log.email === true, log);
+  } else ok('without email or WhatsApp, reminders wait instead of failing', run1.every((r: any) => r.status === 'NO_CHANNEL'), run1);
+  if (process.env.CRON_SECRET) {
+    ok('the daily job refuses callers without the secret', (await fetch(`${BASE}/api/cron/daily`)).status === 401);
+    const cron = await fetch(`${BASE}/api/cron/daily`, { headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` } }).then(async (r) => ({ status: r.status, body: await r.json() }));
+    ok(`the daily job runs every company with reminders on (${cron.body.companies})`, cron.status === 200 && cron.body.companies >= 1 && cron.body.errors.length === 0, cron.body);
+  }
+
+  // ---------- Receipts ----------
+  console.log('\n13. Receipts');
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+  const rform = new FormData(); rform.append('file', new Blob([png], { type: 'image/png' }), 'sasol-slip.png');
+  const rd = await call('POST', '/receipts/read', rform);
+  ok(`receipt kept even when it cannot be read (${rd.body.readError ? 'reader not set up here' : 'read'})`, rd.status === 200 && !!rd.body.attachmentId, rd.body);
+  const bankBefore = (await call('GET', '/bank-accounts')).body.bankAccounts.find((b: any) => b.id === bank.id).currentBalance;
+  const zero = taxRates.find((t: any) => /zero/i.test(t.name)).id;
+  const fuel = await call('POST', '/receipts/save', { attachmentId: rd.body.attachmentId, supplierName: 'Sasol Paarl', date: '2026-09-29', documentNumber: 'T-881', description: 'Diesel for delivery van', total: 650, vatAmount: 0, accountId: acc('6600'), taxRateId: zero, bankAccountId: bank.id });
+  ok('fuel slip saved as a paid bill (zero-rated), new supplier added', fuel.status === 201 && fuel.body.bill.status === 'PAID' && near(fuel.body.bill.total, 650) && near(fuel.body.bill.taxTotal, 0), fuel.body);
+  const atts = (await call('GET', `/attachments?entityType=BILL&entityId=${fuel.body.bill.id}`)).body.attachments;
+  ok('the photo is attached to the bill', atts?.length === 1 && atts[0].filename === 'sasol-slip.png', atts);
+  ok('the same photo cannot be saved twice', (await call('POST', '/receipts/save', { attachmentId: rd.body.attachmentId, supplierName: 'Sasol Paarl', date: '2026-09-29', total: 650, accountId: acc('6600') })).status === 400);
+  const bankAfter = (await call('GET', '/bank-accounts')).body.bankAccounts.find((b: any) => b.id === bank.id).currentBalance;
+  ok('bank balance down by R650', near(bankBefore - bankAfter, 650), { bankBefore, bankAfter });
+  const vSepBefore = (await call('GET', '/reports/vat201?from=2026-09-01&to=2026-10-31')).body.vat201;
+  const till = await call('POST', '/receipts/save', { supplierName: 'Pick n Pay Paarl', date: '2026-09-30', documentNumber: '', description: 'Milk, coffee cups and cleaning', total: 250, vatAmount: 15, accountId: acc('6500'), taxRateId: vat15 });
+  ok('till slip with zero-rated milk: one bill, two lines, VAT exactly as printed (R15)', till.status === 201 && till.body.lines === 2 && near(till.body.bill.total, 250) && near(till.body.bill.taxTotal, 15) && till.body.bill.status === 'APPROVED', till.body);
+  const vSep = (await call('GET', '/reports/vat201?from=2026-09-01&to=2026-10-31')).body.vat201;
+  ok('the receipt VAT is claimed on the VAT201', near(vSep.inputVat - vSepBefore.inputVat, 15), { before: vSepBefore.inputVat, after: vSep.inputVat });
+
   console.log(`\nSummary: bank ${R(bal)}, revenue ${R(pl.totalRevenue)}, expenses ${R(pl.totalExpenses)}, net ${R(pl.netProfit)}, debtors ${R(ar.totals.total)}, VAT ${R(v.netVat)}`);
   console.log(`Login used: owner-${stamp}@karoo.example / Roast3r!2026`);
   fs.writeFileSync('samples/output/last-login.txt', `owner-${stamp}@karoo.example\nRoast3r!2026\n`);

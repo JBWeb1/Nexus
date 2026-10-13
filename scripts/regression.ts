@@ -190,7 +190,9 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   const voidRes = await call('POST', `/api/credit-notes/${fullRes.body.creditNote.id}/void`, ta); ok('voiding a credit note restores the invoice', voidRes.status === 200 && (await call('GET', `/api/invoices/${cfull.id}`, ta)).body.invoice.status === 'SENT');
   ok('credit note PDF downloads', (await call('GET', `/api/credit-notes/${cnr.body.creditNote.id}/pdf`, ta)).body.startsWith('%PDF'));
   ok('invoice PDF downloads', (await call('GET', `/api/invoices/${cinv.id}/pdf`, ta)).body.startsWith('%PDF'));
-  ok('emailing without SMTP configured says so clearly (503)', (await call('POST', `/api/invoices/${cinv.id}/email`, ta, { to: 'a@b.co.za' })).status === 503);
+  // MAIL_OUTBOX_DIR (set for the business test) gives the server a test mailbox, so email works instead of being refused.
+  if (process.env.MAIL_OUTBOX_DIR) ok('emailing an invoice works when email is set up', (await call('POST', `/api/invoices/${cinv.id}/email`, ta, { to: 'a@b.co.za' })).status === 200);
+  else ok('emailing without email configured says so clearly (503)', (await call('POST', `/api/invoices/${cinv.id}/email`, ta, { to: 'a@b.co.za' })).status === 503);
   const plk = await call('POST', `/api/invoices/${cinv.id}/pay-link`, ta, {}); ok('payment link fails with a readable message when Paystack is unreachable or not configured', [400, 502, 503].includes(plk.status) && !!plk.body.error);
   const actLog = (await call('GET', '/api/activity', ta)).body.activity; ok('activity log records who did what', actLog.some((x) => x.action === 'Issued a credit note') && actLog.some((x) => x.action.startsWith('Sent an invoice')) && actLog[0].userName === 'Tester', JSON.stringify(actLog.slice(0, 3)));
   const expo = await call('GET', '/api/export/company-data', ta); ok('company data export is valid JSON with invoices and notes', expo.status === 200 && expo.body.invoices.length > 3 && Array.isArray(expo.body.notes) && expo.body.company.id === A.organization.id);

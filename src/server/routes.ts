@@ -36,6 +36,10 @@ import * as act from './controllers/activityController';
 import * as sec from './controllers/securityController';
 import * as att from './controllers/attachmentsController';
 import * as sys from './controllers/systemController';
+import * as stmt from './controllers/statementController';
+import * as portal from './controllers/portalController';
+import * as rem from './controllers/reminderController';
+import * as rcpt from './controllers/receiptsController';
 
 const r = new Router();
 const authLimit = rateLimit({ limit: 30, windowMs: 60_000, name: 'auth' }), resetLimit = rateLimit({ limit: 6, windowMs: 3_600_000, name: 'reset' });
@@ -43,6 +47,11 @@ r.post('/auth/register', authLimit, h(auth.register, { pool: authPool, scoped: f
 r.post('/auth/login', authLimit, h(auth.login, { pool: authPool, scoped: false }));
 r.post('/auth/forgot', resetLimit, h(sec.forgot, { pool: authPool, scoped: false }));
 r.post('/auth/reset', authLimit, h(sec.reset, { pool: authPool, scoped: false }));
+// Customer portal and the daily job: no sign-in. The portal is limited by its secret link and a rate limit.
+const portalLimit = rateLimit({ limit: 60, windowMs: 60_000, name: 'portal' });
+r.get('/portal/:token', portalLimit, h(portal.summary, { pool: servicePool, scoped: false })); r.get('/portal/:token/statement.pdf', portalLimit, h(portal.statementPdf, { pool: servicePool, scoped: false }));
+r.get('/portal/:token/invoices/:id/pdf', portalLimit, h(portal.invoicePdf, { pool: servicePool, scoped: false })); r.post('/portal/:token/invoices/:id/pay', portalLimit, h(portal.pay, { pool: servicePool, scoped: false }));
+r.get('/cron/daily', rem.daily);
 r.use(requireAuth);
 r.get('/auth/me', h(auth.me));
 r.get('/billing', h(bill.status, { pool: servicePool, scoped: false })); r.post('/billing/checkout', h(bill.checkout, { pool: servicePool, scoped: false })); r.post('/billing/verify', h(bill.verify, { pool: servicePool, scoped: false })); r.post('/billing/cancel', h(bill.cancel, { pool: servicePool, scoped: false }));
@@ -80,6 +89,10 @@ r.get('/reports/profit-and-loss', h(rep.profitAndLoss)); r.get('/reports/balance
 r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
 
 r.post('/import/expenses/preview', h(imp.preview)); r.post('/import/expenses/commit', h(imp.commit));
+r.get('/contacts/:id/statement', h(stmt.get)); r.get('/contacts/:id/statement/pdf', h(stmt.pdf)); r.post('/contacts/:id/statement/email', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.email));
+r.post('/contacts/:id/portal-link', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.portalLink)); r.delete('/contacts/:id/portal-link', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.revokePortal));
+r.post('/receipts/read', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(rcpt.read)); r.post('/receipts/save', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(rcpt.save));
+r.get('/reminders', h(rem.list)); r.post('/reminders/run', requireRole('OWNER', 'ADMIN'), h(rem.runNow));
 r.get('/system/update', requireRole('OWNER', 'ADMIN'), h(sys.status, { pool: servicePool, scoped: false }));
 r.post('/import/opening-balances/preview', h(imp.openingPreview)); r.post('/import/opening-balances/commit', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(imp.openingCommit));
 r.get('/export/general-ledger', h(exp.generalLedger)); r.get('/export/trial-balance', h(exp.trialBalance)); r.get('/export/invoices', h(exp.invoices)); r.get('/export/bills', h(exp.bills));

@@ -35,6 +35,12 @@ While developing, use `npm run dev` instead of build + start. Pages reload as yo
 Other commands: `npm run typecheck`, `npm run test:unit` (fast checks, no database needed), `npm test` (175 end-to-end checks against a running server; set `API=http://localhost:3000`
 and `ADMIN_DATABASE_URL` to the same value as `DIRECT_URL`, and start the server with `PAYSTACK_SECRET_KEY=sk_test_regression` and `DISABLE_RATE_LIMIT=1`).
 
+## Getting paid and receipts
+
+Statements (Contacts > Statement), a customer portal with online payment, automatic payment reminders
+(Settings > Payment reminders, sent daily via `/api/cron/daily`) and receipt reading from photos (Receipts, needs
+`ANTHROPIC_API_KEY`). See DEPLOY.md for the settings.
+
 ## Updates
 
 Every build updates the database itself, owners see when a new version is out (Settings > Updates), and

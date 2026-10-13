@@ -28,7 +28,7 @@ export async function update(req: Req, res: Res, c: Queryable) {
   const b = clean(req.body || {}, true);
   if (!(await c.prisma.contact.findFirst({ where: { id: req.params.id, organizationId: req.user.orgId }, select: { id: true } }))) throw new ApiError(404, 'Contact not found');
   // Only the fields that were sent are changed.
-  const data = { ...(b.name?.trim() ? { name: b.name.trim() } : {}), ...(b.email != null ? { email: b.email } : {}), ...(b.phone != null ? { phone: b.phone } : {}), ...(b.address != null ? { address: b.address } : {}), ...(b.vatNumber != null ? { vatNumber: b.vatNumber } : {}), ...(b.type ? { type: b.type } : {}) };
+  const data = { ...(b.name?.trim() ? { name: b.name.trim() } : {}), ...(b.email != null ? { email: b.email } : {}), ...(b.phone != null ? { phone: b.phone } : {}), ...(b.address != null ? { address: b.address } : {}), ...(b.vatNumber != null ? { vatNumber: b.vatNumber } : {}), ...(b.type ? { type: b.type } : {}) , ...(typeof b.remindersPaused === 'boolean' ? { remindersPaused: b.remindersPaused } : {}) };
   res.json({ contact: plain(await c.prisma.contact.update({ where: { id: req.params.id }, data })) });
 }
 export async function remove(req: Req, res: Res, c: Queryable) {

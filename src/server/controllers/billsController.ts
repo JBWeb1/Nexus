@@ -27,10 +27,9 @@ async function create(req, res, c) {
   await insertLines(c, 'bill_lines', 'bill_id', r.rows[0].id, priced.lines);
   res.status(201).json({ bill: await withLines(c, r.rows[0]) });
 }
-/** Dr expense lines + Dr VAT Input / Cr Accounts Payable */
-async function approve(req, res, c) {
-  const orgId = req.user.orgId;
-  const bill = (await c.query('SELECT * FROM bills WHERE id=$1 AND organization_id=$2 FOR UPDATE', [req.params.id, orgId])).rows[0];
+/** Dr expense lines + Dr VAT Input / Cr Accounts Payable. Also used when a receipt is saved as a bill. */
+export async function approveBill(c, orgId: string, billId: string, userId: string | null) {
+  const bill = (await c.query('SELECT * FROM bills WHERE id=$1 AND organization_id=$2 FOR UPDATE', [billId, orgId])).rows[0];
   if (!bill) throw new ApiError(404, 'Bill not found');
   if (bill.status !== 'DRAFT') throw new ApiError(409, `Bill is already ${bill.status}`);
   if (!(bill.total > 0)) throw new ApiError(400, 'Cannot approve a bill with a zero total');
@@ -41,10 +40,10 @@ async function approve(req, res, c) {
   if (vat > 0) jl.push({ accountId: await accountByCode(c, orgId, '2110'), debit: vat, description: `VAT ${bill.number}` });
   const gross = money(jl.reduce((s, l) => s + l.debit, 0));
   jl.push({ accountId: await accountByCode(c, orgId, '2000'), credit: gross, description: `Bill ${bill.number}`, currency: bill.currency, exchangeRate: bill.exchange_rate });
-  const je = await postJournalEntry(c, { orgId, date: bill.issue_date, description: `Bill ${bill.number}`, sourceType: 'PURCHASE', sourceTable: 'bills', sourceId: bill.id, lines: jl, createdBy: req.user.userId });
-  const r = await c.query("UPDATE bills SET status='APPROVED', journal_entry_id=$2 WHERE id=$1 RETURNING *", [bill.id, je.id]);
-  res.json({ bill: await withLines(c, r.rows[0]) });
+  const je = await postJournalEntry(c, { orgId, date: bill.issue_date, description: `Bill ${bill.number}`, sourceType: 'PURCHASE', sourceTable: 'bills', sourceId: bill.id, lines: jl, createdBy: userId });
+  return (await c.query("UPDATE bills SET status='APPROVED', journal_entry_id=$2 WHERE id=$1 RETURNING *", [bill.id, je.id])).rows[0];
 }
+async function approve(req, res, c) { res.json({ bill: await withLines(c, await approveBill(c, req.user.orgId, req.params.id, req.user.userId)) }); }
 async function voidBill(req, res, c) {
   const orgId = req.user.orgId;
   const bill = (await c.query('SELECT * FROM bills WHERE id=$1 AND organization_id=$2 FOR UPDATE', [req.params.id, orgId])).rows[0];

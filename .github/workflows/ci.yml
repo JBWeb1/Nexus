@@ -24,6 +24,9 @@ jobs:
       API: http://localhost:3000
       PAYSTACK_SECRET_KEY: sk_test_regression
       DISABLE_RATE_LIMIT: "1"
+      # A test mailbox (emails written to files) and the daily-job secret, so reminders and statements are tested end to end.
+      MAIL_OUTBOX_DIR: ${{ github.workspace }}/outbox
+      CRON_SECRET: ci-cron-secret
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

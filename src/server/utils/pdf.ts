@@ -39,3 +39,39 @@ function renderDocument({ kind, org, contact, doc, lines, dateLabel = 'Date', du
   });
 }
 export { renderDocument };
+
+/** A customer statement: opening balance, each invoice/payment/credit with a running balance, ageing boxes, banking details. */
+function renderStatement(s: any): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const pdf = new PDFDocument({ size: 'A4', margin: 50 }); const chunks = [];
+    pdf.on('data', (c) => chunks.push(c)); pdf.on('end', () => resolve(Buffer.concat(chunks))); pdf.on('error', reject);
+    const ink = '#14212F', soft = '#5b6670', gold = '#B8932B', R = (n) => fmt(n, s.currency); const o = s.organization;
+    pdf.fillColor(ink).font('Helvetica-Bold').fontSize(18).text(o.name, 50, 50);
+    pdf.font('Helvetica').fontSize(9).fillColor(soft);
+    [o.registrationNumber && `Reg: ${o.registrationNumber}`, o.vatNumber && `VAT: ${o.vatNumber}`, o.address, o.phone, o.email].filter(Boolean).forEach((t) => pdf.text(String(t), { width: 260 }));
+    pdf.font('Helvetica-Bold').fontSize(22).fillColor(gold).text('STATEMENT', 330, 50, { width: 215, align: 'right' });
+    pdf.font('Helvetica').fontSize(10).fillColor(ink).text(`${s.from} to ${s.to}`, 330, 82, { width: 215, align: 'right' });
+    pdf.font('Helvetica-Bold').fontSize(12).text(`Balance due: ${R(s.closingBalance)}`, 330, 100, { width: 215, align: 'right' });
+    let y = Math.max(pdf.y, 150) + 14; pdf.moveTo(50, y).lineTo(545, y).strokeColor('#d8d2c2').stroke(); y += 12;
+    pdf.font('Helvetica-Bold').fontSize(9).fillColor(soft).text('TO', 50, y); pdf.font('Helvetica').fontSize(11).fillColor(ink).text(s.contact.name, 50, y + 13);
+    pdf.fontSize(9).fillColor(soft); [s.contact.address, s.contact.email, s.contact.vatNumber && `VAT: ${s.contact.vatNumber}`].filter(Boolean).forEach((t) => pdf.text(String(t), { width: 260 }));
+    y = pdf.y + 16; const head = () => { pdf.rect(50, y, 495, 20).fill('#EFE9DA'); pdf.fillColor(ink).font('Helvetica-Bold').fontSize(9);
+      pdf.text('Date', 56, y + 6); pdf.text('Reference', 120, y + 6); pdf.text('Details', 200, y + 6); pdf.text('Charged', 330, y + 6, { width: 65, align: 'right' }); pdf.text('Paid', 400, y + 6, { width: 65, align: 'right' }); pdf.text('Balance', 470, y + 6, { width: 70, align: 'right' }); y += 26; pdf.font('Helvetica').fontSize(9); };
+    head();
+    pdf.fillColor(soft).text(s.from, 56, y).text('Balance brought forward', 200, y).fillColor(ink).text(R(s.openingBalance), 470, y, { width: 70, align: 'right' }); y += 18;
+    for (const l of s.lines) {
+      if (y > 690) { pdf.addPage(); y = 60; head(); }
+      pdf.fillColor(ink).text(l.date, 56, y).text(l.reference, 120, y, { width: 75 }); pdf.text(l.description, 200, y, { width: 125 }); const h = pdf.y;
+      if (l.debit) pdf.text(R(l.debit), 330, y, { width: 65, align: 'right' }); if (l.credit) pdf.text(R(l.credit), 400, y, { width: 65, align: 'right' });
+      pdf.text(R(l.balance), 470, y, { width: 70, align: 'right' }); y = Math.max(h, y + 12) + 6; pdf.moveTo(50, y - 3).lineTo(545, y - 3).strokeColor('#e6e0d0').lineWidth(0.5).stroke();
+    }
+    y += 10; if (y > 660) { pdf.addPage(); y = 60; }
+    const boxes = [['Current', s.ageing.current], ['1-30 days', s.ageing.d1_30], ['31-60 days', s.ageing.d31_60], ['61-90 days', s.ageing.d61_90], ['90+ days', s.ageing.d90plus], ['Total due', s.closingBalance]];
+    boxes.forEach(([label, v], i) => { const x = 50 + i * 82.5; pdf.rect(x, y, 80, 38).strokeColor('#d8d2c2').stroke(); pdf.font('Helvetica').fontSize(8).fillColor(soft).text(String(label), x + 4, y + 5, { width: 72, align: 'center' });
+      pdf.font(i === 5 ? 'Helvetica-Bold' : 'Helvetica').fontSize(9.5).fillColor(ink).text(R(v), x + 4, y + 20, { width: 72, align: 'center' }); });
+    y += 56;
+    if (o.bankDetails) { pdf.font('Helvetica-Bold').fontSize(9).fillColor(soft).text('BANKING DETAILS', 50, y); pdf.font('Helvetica').fontSize(10).fillColor(ink).text(o.bankDetails, 50, y + 12, { width: 300 }); }
+    pdf.end();
+  });
+}
+export { renderStatement };
