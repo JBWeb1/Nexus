@@ -28,12 +28,17 @@ function validateHeader(b, { dueField }) {
   return { currency: (b.currency || 'ZAR').toUpperCase().slice(0, 3), exchangeRate: rate };
 }
 
+/**
+ * The next document number: PREFIX-0001, PREFIX-0002, ... Only numbers in that exact form count, so a supplier's own
+ * reference on a bill (for example "T-881" from a receipt) can never make the company's numbering jump.
+ */
 async function nextNumber(client, orgId, table, prefix) {
   await client.query('SELECT pg_advisory_xact_lock(hashtext($1))::text AS locked', [`${table}:${orgId}`]);
-  const r = await client.query(`SELECT COALESCE(MAX(NULLIF(regexp_replace(number, '\\D', '', 'g'), '')::int), 0) + 1 AS n FROM ${table} WHERE organization_id=$1`, [orgId]);
   const col = { invoices: 'invoice_prefix', bills: 'bill_prefix', quotes: 'quote_prefix', credit_notes: 'credit_note_prefix' }[table];
-  const p = col ? (await client.query(`SELECT ${col} AS p FROM organizations WHERE id=$1`, [orgId])).rows[0]?.p : null;
-  return `${p || prefix}-${String(r.rows[0].n).padStart(4, '0')}`;
+  const p = (col ? (await client.query(`SELECT ${col} AS p FROM organizations WHERE id=$1`, [orgId])).rows[0]?.p : null) || prefix;
+  const pattern = `^${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-[0-9]+$`;
+  const r = await client.query(`SELECT COALESCE(MAX(substring(number from '[0-9]+$')::int), 0) + 1 AS n FROM ${table} WHERE organization_id=$1 AND number ~ $2`, [orgId, pattern]);
+  return `${p}-${String(r.rows[0].n).padStart(4, '0')}`;
 }
 
 async function insertLines(client, table, fk, parentId, lines) {

@@ -19,6 +19,10 @@ Each version's section becomes its release notes, which owners see under Setting
 - Till slips with zero-rated items (milk, bread) are split so the VAT claimed matches the slip exactly. Fuel is
   zero-rated, and VAT is only suggested on a proper tax invoice.
 
+### Fixed
+- Automatic invoice, bill and quote numbers only follow the company's own sequence (BILL-0004 after BILL-0003).
+  Before, a supplier reference such as "T-881" on a bill from a receipt made the next number jump to BILL-0882.
+
 ## [2.1.0] - 2026-10-10
 
 ### New

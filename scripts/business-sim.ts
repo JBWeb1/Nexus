@@ -340,6 +340,7 @@ const val = (v: any) => (v && typeof v === 'object' && 'result' in v ? v.result 
   const vSepBefore = (await call('GET', '/reports/vat201?from=2026-09-01&to=2026-10-31')).body.vat201;
   const till = await call('POST', '/receipts/save', { supplierName: 'Pick n Pay Paarl', date: '2026-09-30', documentNumber: '', description: 'Milk, coffee cups and cleaning', total: 250, vatAmount: 15, accountId: acc('6500'), taxRateId: vat15 });
   ok('till slip with zero-rated milk: one bill, two lines, VAT exactly as printed (R15)', till.status === 201 && till.body.lines === 2 && near(till.body.bill.total, 250) && near(till.body.bill.taxTotal, 15) && till.body.bill.status === 'APPROVED', till.body);
+  ok(`bill numbering continues the company's own sequence (${till.body.bill.number}), not jumping past supplier references like T-881`, till.body.bill.number === 'BILL-0004', till.body.bill);
   const vSep = (await call('GET', '/reports/vat201?from=2026-09-01&to=2026-10-31')).body.vat201;
   ok('the receipt VAT is claimed on the VAT201', near(vSep.inputVat - vSepBefore.inputVat, 15), { before: vSepBefore.inputVat, after: vSep.inputVat });
 
