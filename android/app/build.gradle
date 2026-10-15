@@ -1,0 +1,45 @@
+// Nexus Ledger for Android: a Trusted Web Activity that opens the hosted Nexus site full-screen, like a native app.
+// Chrome supplies the engine, so sign-in, PDFs and file uploads behave exactly as on the web.
+plugins { id 'com.android.application' }
+
+def appUrl = (project.findProperty('appUrl') ?: 'https://nexus-ledger.vercel.app').toString().replaceAll('/+$', '')
+def appHost = new URI(appUrl).host
+
+android {
+    namespace 'za.co.nexusledger.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId project.findProperty('appId') ?: 'za.co.nexusledger.app'
+        minSdk 21
+        targetSdk 35
+        versionCode((project.findProperty('versionCode') ?: '1').toInteger())
+        versionName project.findProperty('versionName') ?: '2.2.0'
+        resValue 'string', 'appName', 'Nexus Ledger'
+        resValue 'string', 'launchUrl', appUrl + '/'
+        manifestPlaceholders = [hostName: appHost]
+        // Tells Android this app may open the site full-screen; the site confirms it in /.well-known/assetlinks.json.
+        resValue 'string', 'assetStatements', '[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "web", "site": "https://' + appHost + '" } }]'
+    }
+    signingConfigs {
+        release {
+            // From the environment in CI (see .github/workflows/android.yml); without them the build uses the debug key.
+            if (System.getenv('ANDROID_KEYSTORE_PATH')) {
+                storeFile file(System.getenv('ANDROID_KEYSTORE_PATH'))
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig System.getenv('ANDROID_KEYSTORE_PATH') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+}

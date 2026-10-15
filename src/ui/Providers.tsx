@@ -2,6 +2,7 @@
 import { Suspense, useSyncExternalStore, type ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "./context/AuthContext";
+import { useServiceWorker } from "./components/InstallApp";
 
 const noop = () => () => {};
 
@@ -12,5 +13,6 @@ const noop = () => () => {};
 export default function Providers({ children }: { children: ReactNode }) {
   // True in the browser, false while the server prerenders. Read synchronously, so a remount can never leave the page blank.
   const ready = useSyncExternalStore(noop, () => true, () => false);
+  useServiceWorker();
   return (<SessionProvider basePath="/api/session" refetchOnWindowFocus={false}><AuthProvider>{ready ? <Suspense fallback={<div className="p-8 text-sm text-muted-foreground">Loading…</div>}>{children}</Suspense> : null}</AuthProvider></SessionProvider>);
 }

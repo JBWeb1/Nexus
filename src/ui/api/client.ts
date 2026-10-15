@@ -3,7 +3,10 @@ const BASE = "/api";
 export class ApiError extends Error { status: number; details?: any; constructor(status: number, message: string, details?: any) { super(message); this.status = status; this.details = details; } }
 async function request(method: string, path: string, body?: any) {
   const form = typeof FormData !== "undefined" && body instanceof FormData;
-  const res = await fetch(`${BASE}${path}`, { method, headers: form || body === undefined ? undefined : { "Content-Type": "application/json" }, body: body === undefined ? undefined : form ? body : JSON.stringify(body), credentials: "same-origin" });
+  let res: Response;
+  // No connection (phone signal, Wi-Fi) is status 0, so screens can say so instead of treating it as being signed out.
+  try { res = await fetch(`${BASE}${path}`, { method, headers: form || body === undefined ? undefined : { "Content-Type": "application/json" }, body: body === undefined ? undefined : form ? body : JSON.stringify(body), credentials: "same-origin" }); }
+  catch { throw new ApiError(0, "No connection. Check your internet and try again."); }
   if (res.status === 204) return null;
   const text = await res.text(); let data: any; try { data = text ? JSON.parse(text) : null; } catch { data = text; }
   if (res.status === 401 && !path.startsWith("/auth/") && !/^\/(login|register|forgot-password|reset-password)/.test(window.location.pathname)) window.location.assign("/login");

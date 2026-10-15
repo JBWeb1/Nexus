@@ -91,3 +91,38 @@ Options: `--yes` (no question asked), `--channel=main` (follow the latest commit
 2. Merge to main, then tag and push: `git tag v2.2.0 && git push origin v2.2.0`.
 3. The Release workflow publishes the GitHub release with the changelog section as its notes. Running installs then
    show "2.2.0 is available", and servers on nightly updates install it.
+
+## Installing Nexus as an app
+
+Nexus is a web app, so every installed copy opens your live site and stays in sync. Deploy it first (above), then:
+
+| Device | How |
+|---|---|
+| Android | Chrome menu (⋮) > **Install app**, or the Android APK below |
+| iPhone / iPad | Open in **Safari** > Share > **Add to Home Screen** |
+| Windows, Mac, Linux | In **Chrome** or **Edge**, the install icon in the address bar, or Settings > Install the app. On a Mac with Safari: File > Add to Dock |
+
+Settings > **Install the app** shows the right steps for each device, with a one-click button where the browser offers one.
+Without a connection the app shows "You're offline" and reconnects by itself; financial data is never stored on the device.
+
+### Android app (APK)
+
+The `android/` folder is a small Android app that opens your Nexus site full-screen (a Trusted Web Activity: Chrome
+runs it, so everything works as on the web). GitHub builds it:
+
+1. **Make a signing key once** and keep it safe. Phones only accept updates signed with the same key:
+   ```bash
+   keytool -genkeypair -v -keystore nexus.jks -alias nexus -keyalg RSA -keysize 2048 -validity 10000
+   base64 -w0 nexus.jks > nexus.jks.b64     # macOS: base64 -i nexus.jks -o nexus.jks.b64
+   ```
+2. In GitHub > Settings > Secrets and variables > Actions, add `ANDROID_KEYSTORE_BASE64` (the contents of
+   `nexus.jks.b64`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`nexus`) and `ANDROID_KEY_PASSWORD`.
+3. Actions > **Android app** > **Run workflow**, and enter your site address (for example `https://books.example.co.za`).
+4. Download the APK from the run's **Artifacts**. The run summary shows a line `ANDROID_CERT_SHA256=...`: add that
+   to your site's environment variables (and `ANDROID_PACKAGE_NAME` if you changed `appId`) and redeploy. Android then
+   opens the app full-screen without a browser bar; until then it opens with a small address bar.
+5. Install: send the APK to the phone and open it (allow "Install unknown apps" for the browser or file manager), or
+   upload it to the Google Play Console to publish it in the Play Store.
+
+Without the secrets the workflow still builds, with a temporary key: fine for trying it out, but each build is signed
+differently, so phones cannot update from one to the next.

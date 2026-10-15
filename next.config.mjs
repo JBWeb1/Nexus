@@ -10,6 +10,8 @@ const nextConfig = {
   // These read data files from their own folders at run time, so they must not be bundled.
   serverExternalPackages: ['pdfkit', 'exceljs', '@prisma/client', '@prisma/adapter-pg', 'pg'],
   poweredByHeader: false,
+  // The service worker must never be cached by the browser, or app updates would be slow to arrive.
+  async headers() { return [{ source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache' }, { key: 'Service-Worker-Allowed', value: '/' }] }]; },
   env: { NEXUS_VERSION: pkg.version, NEXUS_COMMIT: commit.slice(0, 12), NEXUS_BUILT_AT: new Date().toISOString(), NEXUS_MIGRATIONS: migrations.join(',') },
 };
 export default nextConfig;

@@ -3,6 +3,7 @@ import TeamPanel from "../components/TeamPanel";
 import SecurityPanel from "../components/SecurityPanel";
 import UpdatesPanel from "../components/UpdatesPanel";
 import RemindersPanel from "../components/RemindersPanel";
+import InstallApp from "../components/InstallApp";
 import { useEffect, useState } from "react"; import { Link } from "@/ui/lib/router"; import { api } from "../api/client"; import { useAuth } from "../context/AuthContext";
 import Panel from "../components/Panel"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote"; import ProgressBar from "../components/ProgressBar";
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -58,5 +59,6 @@ export default function Setup() {
     <RemindersPanel />
     <TeamPanel />
     <SecurityPanel />
-    <UpdatesPanel /></div>);
+    <UpdatesPanel />
+    <InstallApp /></div>);
 }

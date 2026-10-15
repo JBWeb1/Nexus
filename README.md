@@ -41,6 +41,11 @@ Statements (Contacts > Statement), a customer portal with online payment, automa
 (Settings > Payment reminders, sent daily via `/api/cron/daily`) and receipt reading from photos (Receipts, needs
 `ANTHROPIC_API_KEY`). See DEPLOY.md for the settings.
 
+## Install as an app
+
+Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), and as an Android APK
+built by `.github/workflows/android.yml` from the `android/` folder. See "Installing Nexus as an app" in DEPLOY.md.
+
 ## Updates
 
 Every build updates the database itself, owners see when a new version is out (Settings > Updates), and
