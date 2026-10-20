@@ -1,0 +1,67 @@
+name: Windows app
+
+# Builds the Nexus Ledger Windows installer (Nexus-Ledger-Setup-x.y.z.exe) that opens your hosted Nexus site in its own window.
+# Run it from Actions > Windows app > Run workflow, with the address of your live site, then download the installer
+# from the run's Artifacts. Optional code signing (removes the SmartScreen warning): add repository secrets
+# WINDOWS_CERT_BASE64 (a .pfx code-signing certificate) and WINDOWS_CERT_PASSWORD.
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'Address of your live Nexus site, e.g. https://books.example.co.za'
+        required: true
+        default: 'https://nexus-ledger.vercel.app'
+  push:
+    paths: ['desktop/**', '.github/workflows/windows.yml']
+
+jobs:
+  installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Site address and version
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nexus-ledger.vercel.app' }}
+        run: |
+          case "$APP_URL" in https://*) ;; *) echo "::error::The site address must start with https://"; exit 1;; esac
+          VERSION=$(node -p "require('../package.json').version")
+          node -e "require('fs').writeFileSync('app/app-config.json', JSON.stringify({ appUrl: process.argv[1] }, null, 2))" "$APP_URL"
+          npm pkg set version="$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Building Nexus Ledger $VERSION for $APP_URL"
+      - name: Signing certificate
+        env:
+          CERT_B64: ${{ secrets.WINDOWS_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+        run: |
+          if [ -n "$CERT_B64" ]; then
+            echo "$CERT_B64" | base64 -d > "$RUNNER_TEMP/nexus.pfx"
+            echo "CSC_LINK=$RUNNER_TEMP/nexus.pfx" >> "$GITHUB_ENV"
+            echo "CSC_KEY_PASSWORD=$CERT_PASSWORD" >> "$GITHUB_ENV"
+            echo "Signing with the certificate from repository secrets."
+          else
+            echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+            echo "::warning::No WINDOWS_CERT_BASE64 secret: the installer is not code-signed, so Windows SmartScreen will warn before installing (More info > Run anyway)."
+          fi
+      - run: npx electron-builder --win nsis --x64 --publish never
+      - name: Summary
+        run: |
+          ls -la dist/*.exe
+          echo "### Nexus Ledger $VERSION for Windows" >> "$GITHUB_STEP_SUMMARY"
+          echo "Download **nexus-ledger-windows** under Artifacts, unzip it and run \`Nexus-Ledger-Setup-$VERSION.exe\`." >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nexus-ledger-windows
+          path: desktop/dist/*.exe
+          if-no-files-found: error

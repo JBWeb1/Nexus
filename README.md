@@ -43,8 +43,9 @@ Statements (Contacts > Statement), a customer portal with online payment, automa
 
 ## Install as an app
 
-Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), and as an Android APK
-built by `.github/workflows/android.yml` from the `android/` folder. See "Installing Nexus as an app" in DEPLOY.md.
+Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), as an Android APK
+built by `.github/workflows/android.yml` from the `android/` folder, and as a Windows installer (.exe) built by
+`.github/workflows/windows.yml` from the `desktop/` folder. See "Installing Nexus as an app" in DEPLOY.md.
 
 ## Updates
 

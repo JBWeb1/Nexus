@@ -100,7 +100,8 @@ Nexus is a web app, so every installed copy opens your live site and stays in sy
 |---|---|
 | Android | Chrome menu (⋮) > **Install app**, or the Android APK below |
 | iPhone / iPad | Open in **Safari** > Share > **Add to Home Screen** |
-| Windows, Mac, Linux | In **Chrome** or **Edge**, the install icon in the address bar, or Settings > Install the app. On a Mac with Safari: File > Add to Dock |
+| Windows | The Windows installer below, or in **Chrome** or **Edge** the install icon in the address bar |
+| Mac, Linux | In **Chrome** or **Edge**, the install icon in the address bar, or Settings > Install the app. On a Mac with Safari: File > Add to Dock |
 
 Settings > **Install the app** shows the right steps for each device, with a one-click button where the browser offers one.
 Without a connection the app shows "You're offline" and reconnects by itself; financial data is never stored on the device.
@@ -126,3 +127,20 @@ runs it, so everything works as on the web). GitHub builds it:
 
 Without the secrets the workflow still builds, with a temporary key: fine for trying it out, but each build is signed
 differently, so phones cannot update from one to the next.
+
+### Windows installer (.exe)
+
+The `desktop/` folder is a small Windows app (Electron) that opens your Nexus site in its own window, with a desktop
+and Start-menu icon. Pages from your site stay in the app; payment and other outside links open in the browser.
+Without a connection it shows "You're offline" with a Try again button. GitHub builds the installer:
+
+1. Actions > **Windows app** > **Run workflow**, and enter your site address (for example `https://books.example.co.za`).
+2. When the run finishes (about 5 minutes), download **nexus-ledger-windows** from the run's **Artifacts** and unzip
+   it: inside is `Nexus-Ledger-Setup-2.2.0.exe`.
+3. Run it on the PC. It installs for the current user (no administrator needed) and you can choose the folder.
+
+The installer is not code-signed unless you add a certificate, so Windows SmartScreen says "Windows protected your PC":
+click **More info** > **Run anyway**. To remove that warning, buy a code-signing certificate (.pfx) and add the
+repository secrets `WINDOWS_CERT_BASE64` (`base64 -w0 cert.pfx`) and `WINDOWS_CERT_PASSWORD`; the next build is signed.
+Because the app shows your live site, updates to Nexus reach it straight away; rebuild the installer only to change
+the site address or the app itself. To try it locally: `cd desktop && npm install && npm start`.

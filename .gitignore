@@ -13,3 +13,6 @@ samples/screenshots/
 # Database backups made by npm run update
 backups/
 .outbox/
+
+# Windows app build output
+desktop/dist/

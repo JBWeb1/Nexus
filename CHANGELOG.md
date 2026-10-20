@@ -23,6 +23,8 @@ Each version's section becomes its release notes, which owners see under Setting
 - Installable on Android, iPhone, Windows and Mac from the browser (Settings > Install the app), with its own icon and
   window, shortcuts to "New invoice" and "Snap a receipt", and an offline screen.
 - An Android app (APK), built by GitHub Actions, that opens your Nexus site full-screen.
+- A Windows installer (Nexus-Ledger-Setup.exe), built by GitHub Actions: Nexus in its own window with a desktop and
+  Start-menu icon.
 
 ### Fixed
 - Losing the internet connection no longer looks like being signed out: the app says it is offline and reconnects.
