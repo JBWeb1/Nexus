@@ -1,11 +1,12 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { Link } from "@/ui/lib/router"; import { api } from "../api/client";
 import Panel from "../components/Panel"; import ErrorNote from "../components/ErrorNote";
 const SEV = { urgent: ["Urgent", "bg-destructive-soft text-destructive"], review: ["Needs review", "bg-warning-soft text-warning"], info: ["For your information", "bg-muted text-muted-foreground"] };
 export default function WorkQueue() {
   const [d, setD] = useState(null); const [error, setError] = useState(null); const [open, setOpen] = useState({});
   useEffect(() => { api.get("/work-queue").then(setD).catch((e) => setError(e.message)); }, []);
-  if (!d) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!d) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   return (<div className="space-y-6 max-w-4xl"><div><h1 className="font-display text-3xl">Work queue</h1><p className="text-sm text-ink-soft mt-1">The books decide what needs a human. Every flag shows the evidence behind it — these are rule-based checks, not guesses.</p></div><ErrorNote error={error} />
     <div className="grid grid-cols-3 gap-4">{["urgent", "review", "info"].map((s) => <div key={s} className="bg-paper-light border border-hairline rounded-sm p-4"><div className="text-sm text-ink-soft">{SEV[s][0]}</div><div className="text-3xl font-display">{d.summary[s]}</div></div>)}</div>
     {d.items.length === 0 ? <Panel><p className="text-sm text-success">Nothing needs your attention. Your books are clean.</p></Panel> :

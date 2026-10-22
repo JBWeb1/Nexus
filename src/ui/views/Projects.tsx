@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react"; import { Link, useNavigate } from "@/ui/lib/router";
-import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money from "../components/Money"; import StatusPill from "../components/StatusPill"; import ErrorNote from "../components/ErrorNote";
+import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money from "../components/Money"; import StatusPill from "../components/StatusPill"; import ErrorNote from "../components/ErrorNote"; import { toast } from "../components/Toaster"; import EmptyState from "../components/EmptyState"; import { SkeletonRows } from "../components/ui/skeleton"; import { FolderKanban } from "lucide-react";
 
 export const hrs = (n) => `${Number(n || 0).toLocaleString("en-ZA", { maximumFractionDigits: 2 })} h`;
 
@@ -12,7 +12,7 @@ export function ProjectForm({ initial = null, onSaved, onCancel = null }) {
   async function submit(e) {
     e.preventDefault(); setBusy(true); setError(null);
     const body = { name: f.name, contactId: f.contactId || null, hourlyRate: f.hourlyRate === "" || f.hourlyRate === null ? null : Number(f.hourlyRate), budget: f.budget === "" || f.budget === null ? null : Number(f.budget), status: f.status, notes: f.notes || null };
-    try { const d = initial ? await api.patch(`/projects/${initial.id}`, body) : await api.post("/projects", body); onSaved(d.project); } catch (err) { setError(err.message); setBusy(false); }
+    try { const d = initial ? await api.patch(`/projects/${initial.id}`, body) : await api.post("/projects", body); toast(initial ? "Project saved" : `${d.project.name} added`); onSaved(d.project); } catch (err) { setError(err.message); setBusy(false); }
   }
   return (<form onSubmit={submit} className="space-y-4"><ErrorNote error={error} />
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -36,11 +36,11 @@ export default function Projects() {
     <p className="text-sm text-ink-soft max-w-3xl">Tag invoice and bill lines with a project to see what each job really made, log the hours your team spends on it, and invoice billable hours in one click.</p>
     {adding && <Panel title="New project"><ProjectForm onSaved={(p) => nav(`/projects/${p.id}`)} onCancel={() => setAdding(false)} /></Panel>}
     <div className="flex gap-2 flex-wrap">{["ACTIVE", "COMPLETED", "ARCHIVED", "ALL"].map((s) => <button key={s} onClick={() => setStatus(s)} className={`chip ${status === s ? "chip-on" : ""}`}>{s.charAt(0) + s.slice(1).toLowerCase()}</button>)}</div>
-    {rows && rows.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Panel><div className="text-sm text-ink-soft">Invoiced</div><div className="text-2xl mt-1"><Money amount={tot.income} /></div></Panel>
-      <Panel><div className="text-sm text-ink-soft">Profit</div><div className="text-2xl mt-1"><Money amount={tot.profit} tone={tot.profit < 0 ? "debit" : "neutral"} /></div></Panel>
-      <Panel><div className="text-sm text-ink-soft">Hours not yet invoiced</div><div className="text-2xl mt-1"><Money amount={tot.unbilled} /></div></Panel></div>}
-    <Panel>{!rows ? <p className="text-ink-soft text-sm">Loading…</p> : rows.length === 0 ? <p className="text-ink-soft text-sm">No projects here yet.</p> : (
+    {rows && rows.length > 0 && <div className="stagger grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Panel><div className="text-sm text-ink-soft">Invoiced</div><div className="text-2xl mt-1"><Money animate amount={tot.income} /></div></Panel>
+      <Panel><div className="text-sm text-ink-soft">Profit</div><div className="text-2xl mt-1"><Money animate amount={tot.profit} tone={tot.profit < 0 ? "debit" : "neutral"} /></div></Panel>
+      <Panel><div className="text-sm text-ink-soft">Hours not yet invoiced</div><div className="text-2xl mt-1"><Money animate amount={tot.unbilled} /></div></Panel></div>}
+    <Panel>{!rows ? <SkeletonRows /> : rows.length === 0 ? <EmptyState icon={FolderKanban} title={status === "ACTIVE" ? "No active projects" : "No projects here"} action={status === "ACTIVE" ? <Button onClick={() => setAdding(true)}>Start a project</Button> : null}>A project collects the invoices, bills and hours for one job, so you can see whether it made money.</EmptyState> : (
       <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 font-normal">Project</th><th className="pb-2 font-normal">Customer</th><th className="pb-2 font-normal text-right">Invoiced</th><th className="pb-2 font-normal text-right">Costs</th><th className="pb-2 font-normal text-right">Profit</th><th className="pb-2 font-normal text-right">Hours</th><th className="pb-2 font-normal text-right">Not invoiced</th><th className="pb-2 font-normal pl-4">Status</th></tr></thead>
         <tbody>{rows.map((p) => { const s = p.summary; const over = p.budget !== null && s.totalCosts > Number(p.budget);
           return <tr key={p.id} className="ledger-rule hover:bg-paper"><td className="py-2.5"><Link className="text-primary font-medium hover:underline" to={`/projects/${p.id}`}>{p.name}</Link></td><td>{p.contactName || <span className="text-ink-soft">Internal</span>}</td>

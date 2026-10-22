@@ -29,5 +29,21 @@
   select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.6rem center; }
   table { @apply border-collapse; }
   thead th { @apply text-xs font-semibold text-muted-foreground; }
+  tbody tr.ledger-rule { @apply transition-colors; }
   tbody tr.ledger-rule:hover { @apply bg-muted/60; }
+  /* Motion: rows and cards ease in one after another the first time they appear. Turned off by "reduce motion" above. */
+  tbody tr { animation: nx-rise .32s cubic-bezier(.2,.7,.2,1) both; }
+  tbody tr:nth-child(2) { animation-delay: 25ms } tbody tr:nth-child(3) { animation-delay: 50ms } tbody tr:nth-child(4) { animation-delay: 75ms }
+  tbody tr:nth-child(5) { animation-delay: 100ms } tbody tr:nth-child(6) { animation-delay: 125ms } tbody tr:nth-child(7) { animation-delay: 150ms }
+  tbody tr:nth-child(8) { animation-delay: 175ms } tbody tr:nth-child(9) { animation-delay: 200ms } tbody tr:nth-child(n+10) { animation-delay: 220ms }
+  .stagger > * { animation: nx-rise .38s cubic-bezier(.2,.7,.2,1) both; }
+  .stagger > :nth-child(2) { animation-delay: 50ms } .stagger > :nth-child(3) { animation-delay: 100ms } .stagger > :nth-child(4) { animation-delay: 150ms }
+  .stagger > :nth-child(5) { animation-delay: 200ms } .stagger > :nth-child(n+6) { animation-delay: 240ms }
+  /* A card you can click: lifts a little on hover and settles when pressed. */
+  .card-hover { @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-pop hover:border-primary/30 active:translate-y-0 active:shadow-card; }
+  .chip { @apply active:scale-95; }
+  .skeleton-shine { background: linear-gradient(90deg, hsl(var(--muted)) 0%, hsl(var(--card)) 50%, hsl(var(--muted)) 100%); background-size: 200% 100%; animation: nx-shine 1.3s ease-in-out infinite; }
+  .kbd { @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-white/15 bg-white/5 px-1 font-sans text-[10px] font-semibold; }
 }
+@keyframes nx-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes nx-shine { from { background-position: 100% 0; } to { background-position: -100% 0; } }

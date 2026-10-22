@@ -1,7 +1,8 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { Link, useNavigate, useParams } from "@/ui/lib/router";
 import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money, { formatMoney } from "../components/Money"; import NotesPanel from "../components/Notes"; import StatusPill from "../components/StatusPill"; import ErrorNote from "../components/ErrorNote";
-import { ProjectForm, hrs } from "./Projects";
+import { ProjectForm, hrs } from "./Projects"; import { toast } from "../components/Toaster";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const DOC_LINK = { invoice: "/invoices", bill: "/bills", "credit note": null };
@@ -13,11 +14,11 @@ export default function ProjectDetail() {
   const load = () => api.get(`/projects/${id}`).then(setD).catch((e) => setError(e.message));
   useEffect(() => { load(); }, [id]);
   const run = async (fn) => { setBusy(true); setError(null); try { await fn(); } catch (e) { setError(e.message); } finally { setBusy(false); } };
-  const addTime = (e) => { e.preventDefault(); run(async () => { await api.post(`/projects/${id}/time`, { ...t, hours: Number(t.hours), rate: t.rate === "" ? null : Number(t.rate) }); setT({ ...t, hours: "", description: "" }); await load(); }); };
+  const addTime = (e) => { e.preventDefault(); run(async () => { await api.post(`/projects/${id}/time`, { ...t, hours: Number(t.hours), rate: t.rate === "" ? null : Number(t.rate) }); setT({ ...t, hours: "", description: "" }); toast("Time logged"); await load(); }); };
   const invoiceTime = () => { const date = window.prompt("Invoice date (YYYY-MM-DD). Billable hours up to this date are included.", today()); if (date === null) return;
-    run(async () => { const r = await api.post(`/projects/${id}/invoice-time`, { issueDate: date.trim() }); nav(`/invoices/${r.invoice.id}`); }); };
+    run(async () => { const r = await api.post(`/projects/${id}/invoice-time`, { issueDate: date.trim() }); toast(`Invoice ${r.invoice.number} created from ${r.entries} time entries`); nav(`/invoices/${r.invoice.id}`); }); };
   const removeTime = (entryId) => { if (!window.confirm("Delete this time entry?")) return; run(async () => { await api.delete(`/projects/${id}/time/${entryId}`); await load(); }); };
-  if (!d) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!d) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const p = d.project, s = p.summary; const left = p.budget !== null ? Number(p.budget) - s.totalCosts : null;
   return (<div className="space-y-6 max-w-5xl">
     <div className="flex items-start justify-between flex-wrap gap-3"><div><Link to="/projects" className="text-sm text-ink-soft hover:underline">← Projects</Link>
@@ -28,7 +29,7 @@ export default function ProjectDetail() {
         <Button variant="secondary" onClick={() => setEditing((x) => !x)}>{editing ? "Close" : "Edit"}</Button></div></div>
     <ErrorNote error={error} />
     {editing && <Panel title="Edit project"><ProjectForm initial={p} onSaved={() => { setEditing(false); load(); }} onCancel={() => setEditing(false)} /></Panel>}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="stagger grid grid-cols-2 md:grid-cols-4 gap-4">
       <Panel><div className="text-sm text-ink-soft">Invoiced</div><div className="text-xl mt-1"><Money amount={s.netIncome} /></div>{s.credits > 0 && <div className="text-xs text-ink-soft">after <Money amount={s.credits} /> credited</div>}</Panel>
       <Panel><div className="text-sm text-ink-soft">Costs</div><div className="text-xl mt-1"><Money amount={s.totalCosts} /></div><div className="text-xs text-ink-soft">bills <Money amount={s.costs} /> · stock used <Money amount={s.stockCost} /></div></Panel>
       <Panel><div className="text-sm text-ink-soft">Profit</div><div className="text-xl mt-1"><Money amount={s.profit} tone={s.profit < 0 ? "debit" : "credit"} /></div>{s.netIncome > 0 && <div className="text-xs text-ink-soft">{Math.round((s.profit / s.netIncome) * 100)}% margin</div>}</Panel>

@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonRows } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote";
 const TYPES = ["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"];
 export default function ChartOfAccounts() {
@@ -11,6 +12,6 @@ export default function ChartOfAccounts() {
       <div className="md:col-span-2"><label className="label">Name</label><input required className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
       <div><label className="label">Type</label><select className="field" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>{TYPES.map((t) => <option key={t}>{t}</option>)}</select></div>
       <div className="md:col-span-4"><Button type="submit">Add account</Button></div></form></Panel>
-    {TYPES.map((t) => <Panel key={t} title={t[0] + t.slice(1).toLowerCase()}>{!rows ? "Loading…" : <table className="w-full text-sm"><tbody>{rows.filter((a) => a.type === t).map((a) => <tr key={a.id} className={`ledger-rule ${a.isActive ? "" : "opacity-50"}`}><td className="py-2 figure w-24">{a.code}</td><td>{a.name}</td>
+    {TYPES.map((t) => <Panel key={t} title={t[0] + t.slice(1).toLowerCase()}>{!rows ? <SkeletonRows rows={4} /> : <table className="w-full text-sm"><tbody>{rows.filter((a) => a.type === t).map((a) => <tr key={a.id} className={`ledger-rule ${a.isActive ? "" : "opacity-50"}`}><td className="py-2 figure w-24">{a.code}</td><td>{a.name}</td>
       <td className="text-right">{a.isSystem ? <span className="text-xs text-ink-soft">System</span> : <button className="text-xs text-ink-soft hover:underline" onClick={() => toggle(a)}>{a.isActive ? "Deactivate" : "Reactivate"}</button>}</td></tr>)}</tbody></table>}</Panel>)}</div>);
 }

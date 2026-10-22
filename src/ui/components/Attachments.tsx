@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonRows } from "./ui/skeleton";
 import { useEffect, useRef, useState } from "react";
 import { Download, FileText, Paperclip, Trash2, Upload } from "lucide-react";
 import { api } from "../api/client";
@@ -28,7 +29,7 @@ export default function Attachments({ entityType, entityId }: { entityType: "INV
   async function remove(a: Attachment) { if (!window.confirm(`Delete ${a.filename}?`)) return; try { await api.delete(`/attachments/${a.id}`); await load(); } catch (e: any) { setError(e.message); } }
   return (<Panel title="Files" action={<><input ref={input} type="file" className="sr-only" aria-label="Attach a file" accept=".pdf,image/*,.csv,.txt,.xlsx,.xls,.docx,.doc" onChange={(e) => upload(e.target.files?.[0])} /><Button variant="secondary" disabled={busy} onClick={() => input.current?.click()}><Upload />{busy ? "Uploading…" : "Attach a file"}</Button></>}>
     <ErrorNote error={error} />
-    {!rows ? <p className="text-sm text-muted-foreground">Loading…</p> : rows.length === 0 ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Paperclip className="size-4" />Nothing attached yet. Add the receipt, signed quote or supplier invoice so it stays with this document. Up to 10 MB each.</p> :
+    {!rows ? <SkeletonRows rows={4} /> : rows.length === 0 ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Paperclip className="size-4" />Nothing attached yet. Add the receipt, signed quote or supplier invoice so it stays with this document. Up to 10 MB each.</p> :
       <ul className="divide-y">{rows.map((a) => <li key={a.id} className="flex items-center gap-3 py-2.5"><FileText className="size-5 shrink-0 text-muted-foreground" /><div className="min-w-0 flex-1"><div className="truncate text-sm font-medium">{a.filename}</div><div className="text-xs text-muted-foreground">{size(a.size)}, added by {a.uploadedByName}</div></div>
         <button className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label={`Download ${a.filename}`} onClick={() => open(a)}><Download className="size-4" /></button>
         <button className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive" aria-label={`Delete ${a.filename}`} onClick={() => remove(a)}><Trash2 className="size-4" /></button></li>)}</ul>}

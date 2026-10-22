@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonRows } from "./ui/skeleton";
 import { useEffect, useState } from "react"; import { api } from "../api/client"; import { useAuth } from "../context/AuthContext";
 import Panel from "./Panel"; import Button from "./Button";
 
@@ -15,7 +16,7 @@ export default function RemindersPanel() {
   const save = (patch) => run("save", async () => { await api.patch("/organization", patch); await load(); setMsg("Saved."); });
   const sendNow = () => run("send", async () => { const d = await api.post("/reminders/run"); const sent = d.results.filter((r) => r.status === "SENT").length, waiting = d.results.filter((r) => r.status === "NO_CHANNEL");
     setMsg(d.results.length === 0 ? "Nothing is due right now." : `${sent} reminder${sent === 1 ? "" : "s"} sent.${waiting.length ? ` ${waiting.length} could not be sent: ${waiting[0].detail}.` : ""}`); await load(); });
-  if (!s) return <Panel title="Payment reminders">{error ? <p className="text-sm text-brick">{error}</p> : <p className="text-sm text-ink-soft">Loading…</p>}</Panel>;
+  if (!s) return <Panel title="Payment reminders">{error ? <p className="text-sm text-brick">{error}</p> : <SkeletonRows rows={4} />}</Panel>;
   const schedule = days.split(/[,\s]+/).filter(Boolean).map(Number);
   return (<div id="reminders"><Panel title="Payment reminders">
     <div className="space-y-4 text-sm">

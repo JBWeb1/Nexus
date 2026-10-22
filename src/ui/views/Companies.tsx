@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { api } from "../api/client"; import { useAuth } from "../context/AuthContext";
 import Money from "../components/Money"; import Panel from "../components/Panel"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote";
 export default function Companies() {
@@ -6,7 +7,7 @@ export default function Companies() {
   const [f, setF] = useState({ name: "", accountingStyle: "GENERAL", vatRegistered: false, vatNumber: "" });
   useEffect(() => { api.get("/companies").then(setD).catch((e) => setError(e.message)); api.get("/companies/overview").then((x) => setOv(x.companies)).catch(() => {}); }, []);
   async function add(e) { e.preventDefault(); setBusy(true); setError(null); try { await createCompany({ name: f.name, accountingStyle: f.accountingStyle, vatRegistered: f.vatRegistered, vatNumber: f.vatRegistered ? f.vatNumber : undefined }); } catch (err) { setError(err.message); setBusy(false); } }
-  if (!d) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!d) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const label = (k) => d.styles.find((s) => s.key === k)?.label || k;
   return (<div className="space-y-6 max-w-5xl"><h1 className="font-display text-3xl">Companies and clients</h1><ErrorNote error={error} />
     <Panel title="Needs attention across your companies">{!ov ? <p className="text-sm text-ink-soft">Checking each company…</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 px-2 font-normal">Company</th><th className="pb-2 px-2 font-normal text-right">Bank lines to match</th><th className="pb-2 px-2 font-normal text-right">Overdue invoices</th><th className="pb-2 px-2 font-normal text-right">Overdue bills</th><th className="pb-2 px-2 font-normal text-right">Drafts</th><th className="pb-2 px-2 font-normal pl-4">VAT filed to</th><th className="pb-2 px-2 font-normal">Month closed</th><th></th></tr></thead>

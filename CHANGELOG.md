@@ -26,6 +26,18 @@ Each version's section becomes its release notes, which owners see under Setting
 - Tag any invoice, bill or quote line with a project to see what the job earned, what it cost (including stock used) and
   its profit.
 
+### Cleaner and easier to use
+- Search or jump anywhere: press Ctrl+K (⌘K on a Mac), or the search box at the top of the menu, and type a few
+  letters, such as "new invoice" or "VAT".
+- A short confirmation pops up after you save, send, approve, pay or email something.
+- Invoice, bill, quote and purchase order lists show what is still owing and overdue at the top (tap to filter), have
+  a search box and an Overdue filter, and on phones show one tappable card per document instead of a cramped table.
+- Gentle motion throughout: pages ease in, rows and cards appear one after another, headline totals count up, invoice
+  lines slide in and out, and dashboard cards lift on hover and open the screen behind them. Turned off automatically
+  when the device is set to reduce motion.
+- Loading placeholders in the shape of the page instead of "Loading…", friendlier empty screens with the button to
+  start, a coloured dot on every status, and the Nexus logo drawn cleanly on the dark menu and sign-in screen.
+
 ### Fixed
 - Lines on invoices, quotes, bills and credit notes could come back in a different order from how they were entered,
   on screen and on the PDF. They now always keep their order.

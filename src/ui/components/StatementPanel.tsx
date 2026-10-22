@@ -1,4 +1,5 @@
 "use client";
+import { SkeletonRows } from "./ui/skeleton";
 import { useEffect, useState } from "react"; import { api } from "../api/client"; import { downloadFile } from "../api/download";
 import Panel from "./Panel"; import Button from "./Button"; import Money from "./Money";
 
@@ -31,7 +32,7 @@ export default function StatementPanel({ contact, onClose, onChanged }) {
       <div className="flex flex-wrap gap-2"><Button variant="secondary" disabled={!!busy} onClick={pdf}>Download PDF</Button><Button variant="secondary" disabled={!!busy || !s} onClick={email}>{busy === "email" ? "Sending…" : "Email"}</Button>
         {contact.phone && <Button variant="secondary" disabled={!!busy || !s} onClick={whatsapp}>WhatsApp</Button>}<Button variant="secondary" disabled={!!busy} onClick={copyLink}>Copy portal link</Button></div></div>
     {error && <p className="text-sm text-brick mb-3">{error}</p>}{msg && <p className="text-sm text-success mb-3 break-all">{msg}</p>}
-    {!s ? <p className="text-sm text-ink-soft">Loading…</p> : <>
+    {!s ? <SkeletonRows rows={4} /> : <>
       <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 font-normal">Date</th><th className="pb-2 font-normal">Reference</th><th className="pb-2 font-normal">Details</th><th className="pb-2 font-normal text-right">Charged</th><th className="pb-2 font-normal text-right">Paid</th><th className="pb-2 font-normal text-right">Balance</th></tr></thead>
         <tbody><tr className="ledger-rule text-ink-soft"><td className="py-1.5 figure">{s.from}</td><td /><td>Balance brought forward</td><td /><td /><td className="text-right"><Money amount={s.openingBalance} /></td></tr>
           {s.lines.map((l, i) => <tr key={i} className="ledger-rule"><td className="py-1.5 figure">{l.date}</td><td className="figure">{l.reference}</td><td>{l.description}</td><td className="text-right">{l.debit ? <Money amount={l.debit} /> : ""}</td><td className="text-right">{l.credit ? <Money amount={l.credit} /> : ""}</td><td className="text-right"><Money amount={l.balance} /></td></tr>)}

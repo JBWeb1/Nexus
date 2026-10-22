@@ -1,7 +1,8 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { Link, useParams } from "@/ui/lib/router";
 import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money from "../components/Money"; import ErrorNote from "../components/ErrorNote";
-import { ItemForm } from "./Products";
+import { ItemForm } from "./Products"; import { toast } from "../components/Toaster";
 
 const today = () => new Date().toISOString().slice(0, 10);
 const qty = (n) => Number(n || 0).toLocaleString("en-ZA", { maximumFractionDigits: 4 });
@@ -16,10 +17,10 @@ export default function ProductDetail() {
   useEffect(() => { load(); }, [id]);
   async function saveCount(e) {
     e.preventDefault(); setBusy(true); setError(null);
-    try { await api.post(`/items/${id}/adjust`, { ...count, newQuantity: Number(count.newQuantity), unitCost: count.unitCost === "" ? undefined : Number(count.unitCost) }); setCount(null); await load(); }
+    try { await api.post(`/items/${id}/adjust`, { ...count, newQuantity: Number(count.newQuantity), unitCost: count.unitCost === "" ? undefined : Number(count.unitCost) }); setCount(null); toast("Stock count saved and posted"); await load(); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
-  if (!d) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!d) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const it = d.item; const low = it.trackStock && it.reorderLevel !== null && Number(it.qtyOnHand) <= Number(it.reorderLevel);
   const rising = count && Number(count.newQuantity) > Number(it.qtyOnHand);
   return (<div className="space-y-6 max-w-5xl">
@@ -37,7 +38,7 @@ export default function ProductDetail() {
       <div className="md:col-span-3"><label className="label">Note (optional)</label><input className="field" placeholder="e.g. Month-end count, 2 damaged" value={count.note} onChange={(e) => setCount({ ...count, note: e.target.value })} /></div>
       <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save count"}</Button></form>
       <p className="text-xs text-ink-soft mt-3">Stock missing is written off at the average cost; stock found is added at the cost you enter. Either way the journal is posted for you.</p></Panel>}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="stagger grid grid-cols-2 md:grid-cols-4 gap-4">
       <Panel><div className="text-sm text-ink-soft">Selling price</div><div className="text-xl mt-1">{it.salePrice !== null ? <Money amount={it.salePrice} /> : "—"}</div></Panel>
       <Panel><div className="text-sm text-ink-soft">Cost price</div><div className="text-xl mt-1">{it.purchasePrice !== null ? <Money amount={it.purchasePrice} /> : "—"}</div></Panel>
       {it.trackStock ? <><Panel><div className="text-sm text-ink-soft">On hand</div><div className={`text-xl mt-1 figure ${low ? "text-brick" : ""}`}>{qty(it.qtyOnHand)}{it.unit ? ` ${it.unit}` : ""}</div>{low && <div className="text-xs text-brick">At or below the reorder level ({qty(it.reorderLevel)}). <Link className="underline" to="/purchase-orders/new">Order more</Link></div>}</Panel>

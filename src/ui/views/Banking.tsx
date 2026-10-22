@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import { PostRow, RulesPanel } from "../components/BankPost";
 import { Fragment, useEffect, useState } from "react"; import { api } from "../api/client";
 import Panel from "../components/Panel"; import Money from "../components/Money"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote";
@@ -17,7 +18,7 @@ export default function Banking() {
     try { await api.post(`/bank-accounts/${selected}/transactions`, { ...txn, amount: Number(txn.amount) }); setTxn({ date: todayStr(), description: "", amount: "", type: "DEBIT" }); setShowTxn(false); loadTxns(selected); } catch (err) { setError(err.message); } finally { setSaving(false); } }
   const findMatches = async (id) => { try { const d = await api.get(`/bank-accounts/${selected}/transactions/${id}/suggestions`); setSuggestions((p) => ({ ...p, [id]: d.suggestions })); } catch (e) { setError(e.message); } };
   const reconcile = async (id, body) => { try { await api.post(`/bank-accounts/${selected}/transactions/${id}/reconcile`, body); loadTxns(selected); } catch (e) { setError(e.message); } };
-  if (!accounts) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!accounts) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const current = accounts.find((a) => a.id === selected);
   return (<div className="space-y-6"><div className="flex items-center justify-between"><h1 className="font-display text-3xl">Banking</h1><Button onClick={() => setShowNew((s) => !s)}>{showNew ? "Cancel" : "Add bank account"}</Button></div><ErrorNote error={error} />
     {showNew && <Panel title="New bank account"><form onSubmit={createAccount} className="grid grid-cols-1 md:grid-cols-4 gap-4">

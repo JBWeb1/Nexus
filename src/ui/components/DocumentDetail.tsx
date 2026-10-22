@@ -1,11 +1,13 @@
 "use client";
+import { PageSkeleton } from "./ui/skeleton";
 import Attachments from "./Attachments";
 import DocExtras from "./DocExtras"; import CreditNotes from "./CreditNotes";
 import { useEffect, useState } from "react"; import { useParams, useNavigate, Link } from "@/ui/lib/router";
 import { api } from "../api/client"; import Panel from "./Panel"; import Money from "./Money"; import Button from "./Button"; import StatusPill from "./StatusPill"; import ErrorNote from "./ErrorNote";
 import { DOCS, ACTIONS } from "./docConfigs";
 const today = () => new Date().toISOString().slice(0, 10);
-import NotesPanel from "./Notes";
+import NotesPanel from "./Notes"; import { toast } from "./Toaster";
+const DONE = { send: "sent", approve: "approved and posted", void: "voided", accept: "marked as accepted", decline: "marked as declined", cancel: "cancelled" };
 const NOTE_TYPE = { invoices: "INVOICE", bills: "BILL", quotes: "QUOTE", "purchase-orders": "PURCHASE_ORDER" };
 export default function DocumentDetail({ kind }) {
   const cfg = DOCS[kind]; const { id } = useParams(); const nav = useNavigate();
@@ -22,16 +24,18 @@ export default function DocumentDetail({ kind }) {
     if (suffix === "convert") { const d = window.prompt(po ? "Date on the supplier's invoice (YYYY-MM-DD)" : "Date for the new invoice (YYYY-MM-DD)", today()); if (d === null) return; body = { issueDate: d.trim() };
       if (po) { const ref = window.prompt("Supplier's invoice number (optional)", ""); if (ref === null) return; body.supplierReference = ref.trim(); } }
     setBusy(true); setError(null);
-    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`, body); if (suffix === "convert") nav(po ? `/bills/${d.bill.id}` : `/invoices/${d.invoice.id}`); else { setDoc(d[cfg.itemKey]); } }
+    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`, body);
+      if (suffix === "convert") { toast(po ? `Bill ${d.bill.number} created: check it and approve` : `Invoice ${d.invoice.number} created`); nav(po ? `/bills/${d.bill.id}` : `/invoices/${d.invoice.id}`); }
+      else { setDoc(d[cfg.itemKey]); toast(`${cfg.singular} ${d[cfg.itemKey].number} ${DONE[suffix] || "updated"}`); } }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   async function submitPay(e) {
     e.preventDefault(); setBusy(true); setError(null);
-    try { await api.post(cfg.payPath, { [cfg.payIdField]: id, bankAccountId: pay.bankAccountId, amount: Number(pay.amount), date: pay.date, feeAmount: Number(pay.feeAmount || 0), reference: pay.reference || undefined }); setShowPay(false); await load(); }
+    try { await api.post(cfg.payPath, { [cfg.payIdField]: id, bankAccountId: pay.bankAccountId, amount: Number(pay.amount), date: pay.date, feeAmount: Number(pay.feeAmount || 0), reference: pay.reference || undefined }); setShowPay(false); toast("Payment recorded"); await load(); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   }
-  async function reversePay(pid) { if (!window.confirm("Reverse this payment?")) return; setBusy(true); try { await api.post(`/payments/${pid}/reverse`, { date: today() }); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } }
-  if (!doc) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  async function reversePay(pid) { if (!window.confirm("Reverse this payment?")) return; setBusy(true); try { await api.post(`/payments/${pid}/reverse`, { date: today() }); toast("Payment reversed"); await load(); } catch (e) { setError(e.message); } finally { setBusy(false); } }
+  if (!doc) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const actions = ACTIONS[kind]?.[doc.status] || []; const canPay = cfg.openStatuses?.includes(doc.status);
   return (<div className="space-y-6 max-w-5xl">
     <div className="flex items-start justify-between flex-wrap gap-3"><div><Link to={cfg.route} className="text-sm text-ink-soft hover:underline">← {cfg.title}</Link>

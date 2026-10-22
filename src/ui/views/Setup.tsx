@@ -1,4 +1,5 @@
 "use client";
+import { PageSkeleton } from "../components/ui/skeleton";
 import TeamPanel from "../components/TeamPanel";
 import SecurityPanel from "../components/SecurityPanel";
 import UpdatesPanel from "../components/UpdatesPanel";
@@ -14,7 +15,7 @@ export default function Setup() {
   useEffect(() => { load(); loadList(); }, []);
   async function save(section: string, body: Record<string, any>, msg?: string) { setBusy(section); setError(null); setSaved(""); try { const r = await api.patch("/organization", body); setSaved(section + (r.addedAccounts?.length ? `|${r.addedAccounts.length} accounts added` : "|" + (msg || "Saved."))); await load(); loadList(); refreshOrg(); } catch (err) { setError(err.message); } finally { setBusy(""); } }
   const Msg = ({ s }) => saved.startsWith(s + "|") ? <span className="text-sm text-success">{saved.split("|")[1]}</span> : null;
-  if (!f || !meta) return <div className={error ? "text-brick" : "text-ink-soft"}>{error || "Loading…"}</div>;
+  if (!f || !meta) return (error ? <div className="text-brick">{error}</div> : <PageSkeleton />);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
   const chosen = meta.styles.find((s) => s.key === f.accountingStyle); const current = meta.organization.accountingStyle;
   return (<div className="space-y-6 max-w-3xl"><h1 className="font-display text-3xl">Settings</h1><ErrorNote error={error} />

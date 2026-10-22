@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react"; import { Link, useNavigate } from "@/ui/lib/router";
-import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money from "../components/Money"; import ErrorNote from "../components/ErrorNote";
+import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import Money from "../components/Money"; import ErrorNote from "../components/ErrorNote"; import { toast } from "../components/Toaster"; import EmptyState from "../components/EmptyState"; import { SkeletonRows } from "../components/ui/skeleton"; import { Package } from "lucide-react";
 
 const qty = (n) => Number(n || 0).toLocaleString("en-ZA", { maximumFractionDigits: 4 });
 export const blankItem = { code: "", name: "", description: "", unit: "", salePrice: "", purchasePrice: "", saleAccountId: "", purchaseAccountId: "", cogsAccountId: "", saleTaxRateId: "", purchaseTaxRateId: "", trackStock: false, reorderLevel: "", openingQuantity: "", isActive: true };
@@ -18,7 +18,7 @@ export function ItemForm({ initial = blankItem as any, onSaved, onCancel = null,
     e.preventDefault(); setBusy(true); setError(null);
     const body: any = { ...f }; for (const k of ["salePrice", "purchasePrice", "reorderLevel", "openingQuantity"]) body[k] = f[k] === "" || f[k] === null ? null : Number(f[k]);
     for (const k of ["saleAccountId", "purchaseAccountId", "cogsAccountId", "saleTaxRateId", "purchaseTaxRateId"]) body[k] = f[k] || null;
-    try { const d = isNew ? await api.post("/items", body) : await api.patch(`/items/${initial.id}`, body); onSaved(d.item); } catch (err) { setError(err.message); setBusy(false); }
+    try { const d = isNew ? await api.post("/items", body) : await api.patch(`/items/${initial.id}`, body); toast(isNew ? `${d.item.name} added` : "Product saved"); onSaved(d.item); } catch (err) { setError(err.message); setBusy(false); }
   }
   const select = (k, label, list, empty) => <div><label className="label">{label}</label><select className="field" value={f[k] || ""} onChange={set(k)}><option value="">{empty}</option>{list.map((a) => <option key={a.id} value={a.id}>{a.code ? `${a.code} ${a.name}` : a.name}</option>)}</select></div>;
   return (<form onSubmit={submit} className="space-y-4"><ErrorNote error={error} />
@@ -54,15 +54,15 @@ export default function Products() {
       <div className="flex gap-2"><Link to="/purchase-orders/new"><Button variant="secondary">New purchase order</Button></Link><Button variant="gold" onClick={() => setAdding((a) => !a)}>{adding ? "Close" : "New product"}</Button></div></div>
     <ErrorNote error={error} />
     {adding && <Panel title="New product or service"><ItemForm onSaved={(it) => { setAdding(false); nav(`/products/${it.id}`); }} onCancel={() => setAdding(false)} /></Panel>}
-    {val && val.items.length > 0 && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <Panel><div className="text-sm text-ink-soft">Stock on hand at cost</div><div className="text-2xl mt-1"><Money amount={val.total} /></div>
+    {val && val.items.length > 0 && <div className="stagger grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Panel><div className="text-sm text-ink-soft">Stock on hand at cost</div><div className="text-2xl mt-1"><Money animate amount={val.total} /></div>
         <div className={`text-xs mt-1 ${val.agrees ? "text-success" : "text-ink-soft"}`}>{val.agrees ? "Agrees with the stock account in the ledger" : <>Ledger stock account: <Money amount={val.ledgerBalance} />. The difference is stock posted without a product (for example an opening balance journal).</>}</div></Panel>
       <Panel><div className="text-sm text-ink-soft">Stocked products</div><div className="text-2xl mt-1 figure">{val.items.length}</div></Panel>
       <Panel><div className="text-sm text-ink-soft">Low on stock</div><div className={`text-2xl mt-1 figure ${low.length ? "text-brick" : ""}`}>{low.length}</div>
         {low.length > 0 && <div className="text-xs mt-1 text-ink-soft">{low.slice(0, 4).map((i) => i.name).join(", ")}{low.length > 4 ? "…" : ""}</div>}</Panel></div>}
     <div className="flex gap-3 items-center flex-wrap"><input className="field max-w-xs" placeholder="Search code or name" value={q} onChange={(e) => setQ(e.target.value)} />
       <label className="text-sm flex items-center gap-2"><input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} /> Show inactive</label></div>
-    <Panel>{!items ? <p className="text-ink-soft text-sm">Loading…</p> : shown.length === 0 ? <p className="text-ink-soft text-sm">{items.length ? "Nothing matches." : "No products yet. Add what you sell or buy, and pick them on invoices, quotes, bills and purchase orders."}</p> : (
+    <Panel>{!items ? <SkeletonRows /> : items.length === 0 ? <EmptyState icon={Package} title="No products yet" action={<Button onClick={() => setAdding(true)}>Add your first product</Button>}>Add what you sell or buy, then pick it on invoices, quotes, bills and purchase orders. Turn on stock tracking for things you keep on the shelf.</EmptyState> : shown.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">Nothing matches.</p> : (
       <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 font-normal">Code</th><th className="pb-2 font-normal">Name</th><th className="pb-2 font-normal text-right">Selling price</th><th className="pb-2 font-normal text-right">On hand</th><th className="pb-2 font-normal text-right">Average cost</th><th className="pb-2 font-normal text-right">Stock value</th></tr></thead>
         <tbody>{shown.map((i) => { const isLow = i.trackStock && i.reorderLevel !== null && Number(i.qtyOnHand) <= Number(i.reorderLevel);
           return <tr key={i.id} className={`ledger-rule hover:bg-paper ${i.isActive ? "" : "opacity-60"}`}><td className="py-2.5"><Link className="text-primary font-medium hover:underline figure" to={`/products/${i.id}`}>{i.code}</Link></td><td>{i.name}{!i.trackStock && <span className="text-xs text-ink-soft"> · service / not stocked</span>}</td>
