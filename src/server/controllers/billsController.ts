@@ -1,9 +1,10 @@
-import { ApiError,toCamel,money,addDays } from '../utils/helpers';
+import { ApiError,toCamel,money,addDays,today } from '../utils/helpers';
 import { priceLines,validateHeader,nextNumber,insertLines,termsDays } from '../utils/documents';
 import { postJournalEntry,reverseJournalEntry,accountByCode } from '../utils/ledger';
+import { addPurchaseStock, reverseDocumentStock } from '../services/stockService';
 
 const withLines = async (c, b) => {
-  const lines = (await c.query('SELECT bl.*, a.name AS account_name FROM bill_lines bl JOIN accounts a ON a.id=bl.account_id WHERE bl.bill_id=$1 ORDER BY bl.id', [b.id])).rows;
+  const lines = (await c.query('SELECT bl.*, a.name AS account_name, it.code AS item_code, p.name AS project_name FROM bill_lines bl JOIN accounts a ON a.id=bl.account_id LEFT JOIN items it ON it.id=bl.item_id LEFT JOIN projects p ON p.id=bl.project_id WHERE bl.bill_id=$1 ORDER BY bl.line_no', [b.id])).rows;
   const contact = (await c.query('SELECT id, name, email, phone FROM contacts WHERE id=$1', [b.contact_id])).rows[0];
   const payments = (await c.query('SELECT * FROM payments WHERE bill_id=$1 ORDER BY date, created_at', [b.id])).rows;
   return toCamel({ ...b, lines, contact, payments });
@@ -20,7 +21,7 @@ async function create(req, res, c) {
   const orgId = req.user.orgId, b = req.body || {};
   const h = validateHeader(b, { dueField: 'dueDate' });
   if (!(await c.query('SELECT 1 FROM contacts WHERE id=$1 AND organization_id=$2', [b.contactId, orgId])).rowCount) throw new ApiError(400, 'Unknown contact');
-  const priced = await priceLines(c, orgId, b.lines);
+  const priced = await priceLines(c, orgId, b.lines, { side: 'purchase' });
   const number = b.number?.trim() || await nextNumber(c, orgId, 'bills', 'BILL');
   const r = await c.query(`INSERT INTO bills (organization_id, contact_id, number, issue_date, due_date, currency, exchange_rate, subtotal, tax_total, total, notes)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`, [orgId, b.contactId, number, b.issueDate, b.dueDate || addDays(b.issueDate, await termsDays(c, orgId)), h.currency, h.exchangeRate, priced.subtotal, priced.taxTotal, priced.total, b.notes || null]);
@@ -33,7 +34,7 @@ export async function approveBill(c, orgId: string, billId: string, userId: stri
   if (!bill) throw new ApiError(404, 'Bill not found');
   if (bill.status !== 'DRAFT') throw new ApiError(409, `Bill is already ${bill.status}`);
   if (!(bill.total > 0)) throw new ApiError(400, 'Cannot approve a bill with a zero total');
-  const lines = (await c.query('SELECT * FROM bill_lines WHERE bill_id=$1', [bill.id])).rows;
+  const lines = (await c.query('SELECT * FROM bill_lines WHERE bill_id=$1 ORDER BY line_no', [bill.id])).rows;
   const debits = new Map(); let vat = 0;
   for (const l of lines) { debits.set(l.account_id, money((debits.get(l.account_id) || 0) + money(l.line_total * bill.exchange_rate))); vat = money(vat + money(l.tax_amount * bill.exchange_rate)); }
   const jl: any[] = [...debits].filter(([, v]) => v > 0).map(([accountId, debit]) => ({ accountId, debit, description: `Bill ${bill.number}`, currency: bill.currency, exchangeRate: bill.exchange_rate }));
@@ -41,6 +42,7 @@ export async function approveBill(c, orgId: string, billId: string, userId: stri
   const gross = money(jl.reduce((s, l) => s + l.debit, 0));
   jl.push({ accountId: await accountByCode(c, orgId, '2000'), credit: gross, description: `Bill ${bill.number}`, currency: bill.currency, exchangeRate: bill.exchange_rate });
   const je = await postJournalEntry(c, { orgId, date: bill.issue_date, description: `Bill ${bill.number}`, sourceType: 'PURCHASE', sourceTable: 'bills', sourceId: bill.id, lines: jl, createdBy: userId });
+  await addPurchaseStock(c, orgId, bill, lines, je.id, userId);
   return (await c.query("UPDATE bills SET status='APPROVED', journal_entry_id=$2 WHERE id=$1 RETURNING *", [bill.id, je.id])).rows[0];
 }
 async function approve(req, res, c) { res.json({ bill: await withLines(c, await approveBill(c, req.user.orgId, req.params.id, req.user.userId)) }); }
@@ -50,7 +52,8 @@ async function voidBill(req, res, c) {
   if (!bill) throw new ApiError(404, 'Bill not found');
   if (bill.status === 'VOID') throw new ApiError(409, 'Bill is already void');
   if (bill.amount_paid > 0) throw new ApiError(409, 'Reverse the payments before voiding this bill');
-  if (bill.journal_entry_id) await reverseJournalEntry(c, { orgId, entryId: bill.journal_entry_id, createdBy: req.user.userId, description: `Void bill ${bill.number}` });
+  const rev = bill.journal_entry_id ? await reverseJournalEntry(c, { orgId, entryId: bill.journal_entry_id, createdBy: req.user.userId, description: `Void bill ${bill.number}` }) : null;
+  await reverseDocumentStock(c, orgId, 'bills', bill.id, today(), rev?.id || null, req.user.userId);
   const r = await c.query("UPDATE bills SET status='VOID' WHERE id=$1 RETURNING *", [bill.id]);
   res.json({ bill: await withLines(c, r.rows[0]) });
 }

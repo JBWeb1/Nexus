@@ -1,10 +1,10 @@
 import { ApiError,toCamel,money,today,isDate } from '../utils/helpers';
-import { priceLines,nextNumber,insertLines } from '../utils/documents';
+import { priceLines,nextNumber,insertLines,rawLine } from '../utils/documents';
 import { postJournalEntry,reverseJournalEntry,accountByCode } from '../utils/ledger';
 import { invoiceStatusFor } from '../services/paymentsService';
 import { renderDocument } from '../utils/pdf';
 
-async function withLines(c, n) { const lines = (await c.query('SELECT * FROM credit_note_lines WHERE credit_note_id=$1 ORDER BY id', [n.id])).rows; return toCamel({ ...n, lines }); }
+async function withLines(c, n) { const lines = (await c.query('SELECT * FROM credit_note_lines WHERE credit_note_id=$1 ORDER BY line_no', [n.id])).rows; return toCamel({ ...n, lines }); }
 async function list(req, res, c) {
   const p = [req.user.orgId]; let w = 'n.organization_id=$1'; if (req.query.invoiceId) { p.push(req.query.invoiceId); w += ` AND n.invoice_id=$${p.length}`; }
   const r = await c.query(`SELECT n.*, c.name AS contact_name, i.number AS invoice_number FROM credit_notes n JOIN contacts c ON c.id=n.contact_id JOIN invoices i ON i.id=n.invoice_id WHERE ${w} ORDER BY n.issue_date DESC, n.number DESC`, p);
@@ -25,7 +25,7 @@ async function create(req, res, c) {
   if (!raw || (Array.isArray(raw) && raw.length === 0)) {
     if (!b.full) throw new ApiError(400, 'Add the lines to credit, or choose a full credit');
     if (inv.amount_paid > 0) throw new ApiError(400, 'A full credit is only possible while nothing has been paid or credited. Enter the lines to credit instead.');
-    raw = (await c.query('SELECT description, quantity, unit_price, account_id, tax_rate_id FROM invoice_lines WHERE invoice_id=$1', [inv.id])).rows.map((l) => ({ description: l.description, quantity: l.quantity, unitPrice: l.unit_price, accountId: l.account_id, taxRateId: l.tax_rate_id }));
+    raw = (await c.query('SELECT * FROM invoice_lines WHERE invoice_id=$1 ORDER BY line_no', [inv.id])).rows.map(rawLine);
   }
   const priced = await priceLines(c, orgId, raw); const outstanding = money(inv.total - inv.amount_paid);
   if (priced.total > outstanding + 0.005) throw new ApiError(400, `A credit note cannot be more than the amount still owing (${outstanding})`);
@@ -57,7 +57,7 @@ async function voidNote(req, res, c) {
 async function pdf(req, res, c) {
   const orgId = req.user.orgId; const n = (await c.query('SELECT * FROM credit_notes WHERE id=$1 AND organization_id=$2', [req.params.id, orgId])).rows[0]; if (!n) throw new ApiError(404, 'Credit note not found');
   const org = (await c.query('SELECT * FROM organizations WHERE id=$1', [orgId])).rows[0]; const contact = (await c.query('SELECT * FROM contacts WHERE id=$1', [n.contact_id])).rows[0];
-  const inv = (await c.query('SELECT number FROM invoices WHERE id=$1', [n.invoice_id])).rows[0]; const lines = (await c.query('SELECT * FROM credit_note_lines WHERE credit_note_id=$1', [n.id])).rows;
+  const inv = (await c.query('SELECT number FROM invoices WHERE id=$1', [n.invoice_id])).rows[0]; const lines = (await c.query('SELECT * FROM credit_note_lines WHERE credit_note_id=$1 ORDER BY line_no', [n.id])).rows;
   const buf = await renderDocument({ kind: 'Credit note', org, contact, doc: n, lines, extra: [`Against invoice ${inv.number}`], footer: org });
   res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', `attachment; filename="${n.number}.pdf"`); res.send(buf);
 }

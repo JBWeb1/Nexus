@@ -1,6 +1,6 @@
 import { ApiError,toCamel } from '../utils/helpers';
-const TYPES = ['GENERAL', 'INVOICE', 'BILL', 'QUOTE', 'CONTACT', 'PERIOD'];
-const TABLE = { INVOICE: 'invoices', BILL: 'bills', QUOTE: 'quotes', CONTACT: 'contacts' };
+const TYPES = ['GENERAL', 'INVOICE', 'BILL', 'QUOTE', 'CONTACT', 'PERIOD', 'PURCHASE_ORDER', 'PROJECT', 'ITEM'];
+const TABLE = { INVOICE: 'invoices', BILL: 'bills', QUOTE: 'quotes', CONTACT: 'contacts', PURCHASE_ORDER: 'purchase_orders', PROJECT: 'projects', ITEM: 'items' };
 const SEL = 'id, entity_type, entity_id, title, body, pinned, created_by_name, created_at, updated_at';
 
 async function checkTarget(c, orgId, type, id) {
@@ -19,8 +19,9 @@ async function list(req, res, c) {
   const out = [];
   for (const r of rows) {
     let label = null;
-    if (r.entity_type === 'INVOICE' || r.entity_type === 'BILL' || r.entity_type === 'QUOTE') label = (await c.query(`SELECT number FROM ${TABLE[r.entity_type]} WHERE id=$1`, [r.entity_id])).rows[0]?.number;
+    if (['INVOICE', 'BILL', 'QUOTE', 'PURCHASE_ORDER'].includes(r.entity_type)) label = (await c.query(`SELECT number FROM ${TABLE[r.entity_type]} WHERE id=$1`, [r.entity_id])).rows[0]?.number;
     else if (r.entity_type === 'CONTACT') label = (await c.query('SELECT name FROM contacts WHERE id=$1', [r.entity_id])).rows[0]?.name;
+    else if (r.entity_type === 'PROJECT' || r.entity_type === 'ITEM') label = (await c.query(`SELECT name FROM ${TABLE[r.entity_type]} WHERE id=$1`, [r.entity_id])).rows[0]?.name;
     else if (r.entity_type === 'PERIOD') label = r.entity_id;
     out.push({ ...toCamel(r), label });
   }

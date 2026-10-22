@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 const fmt = (n, cur = 'ZAR') => `${cur === 'ZAR' ? 'R' : cur + ' '} ${Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-/** Renders a tidy A4 document (invoice, quote or credit note) to a Buffer. */
-function renderDocument({ kind, org, contact, doc, lines, dateLabel = 'Date', dueLabel = 'Due', extra = [], footer }: any): Promise<Buffer> {
+/** Renders a tidy A4 document (invoice, quote, credit note or purchase order) to a Buffer. */
+function renderDocument({ kind, org, contact, doc, lines, dateLabel = 'Date', dueLabel = 'Due', toLabel = 'BILL TO', extra = [], footer }: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const pdf = new PDFDocument({ size: 'A4', margin: 50 }); const chunks = [];
     pdf.on('data', (c) => chunks.push(c)); pdf.on('end', () => resolve(Buffer.concat(chunks))); pdf.on('error', reject);

@@ -4,7 +4,7 @@ import { authPool } from '../db';
 import { ApiError, newId } from '../utils/helpers';
 import { putFile, getFile, deleteFile, storageMode } from '../utils/storage';
 
-const TYPES = ['INVOICE', 'BILL', 'QUOTE', 'CONTACT', 'GENERAL'];
+const TYPES = ['INVOICE', 'BILL', 'QUOTE', 'CONTACT', 'GENERAL', 'PURCHASE_ORDER', 'PROJECT', 'ITEM'];
 const ALLOWED = /^(application\/pdf|image\/(png|jpe?g|webp|heic)|text\/(csv|plain)|application\/vnd\.(openxmlformats-officedocument\.(spreadsheetml\.sheet|wordprocessingml\.document)|ms-excel)|application\/msword)$/;
 const shape = (a: any) => ({ id: a.id, entityType: a.entityType, entityId: a.entityId, filename: a.filename, contentType: a.contentType, size: a.size, uploadedByName: a.uploadedByName, createdAt: a.createdAt });
 

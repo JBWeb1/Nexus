@@ -40,6 +40,9 @@ import * as stmt from './controllers/statementController';
 import * as portal from './controllers/portalController';
 import * as rem from './controllers/reminderController';
 import * as rcpt from './controllers/receiptsController';
+import * as items from './controllers/itemsController';
+import * as po from './controllers/purchaseOrdersController';
+import * as prj from './controllers/projectsController';
 
 const r = new Router();
 const authLimit = rateLimit({ limit: 30, windowMs: 60_000, name: 'auth' }), resetLimit = rateLimit({ limit: 6, windowMs: 3_600_000, name: 'reset' });
@@ -106,4 +109,11 @@ r.get('/onboarding', h(onb.checklist)); r.post('/onboarding/dismiss', h(onb.dism
 r.get('/work-queue', h(wq.get));
 r.get('/month-end', h(me.list)); r.get('/month-end/:period', h(me.status)); r.post('/month-end/:period/close', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(me.close));
 r.get('/attachments', h(att.list)); r.post('/attachments', h(att.upload)); r.get('/attachments/:id/download', h(att.download)); r.delete('/attachments/:id', h(att.remove));
+const writer = requireRole('OWNER', 'ADMIN', 'ACCOUNTANT');
+r.get('/items', h(items.list)); r.post('/items', writer, h(items.create)); r.get('/items/:id', h(items.get)); r.patch('/items/:id', writer, h(items.update)); r.post('/items/:id/adjust', writer, h(items.adjust));
+r.get('/reports/stock-valuation', h(items.valuation));
+r.get('/purchase-orders', h(po.list)); r.post('/purchase-orders', h(po.create)); r.get('/purchase-orders/:id', h(po.get)); r.post('/purchase-orders/:id/send', h(po.send)); r.post('/purchase-orders/:id/cancel', h(po.cancel));
+r.post('/purchase-orders/:id/convert', h(po.convert)); r.get('/purchase-orders/:id/pdf', h(dx.purchaseOrderPdf)); r.post('/purchase-orders/:id/email', h(dx.emailPurchaseOrder));
+r.get('/projects', h(prj.list)); r.post('/projects', h(prj.create)); r.get('/projects/:id', h(prj.get)); r.patch('/projects/:id', h(prj.update));
+r.post('/projects/:id/time', h(prj.addTime)); r.delete('/projects/:id/time/:entryId', h(prj.removeTime)); r.post('/projects/:id/invoice-time', h(prj.invoiceTime));
 export default r;

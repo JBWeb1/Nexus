@@ -12,6 +12,18 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model PrismaMigration {
+  id String @id
+  checksum String
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(6)
+  migrationName String @map("migration_name")
+  logs String?
+  rolledBackAt DateTime? @map("rolled_back_at") @db.Timestamptz(6)
+  startedAt DateTime @default(now()) @map("started_at") @db.Timestamptz(6)
+  appliedStepsCount Int @default(0) @map("applied_steps_count")
+  @@map("_prisma_migrations")
+}
+
 model Account {
   id String @id @default(dbgenerated("gen_id('acc'::text)"))
   organizationId String @map("organization_id")
@@ -28,7 +40,11 @@ model Account {
   billLinesByAccountId BillLine[] @relation("bill_lines_account_id")
   creditNoteLinesByAccountId CreditNoteLine[] @relation("credit_note_lines_account_id")
   invoiceLinesByAccountId InvoiceLine[] @relation("invoice_lines_account_id")
+  itemsByCogsAccountId Item[] @relation("items_cogs_account_id")
+  itemsByPurchaseAccountId Item[] @relation("items_purchase_account_id")
+  itemsBySaleAccountId Item[] @relation("items_sale_account_id")
   journalLinesByAccountId JournalLine[] @relation("journal_lines_account_id")
+  purchaseOrderLinesByAccountId PurchaseOrderLine[] @relation("purchase_order_lines_account_id")
   quoteLinesByAccountId QuoteLine[] @relation("quote_lines_account_id")
   recurringInvoiceLinesByAccountId RecurringInvoiceLine[] @relation("recurring_invoice_lines_account_id")
   @@unique([organizationId, code])
@@ -119,8 +135,13 @@ model BillLine {
   taxRateId String? @map("tax_rate_id")
   lineTotal Decimal @map("line_total") @db.Decimal(18, 2)
   taxAmount Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
   accountRel Account @relation("bill_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   billRel Bill @relation("bill_lines_bill_id", fields: [billId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("bill_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("bill_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxRateRel TaxRate? @relation("bill_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@map("bill_lines")
 }
@@ -148,6 +169,7 @@ model Bill {
   organizationRel Organization @relation("bills_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   billLinesByBillId BillLine[] @relation("bill_lines_bill_id")
   paymentsByBillId Payment[] @relation("payments_bill_id")
+  purchaseOrdersByBillId PurchaseOrder[] @relation("purchase_orders_bill_id")
   @@unique([organizationId, number])
   @@map("bills")
 }
@@ -167,6 +189,9 @@ model Contact {
   billsByContactId Bill[] @relation("bills_contact_id")
   creditNotesByContactId CreditNote[] @relation("credit_notes_contact_id")
   invoicesByContactId Invoice[] @relation("invoices_contact_id")
+  portalLinksByContactId PortalLink[] @relation("portal_links_contact_id")
+  projectsByContactId Project[] @relation("projects_contact_id")
+  purchaseOrdersByContactId PurchaseOrder[] @relation("purchase_orders_contact_id")
   quotesByContactId Quote[] @relation("quotes_contact_id")
   recurringInvoicesByContactId RecurringInvoice[] @relation("recurring_invoices_contact_id")
   @@map("contacts")
@@ -182,8 +207,13 @@ model CreditNoteLine {
   taxRateId String? @map("tax_rate_id")
   lineTotal Decimal @map("line_total") @db.Decimal(18, 2)
   taxAmount Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
   accountRel Account @relation("credit_note_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   creditNoteRel CreditNote @relation("credit_note_lines_credit_note_id", fields: [creditNoteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("credit_note_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("credit_note_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxRateRel TaxRate? @relation("credit_note_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@map("credit_note_lines")
 }
@@ -249,10 +279,30 @@ model InvoiceLine {
   taxRateId String? @map("tax_rate_id")
   lineTotal Decimal @map("line_total") @db.Decimal(18, 2)
   taxAmount Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
   accountRel Account @relation("invoice_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   invoiceRel Invoice @relation("invoice_lines_invoice_id", fields: [invoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("invoice_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("invoice_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxRateRel TaxRate? @relation("invoice_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@map("invoice_lines")
+}
+
+model InvoiceReminder {
+  id String @id @default(dbgenerated("gen_id('rem'::text)"))
+  organizationId String @map("organization_id")
+  invoiceId String @map("invoice_id")
+  stage Int
+  status String
+  channels Unsupported("_text") @default(dbgenerated("'{}'::text[]"))
+  detail String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  invoiceRel Invoice @relation("invoice_reminders_invoice_id", fields: [invoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("invoice_reminders_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([invoiceId, stage])
+  @@map("invoice_reminders")
 }
 
 model Invoice {
@@ -272,17 +322,56 @@ model Invoice {
   notes String?
   journalEntryId String? @map("journal_entry_id")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  openingBalance Boolean @default(false) @map("opening_balance")
   creditTotal Decimal @default(0) @map("credit_total") @db.Decimal(18, 2)
+  openingBalance Boolean @default(false) @map("opening_balance")
   contactRel Contact @relation("invoices_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   journalEntryRel JournalEntry? @relation("invoices_journal_entry_id", fields: [journalEntryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   organizationRel Organization @relation("invoices_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   creditNotesByInvoiceId CreditNote[] @relation("credit_notes_invoice_id")
   invoiceLinesByInvoiceId InvoiceLine[] @relation("invoice_lines_invoice_id")
+  invoiceRemindersByInvoiceId InvoiceReminder[] @relation("invoice_reminders_invoice_id")
   paymentsByInvoiceId Payment[] @relation("payments_invoice_id")
   quotesByConvertedInvoiceId Quote[] @relation("quotes_converted_invoice_id")
+  timeEntriesByInvoiceId TimeEntry[] @relation("time_entries_invoice_id")
   @@unique([organizationId, number])
   @@map("invoices")
+}
+
+model Item {
+  id String @id @default(dbgenerated("gen_id('itm'::text)"))
+  organizationId String @map("organization_id")
+  code String
+  name String
+  description String?
+  unit String?
+  salePrice Decimal? @map("sale_price") @db.Decimal(18, 2)
+  purchasePrice Decimal? @map("purchase_price") @db.Decimal(18, 2)
+  saleAccountId String? @map("sale_account_id")
+  purchaseAccountId String? @map("purchase_account_id")
+  cogsAccountId String? @map("cogs_account_id")
+  saleTaxRateId String? @map("sale_tax_rate_id")
+  purchaseTaxRateId String? @map("purchase_tax_rate_id")
+  trackStock Boolean @default(false) @map("track_stock")
+  qtyOnHand Decimal @default(0) @map("qty_on_hand") @db.Decimal(18, 4)
+  stockValue Decimal @default(0) @map("stock_value") @db.Decimal(18, 2)
+  reorderLevel Decimal? @map("reorder_level") @db.Decimal(18, 4)
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  cogsAccountRel Account? @relation("items_cogs_account_id", fields: [cogsAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("items_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchaseAccountRel Account? @relation("items_purchase_account_id", fields: [purchaseAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchaseTaxRateRel TaxRate? @relation("items_purchase_tax_rate_id", fields: [purchaseTaxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  saleAccountRel Account? @relation("items_sale_account_id", fields: [saleAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  saleTaxRateRel TaxRate? @relation("items_sale_tax_rate_id", fields: [saleTaxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  billLinesByItemId BillLine[] @relation("bill_lines_item_id")
+  creditNoteLinesByItemId CreditNoteLine[] @relation("credit_note_lines_item_id")
+  invoiceLinesByItemId InvoiceLine[] @relation("invoice_lines_item_id")
+  purchaseOrderLinesByItemId PurchaseOrderLine[] @relation("purchase_order_lines_item_id")
+  quoteLinesByItemId QuoteLine[] @relation("quote_lines_item_id")
+  recurringInvoiceLinesByItemId RecurringInvoiceLine[] @relation("recurring_invoice_lines_item_id")
+  stockMovementsByItemId StockMovement[] @relation("stock_movements_item_id")
+  @@unique([organizationId, code])
+  @@map("items")
 }
 
 model JournalEntry {
@@ -307,6 +396,7 @@ model JournalEntry {
   journalEntriesByReversesEntryId JournalEntry[] @relation("journal_entries_reverses_entry_id")
   journalLinesByJournalEntryId JournalLine[] @relation("journal_lines_journal_entry_id")
   paymentsByJournalEntryId Payment[] @relation("payments_journal_entry_id")
+  stockMovementsByJournalEntryId StockMovement[] @relation("stock_movements_journal_entry_id")
   vatPeriodsByJournalEntryId VatPeriod[] @relation("vat_periods_journal_entry_id")
   @@map("journal_entries")
 }
@@ -369,8 +459,6 @@ model Note {
 model Organization {
   id String @id @default(dbgenerated("gen_id('org'::text)"))
   name String
-  remindersEnabled Boolean @default(false) @map("reminders_enabled")
-  reminderSchedule Int[] @default([-3, 0, 7, 30]) @map("reminder_schedule")
   currency String @default("ZAR")
   vatNumber String? @map("vat_number")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -397,6 +485,9 @@ model Organization {
   paystackSubscriptionCode String? @map("paystack_subscription_code")
   paystackEmailToken String? @map("paystack_email_token")
   plan String @default("SINGLE")
+  remindersEnabled Boolean @default(false) @map("reminders_enabled")
+  reminderSchedule Unsupported("_int4") @default(dbgenerated("'{-3,0,7,30}'::integer[]")) @map("reminder_schedule")
+  purchaseOrderPrefix String @default("PO") @map("purchase_order_prefix")
   accountsByOrganizationId Account[] @relation("accounts_organization_id")
   activityLogByOrganizationId ActivityLog[] @relation("activity_log_organization_id")
   attachmentsByOrganizationId Attachment[] @relation("attachments_organization_id")
@@ -407,18 +498,25 @@ model Organization {
   creditNotesByOrganizationId CreditNote[] @relation("credit_notes_organization_id")
   financialYearsByOrganizationId FinancialYear[] @relation("financial_years_organization_id")
   invitationsByOrganizationId Invitation[] @relation("invitations_organization_id")
+  invoiceRemindersByOrganizationId InvoiceReminder[] @relation("invoice_reminders_organization_id")
   invoicesByOrganizationId Invoice[] @relation("invoices_organization_id")
+  itemsByOrganizationId Item[] @relation("items_organization_id")
   journalEntriesByOrganizationId JournalEntry[] @relation("journal_entries_organization_id")
   membershipsByOrganizationId Membership[] @relation("memberships_organization_id")
   monthClosesByOrganizationId MonthClose[] @relation("month_closes_organization_id")
   notesByOrganizationId Note[] @relation("notes_organization_id")
   paymentsByOrganizationId Payment[] @relation("payments_organization_id")
   periodLocksByOrganizationId PeriodLock[] @relation("period_locks_organization_id")
+  portalLinksByOrganizationId PortalLink[] @relation("portal_links_organization_id")
+  projectsByOrganizationId Project[] @relation("projects_organization_id")
+  purchaseOrdersByOrganizationId PurchaseOrder[] @relation("purchase_orders_organization_id")
   quotesByOrganizationId Quote[] @relation("quotes_organization_id")
   recurringInvoicesByOrganizationId RecurringInvoice[] @relation("recurring_invoices_organization_id")
+  stockMovementsByOrganizationId StockMovement[] @relation("stock_movements_organization_id")
   subscriptionPaymentsByOrganizationId SubscriptionPayment[] @relation("subscription_payments_organization_id")
   tasksByOrganizationId Task[] @relation("tasks_organization_id")
   taxRatesByOrganizationId TaxRate[] @relation("tax_rates_organization_id")
+  timeEntriesByOrganizationId TimeEntry[] @relation("time_entries_organization_id")
   usersByOrganizationId User[] @relation("users_organization_id")
   vatPeriodsByOrganizationId VatPeriod[] @relation("vat_periods_organization_id")
   @@map("organizations")
@@ -468,6 +566,90 @@ model PeriodLock {
   @@map("period_locks")
 }
 
+model PortalLink {
+  id String @id @default(dbgenerated("gen_id('prt'::text)"))
+  organizationId String @map("organization_id")
+  contactId String @map("contact_id")
+  tokenHash String @map("token_hash")
+  createdBy String? @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @default(dbgenerated("(now() + '1 year'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  contactRel Contact @relation("portal_links_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("portal_links_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([tokenHash])
+  @@map("portal_links")
+}
+
+model Project {
+  id String @id @default(dbgenerated("gen_id('prj'::text)"))
+  organizationId String @map("organization_id")
+  name String
+  contactId String? @map("contact_id")
+  status String @default("ACTIVE")
+  hourlyRate Decimal? @map("hourly_rate") @db.Decimal(18, 2)
+  budget Decimal? @db.Decimal(18, 2)
+  notes String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  contactRel Contact? @relation("projects_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("projects_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  billLinesByProjectId BillLine[] @relation("bill_lines_project_id")
+  creditNoteLinesByProjectId CreditNoteLine[] @relation("credit_note_lines_project_id")
+  invoiceLinesByProjectId InvoiceLine[] @relation("invoice_lines_project_id")
+  purchaseOrderLinesByProjectId PurchaseOrderLine[] @relation("purchase_order_lines_project_id")
+  quoteLinesByProjectId QuoteLine[] @relation("quote_lines_project_id")
+  recurringInvoiceLinesByProjectId RecurringInvoiceLine[] @relation("recurring_invoice_lines_project_id")
+  stockMovementsByProjectId StockMovement[] @relation("stock_movements_project_id")
+  timeEntriesByProjectId TimeEntry[] @relation("time_entries_project_id")
+  @@map("projects")
+}
+
+model PurchaseOrderLine {
+  id String @id @default(dbgenerated("gen_id('pol'::text)"))
+  purchaseOrderId String @map("purchase_order_id")
+  description String
+  quantity Decimal @default(1) @db.Decimal(18, 4)
+  unitPrice Decimal @map("unit_price") @db.Decimal(18, 2)
+  accountId String @map("account_id")
+  taxRateId String? @map("tax_rate_id")
+  lineTotal Decimal @map("line_total") @db.Decimal(18, 2)
+  taxAmount Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
+  accountRel Account @relation("purchase_order_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("purchase_order_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("purchase_order_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchaseOrderRel PurchaseOrder @relation("purchase_order_lines_purchase_order_id", fields: [purchaseOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  taxRateRel TaxRate? @relation("purchase_order_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@map("purchase_order_lines")
+}
+
+model PurchaseOrder {
+  id String @id @default(dbgenerated("gen_id('po'::text)"))
+  organizationId String @map("organization_id")
+  contactId String @map("contact_id")
+  number String
+  issueDate DateTime @map("issue_date") @db.Date
+  deliveryDate DateTime? @map("delivery_date") @db.Date
+  currency String @default("ZAR")
+  exchangeRate Decimal @default(1) @map("exchange_rate") @db.Decimal(18, 6)
+  subtotal Decimal @default(0) @db.Decimal(18, 2)
+  taxTotal Decimal @default(0) @map("tax_total") @db.Decimal(18, 2)
+  total Decimal @default(0) @db.Decimal(18, 2)
+  status String @default("DRAFT")
+  notes String?
+  billId String? @map("bill_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  billRel Bill? @relation("purchase_orders_bill_id", fields: [billId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contactRel Contact @relation("purchase_orders_contact_id", fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("purchase_orders_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchaseOrderLinesByPurchaseOrderId PurchaseOrderLine[] @relation("purchase_order_lines_purchase_order_id")
+  @@unique([organizationId, number])
+  @@map("purchase_orders")
+}
+
 model QuoteLine {
   id String @id @default(dbgenerated("gen_id('ql'::text)"))
   quoteId String @map("quote_id")
@@ -478,7 +660,12 @@ model QuoteLine {
   taxRateId String? @map("tax_rate_id")
   lineTotal Decimal @map("line_total") @db.Decimal(18, 2)
   taxAmount Decimal @default(0) @map("tax_amount") @db.Decimal(18, 2)
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
   accountRel Account @relation("quote_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("quote_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("quote_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   quoteRel Quote @relation("quote_lines_quote_id", fields: [quoteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxRateRel TaxRate? @relation("quote_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@map("quote_lines")
@@ -516,7 +703,12 @@ model RecurringInvoiceLine {
   unitPrice Decimal @map("unit_price") @db.Decimal(18, 2)
   accountId String @map("account_id")
   taxRateId String? @map("tax_rate_id")
+  itemId String? @map("item_id")
+  projectId String? @map("project_id")
+  lineNo BigInt @map("line_no")
   accountRel Account @relation("recurring_invoice_lines_account_id", fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  itemRel Item? @relation("recurring_invoice_lines_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("recurring_invoice_lines_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   recurringInvoiceRel RecurringInvoice @relation("recurring_invoice_lines_recurring_invoice_id", fields: [recurringInvoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   taxRateRel TaxRate? @relation("recurring_invoice_lines_tax_rate_id", fields: [taxRateId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@map("recurring_invoice_lines")
@@ -541,6 +733,29 @@ model RecurringInvoice {
   organizationRel Organization @relation("recurring_invoices_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   recurringInvoiceLinesByRecurringInvoiceId RecurringInvoiceLine[] @relation("recurring_invoice_lines_recurring_invoice_id")
   @@map("recurring_invoices")
+}
+
+model StockMovement {
+  id String @id @default(dbgenerated("gen_id('stk'::text)"))
+  organizationId String @map("organization_id")
+  itemId String @map("item_id")
+  date DateTime @db.Date
+  kind String
+  quantity Decimal @db.Decimal(18, 4)
+  value Decimal @db.Decimal(18, 2)
+  sourceTable String? @map("source_table")
+  sourceId String? @map("source_id")
+  lineId String? @map("line_id")
+  projectId String? @map("project_id")
+  journalEntryId String? @map("journal_entry_id")
+  note String?
+  createdBy String? @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  itemRel Item @relation("stock_movements_item_id", fields: [itemId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  journalEntryRel JournalEntry? @relation("stock_movements_journal_entry_id", fields: [journalEntryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("stock_movements_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project? @relation("stock_movements_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@map("stock_movements")
 }
 
 model SubscriptionPayment {
@@ -589,9 +804,31 @@ model TaxRate {
   billLinesByTaxRateId BillLine[] @relation("bill_lines_tax_rate_id")
   creditNoteLinesByTaxRateId CreditNoteLine[] @relation("credit_note_lines_tax_rate_id")
   invoiceLinesByTaxRateId InvoiceLine[] @relation("invoice_lines_tax_rate_id")
+  itemsByPurchaseTaxRateId Item[] @relation("items_purchase_tax_rate_id")
+  itemsBySaleTaxRateId Item[] @relation("items_sale_tax_rate_id")
+  purchaseOrderLinesByTaxRateId PurchaseOrderLine[] @relation("purchase_order_lines_tax_rate_id")
   quoteLinesByTaxRateId QuoteLine[] @relation("quote_lines_tax_rate_id")
   recurringInvoiceLinesByTaxRateId RecurringInvoiceLine[] @relation("recurring_invoice_lines_tax_rate_id")
   @@map("tax_rates")
+}
+
+model TimeEntry {
+  id String @id @default(dbgenerated("gen_id('tim'::text)"))
+  organizationId String @map("organization_id")
+  projectId String @map("project_id")
+  userId String? @map("user_id")
+  userName String? @map("user_name")
+  date DateTime @db.Date
+  hours Decimal @db.Decimal(8, 2)
+  description String
+  billable Boolean @default(true)
+  rate Decimal? @db.Decimal(18, 2)
+  invoiceId String? @map("invoice_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  invoiceRel Invoice? @relation("time_entries_invoice_id", fields: [invoiceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("time_entries_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  projectRel Project @relation("time_entries_project_id", fields: [projectId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@map("time_entries")
 }
 
 model User {

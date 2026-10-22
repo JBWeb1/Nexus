@@ -46,6 +46,9 @@ const LABELS: [string, RegExp, string][] = [
   ['POST', /^\/vat-periods\/finalize$/, 'Finalised a VAT period'], ['POST', /^\/month-end\/[^/]+\/close$/, 'Closed a month'], ['PUT', /^\/period-lock$/, 'Changed the period lock'], ['POST', /^\/financial-years\/[^/]+\/close$/, 'Closed a financial year'],
   ['PATCH', /^\/organization$/, 'Changed company settings'], ['POST', /^\/import\/expenses\/commit$/, 'Imported expenses'],
   ['POST', /^\/notes$/, 'Added a note'], ['PATCH', /^\/notes\/[^/]+$/, 'Edited a note'], ['DELETE', /^\/notes\/[^/]+$/, 'Deleted a note'],
+  ['POST', /^\/items$/, 'Added a product'], ['PATCH', /^\/items\/[^/]+$/, 'Edited a product'], ['POST', /^\/items\/[^/]+\/adjust$/, 'Adjusted stock on hand'],
+  ['POST', /^\/purchase-orders$/, 'Created a purchase order'], ['POST', /^\/purchase-orders\/[^/]+\/(send|cancel|email)$/, 'Updated a purchase order'], ['POST', /^\/purchase-orders\/[^/]+\/convert$/, 'Turned a purchase order into a bill'],
+  ['POST', /^\/projects$/, 'Added a project'], ['PATCH', /^\/projects\/[^/]+$/, 'Edited a project'], ['POST', /^\/projects\/[^/]+\/time$/, 'Logged time'], ['DELETE', /^\/projects\/[^/]+\/time\/[^/]+$/, 'Deleted a time entry'], ['POST', /^\/projects\/[^/]+\/invoice-time$/, 'Invoiced project time'],
   ['POST', /^\/recurring-invoices(\/run-due)?$/, 'Recurring invoices'], ['POST', /^\/recurring-invoices\/[^/]+\/(pause|resume)$/, 'Paused or resumed a recurring invoice'],
 ];
 async function logActivity(client, req, res) {

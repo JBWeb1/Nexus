@@ -41,6 +41,13 @@ Statements (Contacts > Statement), a customer portal with online payment, automa
 (Settings > Payment reminders, sent daily via `/api/cron/daily`) and receipt reading from photos (Receipts, needs
 `ANTHROPIC_API_KEY`). See DEPLOY.md for the settings.
 
+## Products, stock, purchase orders and projects
+
+Products & stock keeps a price list for document lines and, for stocked products, the quantity on hand at average cost:
+bills add stock, invoices post cost of sales, stock counts post the difference, and the stock value is checked against
+the ledger. Purchase orders go to suppliers as PDFs and become draft bills when the supplier's invoice arrives. Projects
+collect the invoice and bill lines tagged with them, log hours, and invoice billable hours; each shows its profit.
+
 ## Install as an app
 
 Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), as an Android APK
@@ -97,7 +104,8 @@ scripts/                    setup, migrate, regression suite
 ## Features
 
 Multi-company with a company switcher, team roles (Owner, Admin, Accountant, Viewer) and invitations, invoices, quotes,
-recurring invoices, credit notes, bills, payments and reversals, bank accounts, bank matching, bank rules, spreadsheet import,
+recurring invoices, credit notes, bills, purchase orders, products and services, stock on hand at average cost with cost of
+sales and stock counts, projects with timesheets and profit per project, payments and reversals, bank accounts, bank matching, bank rules, spreadsheet import,
 VAT201 preview and period finalisation, month-end close, reports (P&L, balance sheet, trial balance, aged debtors and
 creditors), Excel and PDF export, insights with rule-based explanations, work queue, tasks and monthly checklists, notes, file
 attachments, activity log, guided tutorials, two-factor sign-in, password reset, company data export, and subscriptions
@@ -105,8 +113,9 @@ attachments, activity log, guided tutorials, two-factor sign-in, password reset,
 
 ## Not built
 
-Payroll, PAYE/UIF/SDL and a statutory deadline calendar (they need verified current SARS rules), receipt OCR, a client portal,
-audit preparation pack, practice billing, bank feeds, purchase orders, SARS e-filing. The VAT201 screen is a preview; you
+Payroll, PAYE/UIF/SDL and a statutory deadline calendar (they need verified current SARS rules), audit preparation pack,
+practice billing, bank feeds, SARS e-filing, multiple warehouses, serial and batch numbers, and stock returned on credit
+notes (a credit note reduces the sale; count returned stock back in with a stock count). The VAT201 screen is a preview; you
 submit the return yourself on eFiling.
 
 ## Not tested against live services

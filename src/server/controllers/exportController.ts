@@ -33,7 +33,10 @@ async function companyData(req, res, c) {
     quotes: 'SELECT * FROM quotes WHERE organization_id=$1', creditNotes: 'SELECT * FROM credit_notes WHERE organization_id=$1', payments: 'SELECT * FROM payments WHERE organization_id=$1',
     bankAccounts: 'SELECT * FROM bank_accounts WHERE organization_id=$1', bankTransactions: 'SELECT t.* FROM bank_transactions t JOIN bank_accounts b ON b.id=t.bank_account_id WHERE b.organization_id=$1',
     journalEntries: 'SELECT * FROM journal_entries WHERE organization_id=$1 ORDER BY date', journalLines: 'SELECT l.* FROM journal_lines l JOIN journal_entries e ON e.id=l.journal_entry_id WHERE e.organization_id=$1',
-    vatPeriods: 'SELECT * FROM vat_periods WHERE organization_id=$1', monthCloses: 'SELECT * FROM month_closes WHERE organization_id=$1', notes: 'SELECT * FROM notes WHERE organization_id=$1', activity: 'SELECT * FROM activity_log WHERE organization_id=$1 ORDER BY created_at',
+    vatPeriods: 'SELECT * FROM vat_periods WHERE organization_id=$1', monthCloses: 'SELECT * FROM month_closes WHERE organization_id=$1', notes: 'SELECT * FROM notes WHERE organization_id=$1',
+    items: 'SELECT * FROM items WHERE organization_id=$1 ORDER BY code', stockMovements: 'SELECT * FROM stock_movements WHERE organization_id=$1 ORDER BY date, created_at',
+    purchaseOrders: 'SELECT * FROM purchase_orders WHERE organization_id=$1 ORDER BY number', purchaseOrderLines: 'SELECT l.* FROM purchase_order_lines l JOIN purchase_orders p ON p.id=l.purchase_order_id WHERE p.organization_id=$1',
+    projects: 'SELECT * FROM projects WHERE organization_id=$1', timeEntries: 'SELECT * FROM time_entries WHERE organization_id=$1 ORDER BY date', activity: 'SELECT * FROM activity_log WHERE organization_id=$1 ORDER BY created_at',
   })) out[k] = await q(sql);
   res.setHeader('Content-Type', 'application/json'); res.setHeader('Content-Disposition', `attachment; filename="company-data-${new Date().toISOString().slice(0, 10)}.json"`); res.send(JSON.stringify(out, null, 2));
 }

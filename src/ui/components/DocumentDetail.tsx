@@ -6,7 +6,7 @@ import { api } from "../api/client"; import Panel from "./Panel"; import Money f
 import { DOCS, ACTIONS } from "./docConfigs";
 const today = () => new Date().toISOString().slice(0, 10);
 import NotesPanel from "./Notes";
-const NOTE_TYPE = { invoices: "INVOICE", bills: "BILL", quotes: "QUOTE" };
+const NOTE_TYPE = { invoices: "INVOICE", bills: "BILL", quotes: "QUOTE", "purchase-orders": "PURCHASE_ORDER" };
 export default function DocumentDetail({ kind }) {
   const cfg = DOCS[kind]; const { id } = useParams(); const nav = useNavigate();
   const [doc, setDoc] = useState(null); const [error, setError] = useState(null); const [busy, setBusy] = useState(false); const [banks, setBanks] = useState([]);
@@ -17,9 +17,12 @@ export default function DocumentDetail({ kind }) {
   async function act(label, suffix, confirm) {
     if (confirm && !window.confirm(`${label} this ${cfg.singular.toLowerCase()}?`)) return;
     // Converting a quote: date the invoice the day the work was agreed, which is not always today.
-    let body; if (suffix === "convert") { const d = window.prompt("Date for the new invoice (YYYY-MM-DD)", today()); if (d === null) return; body = { issueDate: d.trim() }; }
+    // A purchase order becomes a bill when the supplier's invoice arrives: its date and number come from that invoice.
+    const po = kind === "purchase-orders"; let body;
+    if (suffix === "convert") { const d = window.prompt(po ? "Date on the supplier's invoice (YYYY-MM-DD)" : "Date for the new invoice (YYYY-MM-DD)", today()); if (d === null) return; body = { issueDate: d.trim() };
+      if (po) { const ref = window.prompt("Supplier's invoice number (optional)", ""); if (ref === null) return; body.supplierReference = ref.trim(); } }
     setBusy(true); setError(null);
-    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`, body); if (suffix === "convert") nav(`/invoices/${d.invoice.id}`); else { setDoc(d[cfg.itemKey]); } }
+    try { const d = await api.post(`${cfg.path}/${id}/${suffix}`, body); if (suffix === "convert") nav(po ? `/bills/${d.bill.id}` : `/invoices/${d.invoice.id}`); else { setDoc(d[cfg.itemKey]); } }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   async function submitPay(e) {
@@ -35,6 +38,8 @@ export default function DocumentDetail({ kind }) {
       <h1 className="font-display text-3xl mt-1 flex items-center gap-3"><span className="figure">{doc.number}</span><StatusPill status={doc.status} /></h1></div>
       <div className="flex gap-2 flex-wrap">{actions.map(([label, suffix, variant, confirm]) => <Button key={suffix} variant={variant} disabled={busy} onClick={() => act(label, suffix, confirm)}>{label}</Button>)}
         {canPay && <Button variant="gold" onClick={() => { setPay((p) => ({ ...p, amount: String(outstanding) })); setShowPay((s) => !s); }}>{cfg.paidVerb}</Button>}
+        {kind === "purchase-orders" && doc.status !== "CANCELLED" && <DocExtras path={cfg.path} doc={doc} payLink={false} onError={setError} onChange={load} />}
+        {doc.bill && <Link to={`/bills/${doc.bill.id}`}><Button variant="secondary">View bill {doc.bill.number}</Button></Link>}
         {(kind === "invoices" || kind === "quotes") && doc.status !== "DRAFT" && <DocExtras path={cfg.path} doc={doc} payLink={kind === "invoices" && ["SENT", "PARTIAL"].includes(doc.status)} onError={setError} />}
         {doc.convertedInvoiceId && <Link to={`/invoices/${doc.convertedInvoiceId}`}><Button variant="secondary">View invoice</Button></Link>}</div></div>
     <ErrorNote error={error} />
@@ -48,7 +53,7 @@ export default function DocumentDetail({ kind }) {
       <div><div className="text-ink-soft">{cfg.contactLabel}</div><div>{doc.contact?.name}</div></div><div><div className="text-ink-soft">Date</div><div className="figure">{doc.issueDate}</div></div>
       <div><div className="text-ink-soft">{cfg.dueLabel}</div><div className="figure">{doc[cfg.dueField] || "—"}</div></div><div><div className="text-ink-soft">Currency</div><div>{doc.currency}{doc.currency !== "ZAR" && <span className="figure text-ink-soft"> @ {doc.exchangeRate}</span>}</div></div></div></Panel>
     <Panel title="Line items"><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 font-normal">Description</th><th className="pb-2 font-normal">Account</th><th className="pb-2 font-normal text-right">Qty</th><th className="pb-2 font-normal text-right">Price</th><th className="pb-2 font-normal text-right">Total</th></tr></thead>
-      <tbody>{doc.lines.map((l) => <tr key={l.id} className="ledger-rule"><td className="py-2">{l.description}</td><td className="text-ink-soft">{l.accountName}</td><td className="text-right figure">{l.quantity}</td><td className="text-right"><Money amount={l.unitPrice} currency={doc.currency} /></td><td className="text-right"><Money amount={l.lineTotal} currency={doc.currency} /></td></tr>)}</tbody></table></div>
+      <tbody>{doc.lines.map((l) => <tr key={l.id} className="ledger-rule"><td className="py-2">{l.description}{(l.itemCode || l.projectName) && <div className="text-xs text-ink-soft">{[l.itemCode, l.projectName && `Project: ${l.projectName}`].filter(Boolean).join(" · ")}</div>}</td><td className="text-ink-soft">{l.accountName}</td><td className="text-right figure">{l.quantity}</td><td className="text-right"><Money amount={l.unitPrice} currency={doc.currency} /></td><td className="text-right"><Money amount={l.lineTotal} currency={doc.currency} /></td></tr>)}</tbody></table></div>
       <div className="mt-5 ml-auto max-w-xs space-y-1 text-sm"><div className="flex justify-between"><span className="text-ink-soft">Subtotal</span><Money amount={doc.subtotal} currency={doc.currency} /></div><div className="flex justify-between"><span className="text-ink-soft">VAT</span><Money amount={doc.taxTotal} currency={doc.currency} /></div>
         <div className="flex justify-between border-t border-hairline pt-2 font-medium"><span>Total</span><Money amount={doc.total} currency={doc.currency} /></div>
         {cfg.payPath && <><div className="flex justify-between"><span className="text-ink-soft">Paid</span><Money amount={doc.amountPaid} currency={doc.currency} tone="credit" /></div><div className="flex justify-between font-medium"><span>Balance due</span><Money amount={outstanding} currency={doc.currency} tone={outstanding > 0 ? "debit" : "credit"} /></div></>}</div></Panel>

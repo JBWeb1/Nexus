@@ -2,6 +2,34 @@
 
 Each version's section becomes its release notes, which owners see under Settings > Updates.
 
+## [2.3.0] - 2026-10-22
+
+### New: products and stock
+- Products & stock: a list of what you sell and buy, with prices, accounts and VAT. Pick a product on an invoice, quote,
+  bill or purchase order and the line fills itself in.
+- Stock on hand for products you keep in stock, at average cost. Approving a bill adds stock; sending an invoice takes it
+  out and posts cost of sales in the same entry, so profit is right every month. You cannot invoice more than you have.
+- Stock counts: enter what is on the shelf and Nexus writes off (or adds) the difference and posts the journal. Opening
+  stock can be entered when you add a product.
+- Each product shows its full stock history, low-stock warnings (reorder level), and the total stock value checked
+  against the stock account in the ledger.
+
+### New: purchase orders
+- Order from suppliers with a purchase order (PO-0001…), download it as a PDF or email it.
+- When the supplier's invoice arrives, one click turns the order into a draft bill with the same lines and the
+  supplier's invoice number.
+
+### New: projects and timesheets
+- Projects for jobs and clients, with an hourly rate and an optional budget.
+- Log hours (billable or not) and turn billable hours into an invoice in one click. Voiding that invoice makes the hours
+  billable again.
+- Tag any invoice, bill or quote line with a project to see what the job earned, what it cost (including stock used) and
+  its profit.
+
+### Fixed
+- Lines on invoices, quotes, bills and credit notes could come back in a different order from how they were entered,
+  on screen and on the PDF. They now always keep their order.
+
 ## [2.2.0] - 2026-10-13
 
 ### New: get paid faster

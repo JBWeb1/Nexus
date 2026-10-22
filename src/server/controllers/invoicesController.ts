@@ -2,9 +2,10 @@ import { ApiError,toCamel,money,today,addDays } from '../utils/helpers';
 import { priceLines,validateHeader,nextNumber,insertLines,termsDays } from '../utils/documents';
 import { postJournalEntry,reverseJournalEntry,accountByCode } from '../utils/ledger';
 import { notifyInvoiceSent } from '../services/whatsappService';
+import { takeSaleStock, reverseDocumentStock } from '../services/stockService';
 
 const withLines = async (c, inv) => {
-  const lines = (await c.query('SELECT il.*, a.name AS account_name FROM invoice_lines il JOIN accounts a ON a.id=il.account_id WHERE il.invoice_id=$1 ORDER BY il.id', [inv.id])).rows;
+  const lines = (await c.query('SELECT il.*, a.name AS account_name, it.code AS item_code, p.name AS project_name FROM invoice_lines il JOIN accounts a ON a.id=il.account_id LEFT JOIN items it ON it.id=il.item_id LEFT JOIN projects p ON p.id=il.project_id WHERE il.invoice_id=$1 ORDER BY il.line_no', [inv.id])).rows;
   const contact = (await c.query('SELECT id, name, email, phone FROM contacts WHERE id=$1', [inv.contact_id])).rows[0];
   const payments = (await c.query("SELECT * FROM payments WHERE invoice_id=$1 ORDER BY date, created_at", [inv.id])).rows;
   return toCamel({ ...inv, lines, contact, payments });
@@ -45,21 +46,23 @@ async function update(req, res, c) {
     [inv.id, b.contactId, b.issueDate, b.dueDate, h.currency, h.exchangeRate, b.notes ?? null, priced?.subtotal ?? null, priced?.taxTotal ?? null, priced?.total ?? null]);
   res.json({ invoice: await withLines(c, r.rows[0]) });
 }
-/** Posts the sale: Dr AR (gross) / Cr revenue (per line) / Cr VAT Output. Amounts converted to base currency. */
+/** Posts the sale: Dr AR (gross) / Cr revenue (per line) / Cr VAT Output, plus Dr cost of sales / Cr stock for stock sold. Amounts in base currency. */
 async function send(req, res, c) {
   const orgId = req.user.orgId;
   const inv = (await c.query('SELECT * FROM invoices WHERE id=$1 AND organization_id=$2 FOR UPDATE', [req.params.id, orgId])).rows[0];
   if (!inv) throw new ApiError(404, 'Invoice not found');
   if (inv.status !== 'DRAFT') throw new ApiError(409, `Invoice is already ${inv.status}`);
   if (!(inv.total > 0)) throw new ApiError(400, 'Cannot send an invoice with a zero total');
-  const lines = (await c.query('SELECT * FROM invoice_lines WHERE invoice_id=$1', [inv.id])).rows;
+  const lines = (await c.query('SELECT * FROM invoice_lines WHERE invoice_id=$1 ORDER BY line_no', [inv.id])).rows;
   const credits = new Map(); let vat = 0;
   for (const l of lines) { credits.set(l.account_id, money((credits.get(l.account_id) || 0) + money(l.line_total * inv.exchange_rate))); vat = money(vat + money(l.tax_amount * inv.exchange_rate)); }
   const jl: any[] = [...credits].filter(([, v]) => v > 0).map(([accountId, credit]) => ({ accountId, credit, description: `Invoice ${inv.number}`, currency: inv.currency, exchangeRate: inv.exchange_rate }));
   if (vat > 0) jl.push({ accountId: await accountByCode(c, orgId, '2100'), credit: vat, description: `VAT ${inv.number}` });
   const gross = money(jl.reduce((s, l) => s + l.credit, 0));
   jl.unshift({ accountId: await accountByCode(c, orgId, '1100'), debit: gross, description: `Invoice ${inv.number}`, currency: inv.currency, exchangeRate: inv.exchange_rate });
+  const stock = await takeSaleStock(c, orgId, inv, lines); jl.push(...stock.jl);
   const je = await postJournalEntry(c, { orgId, date: inv.issue_date, description: `Invoice ${inv.number}`, sourceType: 'SALES', sourceTable: 'invoices', sourceId: inv.id, lines: jl, createdBy: req.user.userId });
+  await stock.commit(je.id, req.user.userId);
   const r = await c.query("UPDATE invoices SET status='SENT', journal_entry_id=$2 WHERE id=$1 RETURNING *", [inv.id, je.id]);
   const contact = (await c.query('SELECT name, phone FROM contacts WHERE id=$1', [inv.contact_id])).rows[0];
   notifyInvoiceSent(contact, r.rows[0]).catch(() => {});
@@ -71,7 +74,10 @@ async function voidInvoice(req, res, c) {
   if (!inv) throw new ApiError(404, 'Invoice not found');
   if (inv.status === 'VOID') throw new ApiError(409, 'Invoice is already void');
   if (inv.status === 'PAID' || inv.status === 'PARTIAL' || inv.amount_paid > 0) throw new ApiError(409, 'Reverse the payments before voiding this invoice');
-  if (inv.journal_entry_id) await reverseJournalEntry(c, { orgId, entryId: inv.journal_entry_id, createdBy: req.user.userId, description: `Void invoice ${inv.number}` });
+  const rev = inv.journal_entry_id ? await reverseJournalEntry(c, { orgId, entryId: inv.journal_entry_id, createdBy: req.user.userId, description: `Void invoice ${inv.number}` }) : null;
+  await reverseDocumentStock(c, orgId, 'invoices', inv.id, today(), rev?.id || null, req.user.userId);
+  // Hours billed on this invoice can be billed again.
+  await c.query('UPDATE time_entries SET invoice_id=NULL WHERE invoice_id=$1', [inv.id]);
   const r = await c.query("UPDATE invoices SET status='VOID' WHERE id=$1 RETURNING *", [inv.id]);
   res.json({ invoice: await withLines(c, r.rows[0]) });
 }

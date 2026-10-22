@@ -355,6 +355,93 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
   ok('delete a file', (await call('DELETE', `/api/attachments/${a1.body.attachment.id}`, ta)).status === 200 && (await call('GET', `/api/attachments?entityType=INVOICE&entityId=${iv.id}`, ta)).body.attachments.length === 0);
   ok('session endpoint is served by Auth.js', (await call('GET', '/api/session/session')).status === 200 && (await call('GET', '/api/session/csrf')).body.csrfToken?.length > 10);
 
+  console.log('Products, stock, purchase orders and projects');
+  {
+    const C = await reg('Stock'); const tc = C.token;
+    const ca = (await call('GET', '/api/accounts', tc)).body.accounts; const ac = (code) => ca.find((a) => a.code === code).id;
+    const v15 = (await call('GET', '/api/tax-rates', tc)).body.taxRates.find((r) => r.rate === 15).id;
+    const tb = async () => Object.fromEntries((await call('GET', '/api/reports/trial-balance', tc)).body.rows.map((r) => [r.code, r]));
+    const bal = (rows, code) => rows[code] ? Math.round((rows[code].debit - rows[code].credit) * 100) / 100 : 0;
+    const shop = (await call('POST', '/api/contacts', tc, { name: 'Hardware Shop', type: 'CUSTOMER', email: 'shop@test.co.za' })).body.contact;
+    const supp = (await call('POST', '/api/contacts', tc, { name: 'Widget Factory', type: 'SUPPLIER', email: 'orders@factory.co.za' })).body.contact;
+    const mk = await call('POST', '/api/items', tc, { code: 'WID-1', name: 'Widget', trackStock: true, purchasePrice: 50, salePrice: 100, saleTaxRateId: v15, reorderLevel: 6, openingQuantity: 10, openingDate: '2026-03-01' });
+    const wid = mk.body.item;
+    ok('stock product with opening stock: 10 on hand worth 500', mk.status === 201 && wid.qtyOnHand === 10 && wid.stockValue === 500 && wid.averageCost === 50, JSON.stringify(mk.body));
+    ok('duplicate product code rejected', (await call('POST', '/api/items', tc, { code: 'WID-1', name: 'Other' })).status === 409);
+    const svc = (await call('POST', '/api/items', tc, { code: 'INSTALL', name: 'Installation', salePrice: 450 })).body.item;
+    ok('service product defaults to the Sales account', svc.saleAccountId === ac('4000') && svc.trackStock === false);
+    let rows = await tb(); ok('opening stock: Inventory 500 Dr, owner\'s equity 500 Cr', bal(rows, '1200') === 500 && bal(rows, '3000') === -500, JSON.stringify([rows['1200'], rows['3000']]));
+
+    const bl = (await call('POST', '/api/bills', tc, { contactId: supp.id, issueDate: '2026-03-05', lines: [{ description: 'Widgets', quantity: 10, unitPrice: 70, accountId: ac('6500'), taxRateId: v15, itemId: wid.id }] })).body.bill;
+    ok('a stock product on a bill goes to the stock account, not expenses', bl.lines[0].accountId === ac('1200'), JSON.stringify(bl.lines[0]));
+    await call('POST', `/api/bills/${bl.id}/approve`, tc);
+    let it = (await call('GET', `/api/items/${wid.id}`, tc)).body.item;
+    ok('approving the bill adds 10 at R70: 20 on hand, average cost 60', it.qtyOnHand === 20 && it.stockValue === 1200 && it.averageCost === 60, JSON.stringify(it));
+
+    const prj = (await call('POST', '/api/projects', tc, { name: 'Shopfitting job', contactId: shop.id, hourlyRate: 650 })).body.project;
+    const iv = (await call('POST', '/api/invoices', tc, { contactId: shop.id, issueDate: '2026-03-10', lines: [{ description: 'Widgets', quantity: 15, unitPrice: 100, accountId: ac('4000'), taxRateId: v15, itemId: wid.id, projectId: prj.id }] })).body.invoice;
+    const sent = await call('POST', `/api/invoices/${iv.id}/send`, tc);
+    it = (await call('GET', `/api/items/${wid.id}`, tc)).body.item; rows = await tb();
+    ok('selling 15 posts cost of sales 900 at average cost; 5 left worth 300', sent.status === 200 && it.qtyOnHand === 5 && it.stockValue === 300 && bal(rows, '5000') === 900 && bal(rows, '1200') === 300, JSON.stringify({ it, cos: rows['5000'] }));
+    ok('trial balance still balances with stock', (await call('GET', '/api/reports/trial-balance', tc)).body.balanced === true);
+    const val = (await call('GET', '/api/reports/stock-valuation', tc)).body;
+    ok('stock valuation 300 agrees with the ledger and flags low stock', val.total === 300 && val.agrees && val.items[0].low === true, JSON.stringify(val));
+    const tooMany = (await call('POST', '/api/invoices', tc, { contactId: shop.id, issueDate: '2026-03-11', lines: [{ description: 'Widgets', quantity: 6, unitPrice: 100, accountId: ac('4000'), itemId: wid.id }] })).body.invoice;
+    const short = await call('POST', `/api/invoices/${tooMany.id}/send`, tc);
+    ok('cannot sell more than is in stock', short.status === 409 && /Not enough Widget/.test(short.body.error), JSON.stringify(short.body));
+    const vd = await call('POST', `/api/invoices/${iv.id}/void`, tc); it = (await call('GET', `/api/items/${wid.id}`, tc)).body.item; rows = await tb();
+    ok('voiding the sale puts the 15 back at the same cost', vd.status === 200 && it.qtyOnHand === 20 && it.stockValue === 1200 && bal(rows, '5000') === 0 && bal(rows, '1200') === 1200, JSON.stringify(it));
+    const resend = (await call('POST', '/api/invoices', tc, { contactId: shop.id, issueDate: '2026-03-12', lines: [{ description: 'Widgets', quantity: 15, unitPrice: 100, accountId: ac('4000'), taxRateId: v15, itemId: wid.id, projectId: prj.id }] })).body.invoice;
+    await call('POST', `/api/invoices/${resend.id}/send`, tc);
+    const bv = await call('POST', `/api/bills/${bl.id}/void`, tc);
+    ok('a bill whose stock has been sold cannot be voided', bv.status === 409 && /sold or used/.test(bv.body.error), JSON.stringify(bv.body));
+    const adj = await call('POST', `/api/items/${wid.id}/adjust`, tc, { date: '2026-03-31', newQuantity: 3, note: 'Month-end count' });
+    it = adj.body.item; rows = await tb();
+    ok('stock count of 3 (2 missing) writes off 120 to cost of sales', adj.status === 201 && it.qtyOnHand === 3 && it.stockValue === 180 && bal(rows, '5000') === 1020 && bal(rows, '1200') === 180, JSON.stringify(adj.body));
+    const mv = (await call('GET', `/api/items/${wid.id}`, tc)).body.movements;
+    ok('every stock change is in the product history', mv.length === 6 && mv.map((m) => m.kind).sort().join() === 'ADJUSTMENT,OPENING,PURCHASE,SALE,SALE,VOID', JSON.stringify(mv.map((m) => m.kind)));
+
+    const p = await call('POST', '/api/purchase-orders', tc, { contactId: supp.id, issueDate: '2026-04-01', deliveryDate: '2026-04-08', lines: [{ description: 'Widgets', quantity: 12, unitPrice: 72, accountId: ac('6500'), taxRateId: v15, itemId: wid.id }] });
+    const order = p.body.purchaseOrder;
+    ok('purchase order numbered PO-0001 with VAT', p.status === 201 && order.number === 'PO-0001' && order.total === 993.6 && order.status === 'DRAFT', JSON.stringify(p.body));
+    rows = await tb(); ok('a purchase order posts nothing to the ledger', bal(rows, '2000') === -805, JSON.stringify(rows['2000']));
+    const pdf = await fetch(`${BASE}/api/purchase-orders/${order.id}/pdf`, { headers: { Authorization: `Bearer ${tc}` } });
+    ok('purchase order PDF downloads', pdf.status === 200 && pdf.headers.get('content-type') === 'application/pdf');
+    if (process.env.MAIL_OUTBOX_DIR) { const em = await call('POST', `/api/purchase-orders/${order.id}/email`, tc); ok('emailing the order to the supplier marks it sent', em.status === 200 && (await call('GET', `/api/purchase-orders/${order.id}`, tc)).body.purchaseOrder.status === 'SENT', JSON.stringify(em.body)); }
+    const cv = await call('POST', `/api/purchase-orders/${order.id}/convert`, tc, { issueDate: '2026-04-09', supplierReference: 'WF-7781' });
+    ok('converting makes a draft bill with the supplier\'s number and the stock account', cv.status === 201 && cv.body.bill.status === 'DRAFT' && cv.body.bill.number === 'WF-7781' && cv.body.purchaseOrder.status === 'BILLED' && cv.body.bill.total === 993.6, JSON.stringify(cv.body));
+    const pbill = (await call('GET', `/api/bills/${cv.body.bill.id}`, tc)).body.bill;
+    ok('bill lines keep the product', pbill.lines[0].itemId === wid.id && pbill.lines[0].accountId === ac('1200'));
+    ok('an order can only be billed once', (await call('POST', `/api/purchase-orders/${order.id}/convert`, tc)).status === 409);
+
+    await call('POST', `/api/projects/${prj.id}/time`, tc, { date: '2026-03-14', hours: 3, description: 'Measure and plan' });
+    await call('POST', `/api/projects/${prj.id}/time`, tc, { date: '2026-03-15', hours: 2.5, description: 'Install shelving' });
+    await call('POST', `/api/projects/${prj.id}/time`, tc, { date: '2026-03-15', hours: 1, description: 'Travel', billable: false });
+    ok('time over 24 hours rejected', (await call('POST', `/api/projects/${prj.id}/time`, tc, { hours: 25, description: 'x' })).status === 400);
+    const ti = await call('POST', `/api/projects/${prj.id}/invoice-time`, tc, { issueDate: '2026-03-20' });
+    ok('5.5 billable hours at R650 invoiced (3575 + VAT); travel left out', ti.status === 201 && ti.body.entries === 2 && ti.body.invoice.subtotal === 3575 && ti.body.invoice.total === 4111.25, JSON.stringify(ti.body));
+    ok('invoiced hours are not invoiced twice', (await call('POST', `/api/projects/${prj.id}/invoice-time`, tc, { issueDate: '2026-03-20' })).status === 400);
+    await call('POST', `/api/invoices/${ti.body.invoice.id}/send`, tc);
+    const job = (await call('POST', '/api/bills', tc, { contactId: supp.id, issueDate: '2026-03-16', lines: [{ description: 'Shelving brackets', quantity: 1, unitPrice: 800, accountId: ac('5000'), taxRateId: v15, projectId: prj.id }] })).body.bill;
+    await call('POST', `/api/bills/${job.id}/approve`, tc);
+    const pd = (await call('GET', `/api/projects/${prj.id}`, tc)).body; const s = pd.project.summary;
+    ok('project profit = 1500 widgets + 3575 time - 900 stock cost - 800 bill = 3375', s.income === 5075 && s.stockCost === 900 && s.costs === 800 && s.profit === 3375 && s.hours === 6.5 && s.unbilledHours === 0, JSON.stringify(s));
+    ok('project lists its invoices and bills, the voided one marked void', pd.documents.length === 4 && pd.documents.filter((d) => d.status === 'VOID').length === 1 && pd.timeEntries.length === 3, JSON.stringify(pd.documents));
+    const del = await call('DELETE', `/api/projects/${prj.id}/time/${pd.timeEntries.find((t) => t.invoiceId).id}`, tc);
+    ok('invoiced time cannot be deleted', del.status === 409);
+    await call('POST', `/api/invoices/${ti.body.invoice.id}/void`, tc);
+    const after = (await call('GET', `/api/projects/${prj.id}`, tc)).body.project.summary;
+    ok('voiding the time invoice makes the hours billable again', after.unbilledHours === 5.5 && after.unbilledValue === 3575 && after.income === 1500, JSON.stringify(after));
+    ok('another company cannot see these products or projects', (await call('GET', `/api/items/${wid.id}`, ta)).status === 404 && (await call('GET', `/api/projects/${prj.id}`, ta)).status === 404 && (await call('GET', '/api/purchase-orders', ta)).body.purchaseOrders.length === 0);
+    const qn = (await call('POST', '/api/quotes', tc, { contactId: shop.id, issueDate: '2026-04-02', lines: [{ description: 'Installation', quantity: 2, unitPrice: 450, accountId: ac('4000'), itemId: svc.id, projectId: prj.id }] })).body.quote;
+    await call('POST', `/api/quotes/${qn.id}/send`, tc); await call('POST', `/api/quotes/${qn.id}/accept`, tc);
+    const qi = (await call('POST', `/api/quotes/${qn.id}/convert`, tc, { issueDate: '2026-04-03' })).body.invoice;
+    const many = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth'];
+    const ord = (await call('POST', '/api/invoices', tc, { contactId: shop.id, issueDate: '2026-04-05', lines: many.map((d) => ({ description: d, unitPrice: 10, accountId: ac('4000') })) })).body.invoice;
+    ok('document lines come back in the order they were entered', ord.lines.map((l) => l.description).join() === many.join(), JSON.stringify(ord.lines.map((l) => l.description)));
+    ok('a quote keeps its product and project on the invoice', qi.lines[0].itemId === svc.id && qi.lines[0].projectId === prj.id, JSON.stringify(qi.lines));
+  }
+
   console.log('Webhook');
   ok('unsigned paystack webhook -> 401', (await call('POST', '/webhooks/paystack', null, { event: 'charge.success' })).status === 401);
   ok('no token -> 401', (await call('GET', '/api/invoices')).status === 401);
