@@ -873,5 +873,330 @@
     ]
    }
   ]
+ },
+ "pitch": {
+  "title": "Nexus Ledger: the pitch",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "South Africa has about seven hundred and ninety thousand formal small businesses. Every single one has to keep books.",
+    "cues": {
+     "count": "seven hundred",
+     "books": "keep books"
+    },
+    "sfx": [
+     [
+      "count",
+      "whoosh"
+     ],
+     [
+      "books",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "problem",
+    "say": "Today, Xero's plans run from four hundred and fifty rand a month, to over a thousand. The cheapest one caps you at twenty invoices.",
+    "cues": {
+     "low": "four hundred",
+     "high": "over a thousand",
+     "cap": "caps you"
+    },
+    "sfx": [
+     [
+      "low",
+      "pop"
+     ],
+     [
+      "high",
+      "impact-soft"
+     ],
+     [
+      "cap",
+      "strike"
+     ]
+    ]
+   },
+   {
+    "id": "product",
+    "say": "Nexus Ledger is accounting built for South Africa. VAT two-oh-one, payment reminders on WhatsApp, receipts read from a photo, and books that check themselves.",
+    "cues": {
+     "sa": "built for South Africa",
+     "f1": "VAT two",
+     "f2": "payment reminders",
+     "f3": "receipts",
+     "f4": "books that check"
+    },
+    "sfx": [
+     [
+      "sa",
+      "whoosh"
+     ],
+     [
+      "f1",
+      "tick"
+     ],
+     [
+      "f2",
+      "tick"
+     ],
+     [
+      "f3",
+      "tick"
+     ],
+     [
+      "f4",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "trust",
+    "say": "It's built like a bank ledger. Entries can't be quietly changed, every company is walled off in the database, and every action is logged.",
+    "cues": {
+     "bank": "bank ledger",
+     "t1": "Entries",
+     "t2": "walled off",
+     "t3": "every action"
+    },
+    "sfx": [
+     [
+      "bank",
+      "impact-soft"
+     ],
+     [
+      "t1",
+      "tick"
+     ],
+     [
+      "t2",
+      "tick"
+     ],
+     [
+      "t3",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "model",
+    "say": "One price, two hundred and fifty rand a month per company. And accountants run all their clients from one login, so every firm that joins brings its clients with it.",
+    "cues": {
+     "price": "One price",
+     "firm": "accountants run",
+     "clients": "brings its clients"
+    },
+    "sfx": [
+     [
+      "price",
+      "impact"
+     ],
+     [
+      "firm",
+      "whoosh"
+     ],
+     [
+      "clients",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "math",
+    "say": "If just one percent of those businesses switch, that's about twenty three million rand a year.",
+    "cues": {
+     "pct": "one percent",
+     "arr": "twenty three million"
+    },
+    "sfx": [
+     [
+      "pct",
+      "pop"
+     ],
+     [
+      "arr",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "status",
+    "say": "The product is built and working today. Now we're looking for partners and investors to take it to market.",
+    "cues": {
+     "built": "built and working",
+     "partners": "looking for partners"
+    },
+    "sfx": [
+     [
+      "built",
+      "ding"
+     ],
+     [
+      "partners",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Let's talk.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "talk": "Let's talk"
+    },
+    "sfx": [
+     [
+      "brand",
+      "whoosh"
+     ],
+     [
+      "talk",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ },
+ "leads": {
+  "title": "Three questions",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Three quick questions. Do you dread VAT time? Do clients pay you late? Does your software cost more every year?",
+    "cues": {
+     "three": "Three",
+     "q1": "dread VAT",
+     "q2": "pay you late",
+     "q3": "cost more"
+    },
+    "sfx": [
+     [
+      "three",
+      "impact"
+     ],
+     [
+      "q1",
+      "pop"
+     ],
+     [
+      "q2",
+      "pop"
+     ],
+     [
+      "q3",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "yes",
+    "say": "If you said yes to even one, this is for you.",
+    "cues": {
+     "yes": "said yes",
+     "you": "for you"
+    },
+    "sfx": [
+     [
+      "yes",
+      "impact-soft"
+     ],
+     [
+      "you",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "vat",
+    "say": "Nexus Ledger works out your VAT two-oh-one for you.",
+    "cues": {
+     "vat": "works out"
+    },
+    "sfx": [
+     [
+      "vat",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "paid",
+    "say": "It chases late payers on WhatsApp and email, so you don't have to.",
+    "cues": {
+     "wa": "WhatsApp",
+     "em": "email"
+    },
+    "sfx": [
+     [
+      "wa",
+      "pop"
+     ],
+     [
+      "em",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "price",
+    "say": "And it's one flat price. Two hundred and fifty rand a month, with everything included.",
+    "cues": {
+     "flat": "one flat price",
+     "r250": "Two hundred",
+     "all": "everything included"
+    },
+    "sfx": [
+     [
+      "flat",
+      "whoosh"
+     ],
+     [
+      "r250",
+      "impact"
+     ],
+     [
+      "all",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "offer",
+    "say": "Try it free for fourteen days. No card needed.",
+    "cues": {
+     "days": "fourteen days",
+     "card": "No card"
+    },
+    "sfx": [
+     [
+      "days",
+      "pop"
+     ],
+     [
+      "card",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Start your free trial today.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "cta": "Start your"
+    },
+    "sfx": [
+     [
+      "brand",
+      "whoosh"
+     ],
+     [
+      "cta",
+      "pop"
+     ]
+    ]
+   }
+  ]
  }
 }
