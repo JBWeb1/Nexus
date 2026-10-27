@@ -26,6 +26,15 @@ Each version's section becomes its release notes, which owners see under Setting
 - Tag any invoice, bill or quote line with a project to see what the job earned, what it cost (including stock used) and
   its profit.
 
+### New: books health and trust
+- Books health (Trust & security, and a badge on the dashboard): Nexus checks its own books and shows each check with a
+  tick. Debits equal credits; Accounts Receivable matches the unpaid invoices; Accounts Payable matches the unpaid
+  bills; every sent invoice and approved bill is posted; stock matches the stock account; posted entries are protected
+  by the database. Anything posted straight to a control account is flagged with the difference.
+- A Trust & security page that explains, in plain words, how your data is protected (only things the software
+  actually does), with two-step sign-in and the full data download in one place.
+- The sign-in screen says how accounts are protected.
+
 ### Cleaner and easier to use
 - Search or jump anywhere: press Ctrl+K (⌘K on a Mac), or the search box at the top of the menu, and type a few
   letters, such as "new invoice" or "VAT".

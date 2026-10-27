@@ -439,6 +439,14 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
     const many = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth'];
     const ord = (await call('POST', '/api/invoices', tc, { contactId: shop.id, issueDate: '2026-04-05', lines: many.map((d) => ({ description: d, unitPrice: 10, accountId: ac('4000') })) })).body.invoice;
     ok('document lines come back in the order they were entered', ord.lines.map((l) => l.description).join() === many.join(), JSON.stringify(ord.lines.map((l) => l.description)));
+    const hl = (await call('GET', '/api/books-health', tc)).body; const chk = (id) => hl.checks.find((x) => x.id === id);
+    ok('books health: every check passes after stock, purchases, projects and voids', hl.healthy === true && hl.warnings === 0 && ['double-entry', 'receivables', 'payables', 'posted', 'stock', 'locked-entries'].every((id) => chk(id)?.status === 'ok'), JSON.stringify(hl.checks.filter((x) => x.status !== 'ok')));
+    // A deposit posted straight to Accounts Receivable (not against an invoice) must be flagged, not hidden.
+    const cbank = (await call('POST', '/api/bank-accounts', tc, { name: 'Health check bank', openingBalance: 0 })).body.bankAccount;
+    const dep = (await call('POST', `/api/bank-accounts/${cbank.id}/transactions`, tc, { date: '2026-04-06', description: 'Unallocated deposit', amount: 100, type: 'CREDIT' })).body.transaction;
+    await call('POST', `/api/bank-accounts/${cbank.id}/transactions/${dep.id}/categorise`, tc, { accountId: ac('1100') });
+    const hl2 = (await call('GET', '/api/books-health', tc)).body; const ar2 = hl2.checks.find((x) => x.id === 'receivables');
+    ok('books health flags money posted straight to receivables (R100 difference)', hl2.healthy === false && ar2.status === 'warning' && ar2.difference === -100, JSON.stringify(ar2));
     ok('a quote keeps its product and project on the invoice', qi.lines[0].itemId === svc.id && qi.lines[0].projectId === prj.id, JSON.stringify(qi.lines));
   }
 

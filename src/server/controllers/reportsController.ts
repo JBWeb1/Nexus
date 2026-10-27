@@ -1,6 +1,7 @@
 import { ApiError,isDate,money,today } from '../utils/helpers';
 import { getAccountBalances } from '../utils/ledger';
 import { toCamel } from '../utils/helpers';
+import { booksHealth } from '../services/booksHealthService';
 const strip = (a) => ({ id: a.id, code: a.code, name: a.name, type: a.type });
 
 async function trialBalance(req, res, c) {
@@ -47,4 +48,6 @@ async function aged(c, orgId, table, openStatuses, asOf) {
 }
 const agedReceivables = async (req, res, c) => res.json(await aged(c, req.user.orgId, 'invoices', ['SENT', 'PARTIAL'], req.query.asOf || today()));
 const agedPayables = async (req, res, c) => res.json(await aged(c, req.user.orgId, 'bills', ['APPROVED', 'PARTIAL'], req.query.asOf || today()));
-export { trialBalance, profitAndLoss, balanceSheet, agedReceivables, agedPayables };
+/** GET /books-health: Nexus checks its own books (ledger against documents) and reports each check. */
+const health = async (req, res, c) => res.json(await booksHealth(c, req.user.orgId));
+export { trialBalance, profitAndLoss, balanceSheet, agedReceivables, agedPayables, health };

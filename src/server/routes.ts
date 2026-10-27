@@ -89,7 +89,7 @@ r.get('/period-lock', h(fin.getLock)); r.put('/period-lock', requireRole('OWNER'
 
 r.get('/reports/vat201', h(vat.preview)); r.get('/vat-periods', h(vat.listPeriods)); r.post('/vat-periods/finalize', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(vat.finalize));
 r.get('/reports/profit-and-loss', h(rep.profitAndLoss)); r.get('/reports/balance-sheet', h(rep.balanceSheet)); r.get('/reports/trial-balance', h(rep.trialBalance));
-r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
+r.get('/books-health', h(rep.health)); r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
 
 r.post('/import/expenses/preview', h(imp.preview)); r.post('/import/expenses/commit', h(imp.commit));
 r.get('/contacts/:id/statement', h(stmt.get)); r.get('/contacts/:id/statement/pdf', h(stmt.pdf)); r.post('/contacts/:id/statement/email', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.email));
