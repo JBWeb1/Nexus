@@ -1,34 +1,635 @@
 {
-  "proof": {
-    "title": "Books you can prove",
-    "scenes": [
-      { "id": "hook", "say": "Somewhere in your books, a hundred rand doesn't add up. Would you even know?", "cues": { "glitch": "a hundred rand", "know": "Would you" }, "sfx": [["glitch", "glitch"], ["know", "impact"]] },
-      { "id": "answer", "say": "With Nexus, you would. It checks itself.", "cues": { "shield": "With Nexus", "checks": "It checks" }, "sfx": [["shield", "whoosh"], ["checks", "ding"]] },
-      { "id": "checks", "say": "Every time you open your books, it proves debits equal credits, that customers owe what your invoices say, and that your stock matches the stock account.", "cues": { "c1": "debits equal", "c2": "customers owe", "c3": "your stock", "c4": "stock account" }, "sfx": [["c1", "tick"], ["c2", "tick"], ["c3", "tick"], ["c4", "ding"]] },
-      { "id": "flag", "say": "And if something's off, it shows you exactly where.", "cues": { "show": "if something", "where": "exactly where" }, "sfx": [["show", "whoosh"], ["where", "pop"]] },
-      { "id": "end", "say": "Books you can prove. Nexus Ledger. Try it free.", "cues": { "title": "Books you", "brand": "Nexus Ledger", "cta": "Try it free" }, "sfx": [["title", "whoosh"], ["cta", "pop"]] }
+ "proof": {
+  "title": "Books you can prove",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Somewhere in your books, a hundred rand doesn't add up. Would you even know?",
+    "cues": {
+     "glitch": "a hundred rand",
+     "know": "Would you"
+    },
+    "sfx": [
+     [
+      "glitch",
+      "glitch"
+     ],
+     [
+      "know",
+      "impact"
+     ]
     ]
-  },
-  "secure": {
-    "title": "Your data, locked down",
-    "scenes": [
-      { "id": "hook", "say": "Could someone quietly change last month's invoice?", "cues": { "edit": "quietly", "block": "invoice?" }, "sfx": [["edit", "typing"], ["block", "impact"]] },
-      { "id": "answer", "say": "Not in Nexus. The database refuses, and every fix is a reversal that everyone can see.", "cues": { "not": "Not in Nexus", "refuse": "The database refuses", "rev": "every fix" }, "sfx": [["not", "whoosh"], ["rev", "pop"]] },
-      { "id": "walls", "say": "Each company's data is walled off, inside the database itself.", "cues": { "wall": "walled off", "db": "inside the database" }, "sfx": [["wall", "impact-soft"], ["db", "ding"]] },
-      { "id": "pw", "say": "Passwords are never stored, only a one-way hash. And two-step sign-in adds a code from your phone.", "cues": { "hash": "only a one-way", "twofa": "two-step", "code": "a code" }, "sfx": [["hash", "typing"], ["twofa", "whoosh"], ["code", "tick"]] },
-      { "id": "log", "say": "Every change is recorded. Who, what, and when.", "cues": { "who": "Who", "what": "what,", "when": "and when" }, "sfx": [["who", "tick"], ["what", "tick"], ["when", "tick"]] },
-      { "id": "end", "say": "Your data is yours. Download all of it, any time. Nexus Ledger.", "cues": { "yours": "Your data", "dl": "Download", "brand": "Nexus Ledger" }, "sfx": [["yours", "whoosh"], ["dl", "pop"]] }
+   },
+   {
+    "id": "answer",
+    "say": "With Nexus, you would. It checks itself.",
+    "cues": {
+     "shield": "With Nexus",
+     "checks": "It checks"
+    },
+    "sfx": [
+     [
+      "shield",
+      "whoosh"
+     ],
+     [
+      "checks",
+      "ding"
+     ]
     ]
-  },
-  "price": {
-    "title": "No surprises",
-    "scenes": [
-      { "id": "hook", "say": "Two hundred and fifty rand. That's the whole price.", "cues": { "slam": "Two hundred", "whole": "That's the whole" }, "sfx": [["slam", "impact"], ["whole", "whoosh"]] },
-      { "id": "none", "say": "No add-ons. No per-user fees. No upgrade to unlock.", "cues": { "a": "No add-ons", "b": "No per-user", "c": "No upgrade" }, "sfx": [["a", "strike"], ["b", "strike"], ["c", "strike"]] },
-      { "id": "all", "say": "Invoices, VAT, stock, projects, and receipts from photos. All included.", "cues": { "i1": "Invoices", "i2": "VAT", "i3": "stock", "i4": "projects", "i5": "receipts", "inc": "All included" }, "sfx": [["i1", "tick"], ["i2", "tick"], ["i3", "tick"], ["i4", "tick"], ["i5", "tick"], ["inc", "ding"]] },
-      { "id": "trial", "say": "Try it free for fourteen days. No card needed.", "cues": { "days": "fourteen days", "card": "No card" }, "sfx": [["days", "pop"], ["card", "pop"]] },
-      { "id": "cancel", "say": "Leave any time, and take every record with you, in one click.", "cues": { "leave": "Leave any time", "take": "take every record", "click": "one click" }, "sfx": [["take", "whoosh"], ["click", "pop"]] },
-      { "id": "end", "say": "Nexus Ledger. Built in South Africa. Accounting you can trust.", "cues": { "brand": "Nexus Ledger", "sa": "Built in South Africa", "trust": "Accounting you" }, "sfx": [["brand", "whoosh"], ["trust", "ding"]] }
+   },
+   {
+    "id": "checks",
+    "say": "Every time you open your books, it proves debits equal credits, that customers owe what your invoices say, and that your stock matches the stock account.",
+    "cues": {
+     "c1": "debits equal",
+     "c2": "customers owe",
+     "c3": "your stock",
+     "c4": "stock account"
+    },
+    "sfx": [
+     [
+      "c1",
+      "tick"
+     ],
+     [
+      "c2",
+      "tick"
+     ],
+     [
+      "c3",
+      "tick"
+     ],
+     [
+      "c4",
+      "ding"
+     ]
     ]
-  }
+   },
+   {
+    "id": "flag",
+    "say": "And if something's off, it shows you exactly where.",
+    "cues": {
+     "show": "if something",
+     "where": "exactly where"
+    },
+    "sfx": [
+     [
+      "show",
+      "whoosh"
+     ],
+     [
+      "where",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Books you can prove. Nexus Ledger. Try it free.",
+    "cues": {
+     "title": "Books you",
+     "brand": "Nexus Ledger",
+     "cta": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "whoosh"
+     ],
+     [
+      "cta",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ },
+ "secure": {
+  "title": "Your data, locked down",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Could someone quietly change last month's invoice?",
+    "cues": {
+     "edit": "quietly",
+     "block": "invoice?"
+    },
+    "sfx": [
+     [
+      "edit",
+      "typing"
+     ],
+     [
+      "block",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "answer",
+    "say": "Not in Nexus. The database refuses, and every fix is a reversal that everyone can see.",
+    "cues": {
+     "not": "Not in Nexus",
+     "refuse": "The database refuses",
+     "rev": "every fix"
+    },
+    "sfx": [
+     [
+      "not",
+      "whoosh"
+     ],
+     [
+      "rev",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "walls",
+    "say": "Each company's data is walled off, inside the database itself.",
+    "cues": {
+     "wall": "walled off",
+     "db": "inside the database"
+    },
+    "sfx": [
+     [
+      "wall",
+      "impact-soft"
+     ],
+     [
+      "db",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "pw",
+    "say": "Passwords are never stored, only a one-way hash. And two-step sign-in adds a code from your phone.",
+    "cues": {
+     "hash": "only a one-way",
+     "twofa": "two-step",
+     "code": "a code"
+    },
+    "sfx": [
+     [
+      "hash",
+      "typing"
+     ],
+     [
+      "twofa",
+      "whoosh"
+     ],
+     [
+      "code",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "log",
+    "say": "Every change is recorded. Who, what, and when.",
+    "cues": {
+     "who": "Who",
+     "what": "what,",
+     "when": "and when"
+    },
+    "sfx": [
+     [
+      "who",
+      "tick"
+     ],
+     [
+      "what",
+      "tick"
+     ],
+     [
+      "when",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Your data is yours. Download all of it, any time. Nexus Ledger.",
+    "cues": {
+     "yours": "Your data",
+     "dl": "Download",
+     "brand": "Nexus Ledger"
+    },
+    "sfx": [
+     [
+      "yours",
+      "whoosh"
+     ],
+     [
+      "dl",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ },
+ "price": {
+  "title": "No surprises",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Two hundred and fifty rand. That's the whole price.",
+    "cues": {
+     "slam": "Two hundred",
+     "whole": "That's the whole"
+    },
+    "sfx": [
+     [
+      "slam",
+      "impact"
+     ],
+     [
+      "whole",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "none",
+    "say": "No add-ons. No per-user fees. No upgrade to unlock.",
+    "cues": {
+     "a": "No add-ons",
+     "b": "No per-user",
+     "c": "No upgrade"
+    },
+    "sfx": [
+     [
+      "a",
+      "strike"
+     ],
+     [
+      "b",
+      "strike"
+     ],
+     [
+      "c",
+      "strike"
+     ]
+    ]
+   },
+   {
+    "id": "all",
+    "say": "Invoices, VAT, stock, projects, and receipts from photos. All included.",
+    "cues": {
+     "i1": "Invoices",
+     "i2": "VAT",
+     "i3": "stock",
+     "i4": "projects",
+     "i5": "receipts",
+     "inc": "All included"
+    },
+    "sfx": [
+     [
+      "i1",
+      "tick"
+     ],
+     [
+      "i2",
+      "tick"
+     ],
+     [
+      "i3",
+      "tick"
+     ],
+     [
+      "i4",
+      "tick"
+     ],
+     [
+      "i5",
+      "tick"
+     ],
+     [
+      "inc",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "trial",
+    "say": "Try it free for fourteen days. No card needed.",
+    "cues": {
+     "days": "fourteen days",
+     "card": "No card"
+    },
+    "sfx": [
+     [
+      "days",
+      "pop"
+     ],
+     [
+      "card",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "cancel",
+    "say": "Leave any time, and take every record with you, in one click.",
+    "cues": {
+     "leave": "Leave any time",
+     "take": "take every record",
+     "click": "one click"
+    },
+    "sfx": [
+     [
+      "take",
+      "whoosh"
+     ],
+     [
+      "click",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Built in South Africa. Accounting you can trust.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "sa": "Built in South Africa",
+     "trust": "Accounting you"
+    },
+    "sfx": [
+     [
+      "brand",
+      "whoosh"
+     ],
+     [
+      "trust",
+      "ding"
+     ]
+    ]
+   }
+  ]
+ },
+ "paid": {
+  "title": "Get paid without chasing",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Still chasing clients for money? Again?",
+    "cues": {
+     "msgs": "chasing",
+     "again": "Again?"
+    },
+    "sfx": [
+     [
+      "msgs",
+      "pop"
+     ],
+     [
+      "again",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "answer",
+    "say": "Let Nexus do the chasing for you.",
+    "cues": {
+     "nexus": "Let Nexus",
+     "you": "for you"
+    },
+    "sfx": [
+     [
+      "nexus",
+      "whoosh"
+     ],
+     [
+      "you",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "schedule",
+    "say": "Reminders go out on their own. Three days before it's due, on the day, a week late, and a month late.",
+    "cues": {
+     "d1": "Three days",
+     "d2": "on the day",
+     "d3": "a week",
+     "d4": "a month"
+    },
+    "sfx": [
+     [
+      "d1",
+      "tick"
+     ],
+     [
+      "d2",
+      "tick"
+     ],
+     [
+      "d3",
+      "tick"
+     ],
+     [
+      "d4",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "channels",
+    "say": "By email, with the invoice attached. Or on WhatsApp.",
+    "cues": {
+     "email": "By email",
+     "pdf": "invoice attached",
+     "wa": "WhatsApp"
+    },
+    "sfx": [
+     [
+      "email",
+      "whoosh"
+     ],
+     [
+      "pdf",
+      "pop"
+     ],
+     [
+      "wa",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "pay",
+    "say": "Your customer taps the link, sees what they owe, and pays online.",
+    "cues": {
+     "tap": "taps the link",
+     "owe": "what they owe",
+     "pay": "pays online"
+    },
+    "sfx": [
+     [
+      "tap",
+      "pop"
+     ],
+     [
+      "owe",
+      "whoosh"
+     ],
+     [
+      "pay",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Get paid, without the awkward follow-ups. Nexus Ledger. Try it free.",
+    "cues": {
+     "title": "Get paid",
+     "brand": "Nexus Ledger",
+     "cta": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "whoosh"
+     ],
+     [
+      "cta",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ },
+ "receipts": {
+  "title": "Lose the shoebox",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Month end. A shoebox full of slips. Sound familiar?",
+    "cues": {
+     "box": "A shoebox",
+     "familiar": "Sound familiar?"
+    },
+    "sfx": [
+     [
+      "box",
+      "impact-soft"
+     ],
+     [
+      "familiar",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "snap",
+    "say": "Just take a photo of the slip.",
+    "cues": {
+     "snap": "a photo"
+    },
+    "sfx": [
+     [
+      "snap",
+      "glitch"
+     ]
+    ]
+   },
+   {
+    "id": "read",
+    "say": "Nexus reads the supplier, the date, the total, and the VAT.",
+    "cues": {
+     "f1": "the supplier",
+     "f2": "the date",
+     "f3": "the total",
+     "f4": "the VAT"
+    },
+    "sfx": [
+     [
+      "f1",
+      "tick"
+     ],
+     [
+      "f2",
+      "tick"
+     ],
+     [
+      "f3",
+      "tick"
+     ],
+     [
+      "f4",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "save",
+    "say": "You check it, tap save, and the bill is in your books.",
+    "cues": {
+     "check": "You check",
+     "save": "tap save",
+     "books": "in your books"
+    },
+    "sfx": [
+     [
+      "check",
+      "whoosh"
+     ],
+     [
+      "save",
+      "pop"
+     ],
+     [
+      "books",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "vat",
+    "say": "And the VAT is ready for your VAT two-oh-one.",
+    "cues": {
+     "vat": "And the VAT",
+     "r201": "your VAT two"
+    },
+    "sfx": [
+     [
+      "vat",
+      "whoosh"
+     ],
+     [
+      "r201",
+      "impact-soft"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Keep the photo. Lose the shoebox. Nexus Ledger.",
+    "cues": {
+     "keep": "Keep the photo",
+     "lose": "Lose the shoebox",
+     "brand": "Nexus Ledger"
+    },
+    "sfx": [
+     [
+      "keep",
+      "whoosh"
+     ],
+     [
+      "lose",
+      "impact-soft"
+     ],
+     [
+      "brand",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ }
 }
