@@ -1,0 +1,20 @@
+{
+  "name": "nexus-ledger-videos",
+  "private": true,
+  "description": "Nexus Ledger social videos, made with Remotion. See README.md.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "node tools/render-all.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "lucide-react": "^1.52.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.12",
+    "typescript": "5.9.2"
+  }
+}
