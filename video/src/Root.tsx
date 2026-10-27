@@ -6,6 +6,8 @@ import { Secure } from './Secure';
 import { Price } from './Price';
 import { Paid } from './Paid';
 import { Receipts } from './Receipts';
+import { Switch } from './Switch';
+import { Accountant } from './Accountant';
 
 const common = { width: 1080, height: 1920, fps: 30 } as const;
 export const Root: React.FC = () => (<>
@@ -14,4 +16,6 @@ export const Root: React.FC = () => (<>
   <Composition id="price" component={Price} durationInFrames={TL.price.frames} {...common} />
   <Composition id="paid" component={Paid} durationInFrames={TL.paid.frames} {...common} />
   <Composition id="receipts" component={Receipts} durationInFrames={TL.receipts.frames} {...common} />
+  <Composition id="switch" component={Switch} durationInFrames={TL.switch.frames} {...common} />
+  <Composition id="accountant" component={Accountant} durationInFrames={TL.accountant.frames} {...common} />
 </>);

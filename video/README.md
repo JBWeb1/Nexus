@@ -1,6 +1,6 @@
 # Nexus Ledger short videos
 
-Five 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), made with [Remotion](https://www.remotion.dev):
+Seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), made with [Remotion](https://www.remotion.dev):
 
 | id | Hook | Story |
 |---|---|---|
@@ -9,6 +9,8 @@ Five 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), made with [Remotio
 | `price` | "Two hundred and fifty rand. That's the whole price." | No add-ons, everything included, 14-day trial, leave any time |
 | `paid` | "Still chasing clients for money? Again?" | Automatic reminders on a schedule, email with the PDF or WhatsApp, customer pays from the portal link |
 | `receipts` | "Month end. A shoebox full of slips. Sound familiar?" | Photo of a slip is read into a bill (supplier, date, total, VAT), VAT ready for the VAT201 |
+| `switch` | "Want to leave Xero, but dreading the move?" | Export who owes you and who you owe as a spreadsheet; Nexus finds the columns, creates customers and suppliers; add the opening bank balance and the books check out |
+| `accountant` | "What does your accountant charge to fix messy books?" | Accountant's own login and view (work queue, bank matching, month end), all checks passed, trial balance and general ledger to Excel |
 
 ## How it fits together
 
@@ -17,7 +19,7 @@ Five 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), made with [Remotio
 - `tools/build.py` reads both and writes:
   - `src/timeline.json`: scene start times, the second each cue is spoken, and caption word timings
   - `public/audio/<video>.wav`: the soundtrack (narration, music ducked under the voice, and synthesized sound effects on the cues)
-- `src/Proof.tsx`, `src/Secure.tsx`, `src/Price.tsx`, `src/Paid.tsx` and `src/Receipts.tsx` animate each scene against those cue times. Shared pieces (background, captions, phone frame, shake/glitch, scene transitions) live in `src/lib.tsx`.
+- `src/Proof.tsx`, `src/Secure.tsx`, `src/Price.tsx`, `src/Paid.tsx`, `src/Receipts.tsx`, `src/Switch.tsx` and `src/Accountant.tsx` animate each scene against those cue times. Shared pieces (background, captions, phone frame, shake/glitch, scene transitions) live in `src/lib.tsx`.
 
 The picture and the sound effects are both driven by the same cue times, so they stay in sync when the narration changes.
 

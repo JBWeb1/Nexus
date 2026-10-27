@@ -631,5 +631,247 @@
     ]
    }
   ]
+ },
+ "switch": {
+  "title": "Switching, sorted",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Want to leave Xero, but dreading the move?",
+    "cues": {
+     "leave": "leave Xero",
+     "dread": "dreading"
+    },
+    "sfx": [
+     [
+      "leave",
+      "whoosh"
+     ],
+     [
+      "dread",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "easy",
+    "say": "It's easier than you think.",
+    "cues": {
+     "easy": "easier"
+    },
+    "sfx": [
+     [
+      "easy",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "sheet",
+    "say": "Export who owes you, and who you owe, as a spreadsheet.",
+    "cues": {
+     "debtors": "who owes you",
+     "creditors": "who you owe",
+     "sheet": "spreadsheet"
+    },
+    "sfx": [
+     [
+      "debtors",
+      "pop"
+     ],
+     [
+      "creditors",
+      "pop"
+     ],
+     [
+      "sheet",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "read",
+    "say": "Nexus finds the columns by itself, and adds every customer and supplier for you.",
+    "cues": {
+     "cols": "finds the columns",
+     "add": "adds every",
+     "sup": "supplier"
+    },
+    "sfx": [
+     [
+      "cols",
+      "tick"
+     ],
+     [
+      "add",
+      "whoosh"
+     ],
+     [
+      "sup",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "check",
+    "say": "Add your opening bank balance, and your books check out.",
+    "cues": {
+     "bank": "opening bank",
+     "ok": "check out"
+    },
+    "sfx": [
+     [
+      "bank",
+      "pop"
+     ],
+     [
+      "ok",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Switching, sorted. Nexus Ledger. Try it free.",
+    "cues": {
+     "title": "Switching",
+     "brand": "Nexus Ledger",
+     "cta": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "whoosh"
+     ],
+     [
+      "cta",
+      "pop"
+     ]
+    ]
+   }
+  ]
+ },
+ "accountant": {
+  "title": "Your accountant will love you",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "What does your accountant charge to fix messy books?",
+    "cues": {
+     "charge": "charge",
+     "messy": "messy books"
+    },
+    "sfx": [
+     [
+      "charge",
+      "tick"
+     ],
+     [
+      "messy",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "clean",
+    "say": "With Nexus, they open clean books.",
+    "cues": {
+     "open": "they open"
+    },
+    "sfx": [
+     [
+      "open",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "view",
+    "say": "They get their own login, with the work queue, bank matching, and month end in one view.",
+    "cues": {
+     "login": "own login",
+     "q": "work queue",
+     "bank": "bank matching",
+     "me": "month end"
+    },
+    "sfx": [
+     [
+      "login",
+      "pop"
+     ],
+     [
+      "q",
+      "tick"
+     ],
+     [
+      "bank",
+      "tick"
+     ],
+     [
+      "me",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "checked",
+    "say": "And every check has already passed.",
+    "cues": {
+     "pass": "already passed"
+    },
+    "sfx": [
+     [
+      "pass",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "export",
+    "say": "Need it in Excel? The trial balance and the general ledger, one click each.",
+    "cues": {
+     "xl": "Excel",
+     "tb": "trial balance",
+     "gl": "general ledger",
+     "click": "one click"
+    },
+    "sfx": [
+     [
+      "xl",
+      "whoosh"
+     ],
+     [
+      "tb",
+      "pop"
+     ],
+     [
+      "gl",
+      "pop"
+     ],
+     [
+      "click",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Your accountant will love you. Nexus Ledger.",
+    "cues": {
+     "love": "will love",
+     "brand": "Nexus Ledger"
+    },
+    "sfx": [
+     [
+      "love",
+      "whoosh"
+     ],
+     [
+      "brand",
+      "pop"
+     ]
+    ]
+   }
+  ]
  }
 }
