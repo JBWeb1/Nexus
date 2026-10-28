@@ -28,4 +28,6 @@ export const Root: React.FC = () => (<>
   <Composition id="promo" component={Promo} durationInFrames={TL.promo.frames} width={1920} height={1080} fps={30} />
   <Composition id="howpaid" component={HowPaid} durationInFrames={TL.howpaid.frames} width={1920} height={1080} fps={30} />
   <Composition id="monthend" component={MonthEnd} durationInFrames={TL.monthend.frames} width={1920} height={1080} fps={30} />
+  <Composition id="howpaid-tiktok" component={HowPaid} defaultProps={{ vertical: true }} durationInFrames={TL.howpaid.frames} {...common} />
+  <Composition id="monthend-tiktok" component={MonthEnd} defaultProps={{ vertical: true }} durationInFrames={TL.monthend.frames} {...common} />
 </>);

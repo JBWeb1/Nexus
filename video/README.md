@@ -14,6 +14,7 @@ Twelve videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 
 | `pitch` (16:9, 75 s) | "South Africa has about 790,000 formal small businesses…" | Market, Xero pricing, product, trust, R250 model and accounting-firm channel, the 1% arithmetic, status, the ask. Sources in PITCH-SOURCES.md |
 | `promo` (16:9, 78 s) | "This is Nexus Ledger…" | Product promo, one feature per scene: invoicing, getting paid, receipts, banking, VAT201, stock/orders/projects, books health, security, accountant access and Excel export. No competitor comparison |
 | `howpaid` (16:9, 47 s, light) | "Here's how getting paid works…" | Explainer clicking through real app screens: dashboard, new invoice, VAT and totals, invoice statuses, reminders, customer portal |
+| `howpaid-tiktok`, `monthend-tiktok` (9:16) | same | TikTok versions of the two explainers: headline on top, a taller app window with a closer camera, callouts below |
 | `monthend` (16:9, 55 s, light) | "It's month end…" | Explainer on real screens: receipts, bank matching, work queue, VAT201, reports to Excel, insights |
 | `leads` (41 s) | "Three quick questions…" | VAT201, late payers chased, R250 all included, 14 days free |
 
