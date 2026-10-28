@@ -1198,5 +1198,253 @@
     ]
    }
   ]
+ },
+ "promo": {
+  "title": "Nexus Ledger: product promo",
+  "scenes": [
+   {
+    "id": "intro",
+    "say": "This is Nexus Ledger. Accounting software, built for South African business.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "sa": "built for South African"
+    },
+    "sfx": [
+     [
+      "brand",
+      "impact"
+     ],
+     [
+      "sa",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "invoice",
+    "say": "Create a professional invoice in seconds, and send it by email or WhatsApp.",
+    "cues": {
+     "create": "Create",
+     "total": "in seconds",
+     "send": "send it"
+    },
+    "sfx": [
+     [
+      "create",
+      "typing"
+     ],
+     [
+      "total",
+      "ding"
+     ],
+     [
+      "send",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "paid",
+    "say": "Customers pay online from a secure link. And when someone's late, the reminders go out on their own.",
+    "cues": {
+     "pay": "pay online",
+     "late": "someone's late",
+     "rem": "reminders"
+    },
+    "sfx": [
+     [
+      "pay",
+      "ding"
+     ],
+     [
+      "late",
+      "impact-soft"
+     ],
+     [
+      "rem",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "receipts",
+    "say": "Snap a photo of a slip, and Nexus reads the supplier, the total and the VAT for you.",
+    "cues": {
+     "snap": "Snap a photo",
+     "read": "Nexus reads",
+     "vat": "the VAT"
+    },
+    "sfx": [
+     [
+      "snap",
+      "glitch"
+     ],
+     [
+      "read",
+      "tick"
+     ],
+     [
+      "vat",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "bank",
+    "say": "Every bank line gets a suggested match, and your own rules sort the rest automatically.",
+    "cues": {
+     "match": "suggested match",
+     "rules": "your own rules"
+    },
+    "sfx": [
+     [
+      "match",
+      "pop"
+     ],
+     [
+      "rules",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "vat",
+    "say": "Your VAT two-oh-one is worked out straight from your books.",
+    "cues": {
+     "vat": "VAT two",
+     "books": "from your books"
+    },
+    "sfx": [
+     [
+      "vat",
+      "impact-soft"
+     ],
+     [
+      "books",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "ops",
+    "say": "Track stock at average cost, raise purchase orders, and see exactly which projects make money.",
+    "cues": {
+     "stock": "Track stock",
+     "po": "purchase orders",
+     "proj": "which projects"
+    },
+    "sfx": [
+     [
+      "stock",
+      "pop"
+     ],
+     [
+      "po",
+      "pop"
+     ],
+     [
+      "proj",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "health",
+    "say": "And every time you open your books, Nexus checks itself. Debits and credits, receivables, stock. Everything.",
+    "cues": {
+     "check": "checks itself",
+     "c1": "Debits",
+     "c2": "receivables",
+     "c3": "stock.",
+     "all": "Everything"
+    },
+    "sfx": [
+     [
+      "check",
+      "whoosh"
+     ],
+     [
+      "c1",
+      "tick"
+     ],
+     [
+      "c2",
+      "tick"
+     ],
+     [
+      "c3",
+      "tick"
+     ],
+     [
+      "all",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "secure",
+    "say": "Posted entries are locked. Every company is walled off. And every change is logged.",
+    "cues": {
+     "lock": "locked",
+     "wall": "walled off",
+     "log": "logged"
+    },
+    "sfx": [
+     [
+      "lock",
+      "impact-soft"
+     ],
+     [
+      "wall",
+      "impact-soft"
+     ],
+     [
+      "log",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "team",
+    "say": "Invite your accountant with their own login, and export to Excel whenever you need.",
+    "cues": {
+     "invite": "Invite",
+     "excel": "Excel"
+    },
+    "sfx": [
+     [
+      "invite",
+      "pop"
+     ],
+     [
+      "excel",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Everything your business needs, for two hundred and fifty rand a month. Try it free for fourteen days.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "price": "two hundred",
+     "free": "Try it free"
+    },
+    "sfx": [
+     [
+      "brand",
+      "impact"
+     ],
+     [
+      "price",
+      "pop"
+     ],
+     [
+      "free",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }

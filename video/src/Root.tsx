@@ -10,6 +10,7 @@ import { Switch } from './Switch';
 import { Accountant } from './Accountant';
 import { Pitch } from './Pitch';
 import { Leads } from './Leads';
+import { Promo } from './Promo';
 
 const common = { width: 1080, height: 1920, fps: 30 } as const;
 export const Root: React.FC = () => (<>
@@ -22,4 +23,5 @@ export const Root: React.FC = () => (<>
   <Composition id="accountant" component={Accountant} durationInFrames={TL.accountant.frames} {...common} />
   <Composition id="pitch" component={Pitch} durationInFrames={TL.pitch.frames} width={1920} height={1080} fps={30} />
   <Composition id="leads" component={Leads} durationInFrames={TL.leads.frames} {...common} />
+  <Composition id="promo" component={Promo} durationInFrames={TL.promo.frames} width={1920} height={1080} fps={30} />
 </>);

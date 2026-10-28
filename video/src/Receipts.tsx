@@ -10,7 +10,7 @@ const MONO = 'ui-monospace, DejaVu Sans Mono, monospace';
 const FIELDS: [string, string, string][] = [['f1', 'Supplier', 'Sasol Paarl'], ['f2', 'Date', '24 Oct 2026'], ['f3', 'Total', 'R 650.00'], ['f4', 'VAT', 'R 84.78']];
 
 /** A till slip. `hi` highlights one of its lines (0 supplier, 1 date, 2 total, 3 VAT) while it is being read. */
-const Slip: React.FC<{ w?: number; hi?: number; style?: React.CSSProperties }> = ({ w = 520, hi = -1, style }) => {
+export const Slip: React.FC<{ w?: number; hi?: number; style?: React.CSSProperties }> = ({ w = 520, hi = -1, style }) => {
   const row = (i: number, a: React.ReactNode, b?: React.ReactNode) => <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderRadius: 6, background: i >= 0 && hi === i ? 'rgba(37,99,235,.18)' : 'none', outline: i >= 0 && hi === i ? '3px solid #2563eb' : 'none' }}><span>{a}</span><span>{b}</span></div>;
   return (<div style={{ width: w, padding: '40px 34px 50px', background: '#fbfaf6', color: '#1f2937', fontFamily: MONO, fontSize: w / 21, lineHeight: 1.55, boxShadow: '0 30px 80px rgba(0,0,0,.5)', clipPath: 'polygon(0 0,100% 0,100% 97%,95% 100%,90% 97%,85% 100%,80% 97%,75% 100%,70% 97%,65% 100%,60% 97%,55% 100%,50% 97%,45% 100%,40% 97%,35% 100%,30% 97%,25% 100%,20% 97%,15% 100%,10% 97%,5% 100%,0 97%)', ...style }}>
     <div style={{ textAlign: 'center', fontWeight: 700 }}>{row(0, <b>SASOL PAARL</b>)}</div>

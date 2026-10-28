@@ -1,6 +1,6 @@
 # Nexus Ledger short videos
 
-Nine videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 9:16 lead video, and a 16:9 investor pitch (1920×1080), made with [Remotion](https://www.remotion.dev):
+Ten videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 9:16 lead video, and a 16:9 investor pitch (1920×1080), made with [Remotion](https://www.remotion.dev):
 
 | id | Hook | Story |
 |---|---|---|
@@ -12,14 +12,15 @@ Nine videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 9:
 | `switch` | "Want to leave Xero, but dreading the move?" | Export who owes you and who you owe as a spreadsheet; Nexus finds the columns, creates customers and suppliers; add the opening bank balance and the books check out |
 | `accountant` | "What does your accountant charge to fix messy books?" | Accountant's own login and view (work queue, bank matching, month end), all checks passed, trial balance and general ledger to Excel |
 | `pitch` (16:9, 75 s) | "South Africa has about 790,000 formal small businesses…" | Market, Xero pricing, product, trust, R250 model and accounting-firm channel, the 1% arithmetic, status, the ask. Sources in PITCH-SOURCES.md |
+| `promo` (16:9, 78 s) | "This is Nexus Ledger…" | Product promo, one feature per scene: invoicing, getting paid, receipts, banking, VAT201, stock/orders/projects, books health, security, accountant access and Excel export. No competitor comparison |
 | `leads` (41 s) | "Three quick questions…" | VAT201, late payers chased, R250 all included, 14 days free |
 
 ## How it fits together
 
 - `src/scripts.json`: the narration for each scene, plus **cues**, phrases in the line that a visual beat (and a sound effect) lands on.
 - `public/audio/vo/<video>--<scene>.wav`: the recorded narration (Kokoro TTS, voice `af_heart`).
-- Narration: `af_heart` for the shorts, the male voice `am_michael` for `pitch` and `leads`.
-- `src/mg.tsx`: motion-graphics pieces (masked word reveals, line drawing, panel wipes) used by `pitch` and `leads`.
+- Narration: `af_heart` for the shorts, the male voice `am_michael` for `pitch`, `leads` and `promo`.
+- `src/mg.tsx`: motion-graphics pieces (masked word reveals, line drawing, panel wipes) used by `pitch`, `leads` and `promo`.
 - `tools/build.py` reads both and writes:
   - `src/timeline.json`: scene start times, the second each cue is spoken, and caption word timings
   - `public/audio/<video>.wav`: the soundtrack (narration, music ducked under the voice, and synthesized sound effects on the cues)
