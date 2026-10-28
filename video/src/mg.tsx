@@ -31,10 +31,10 @@ export const Ring: React.FC<{ k: number; r: number; dur?: number; stroke?: strin
 export const count = (k: number, to: number, a = 0, b = 30, digits = 0) => (to * ease(k, a, b)).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
 /** Three coloured panels sweep across at every scene cut, covering the hard cut. `cuts` are frames. */
-export const Wipes: React.FC<{ cuts: number[] }> = ({ cuts }) => {
+export const Wipes: React.FC<{ cuts: number[]; colors?: string[] }> = ({ cuts, colors = ['#2563eb', '#67e8f9', '#34d399'] }) => {
   const f = useCurrentFrame(); const { width, height } = useVideoConfig();
   const cut = cuts.find((c) => f >= c - 12 && f <= c + 14); if (cut === undefined) return null;
-  const cols = ['#2563eb', '#67e8f9', '#34d399'];
+  const cols = colors;
   return (<AbsoluteFill style={{ pointerEvents: 'none', overflow: 'hidden' }}>
     {cols.map((col, i) => { const k = f - (cut - 12) - i * 2;
       const x = interpolate(k, [0, 12, 24], [-1.4, 0, 1.4], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.7, 0, 0.3, 1) });

@@ -30,7 +30,8 @@ export const Brand: React.FC<{ hidden?: boolean }> = ({ hidden }) => (
     <Img src={staticFile('img/logo.png')} style={{ height: 46 }} />NEXUS LEDGER</div>);
 
 /** Captions that pop in word by word as they are spoken, the current word lit up. Groups of up to 4 words. */
-export const Captions: React.FC<{ video: Video; top?: number; size?: number; side?: number }> = ({ video, top = 1430, size = 66, side = 60 }) => {
+/** `light` draws dark words on a white pill, for light backgrounds. */
+export const Captions: React.FC<{ video: Video; top?: number; size?: number; side?: number; light?: boolean }> = ({ video, top = 1430, size = 66, side = 60, light = false }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig(); const t = f / fps; const sp = useSpring();
   const groups: { w: string; t: number }[][] = [];
   for (const s of video.scenes) { let g: { w: string; t: number }[] = [];
@@ -38,11 +39,12 @@ export const Captions: React.FC<{ video: Video; top?: number; size?: number; sid
   const gi = groups.findIndex((g, i) => t >= g[0].t - 0.05 && (i + 1 >= groups.length || t < groups[i + 1][0].t - 0.05));
   if (gi < 0) return null; const g = groups[gi]; const last = g[g.length - 1];
   if (t > last.t + 1.4) return null; // nothing hangs on screen in the pauses
-  return (<div style={{ position: 'absolute', left: side, right: side, top, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0 18px', fontFamily: FONT, fontSize: size, fontWeight: 800, letterSpacing: '-.01em', textAlign: 'center' }}>
+  const pill = light ? { background: 'rgba(255,255,255,.92)', borderRadius: 999, padding: `${size * 0.22}px ${size * 0.6}px`, boxShadow: '0 12px 40px -10px rgba(15,23,42,.25)' } : {};
+  return (<div style={{ position: 'absolute', left: side, right: side, top, display: 'flex', justifyContent: 'center' }}><div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0 18px', fontFamily: FONT, fontSize: size, fontWeight: 800, letterSpacing: '-.01em', textAlign: 'center', ...pill }}>
     {g.map((w, i) => { const k = Math.round((t - w.t) * fps); const on = k >= 0; const cur = on && (i === g.length - 1 || t < g[i + 1].t);
       const s = on ? sp(k, { damping: 12, stiffness: 260 }) : 0;
-      return <span key={i} style={{ display: 'inline-block', opacity: on ? 1 : 0, transform: `translateY(${(1 - s) * 18}px) scale(${0.85 + 0.15 * s})`, color: cur ? C.cyan : '#fff', textShadow: '0 4px 0 rgba(0,0,0,.55), 0 0 30px rgba(0,0,0,.6)', WebkitTextStroke: '2px rgba(2,6,18,.55)' }}>{w.w}</span>; })}
-  </div>);
+      return <span key={i} style={{ display: light && !on ? 'none' : 'inline-block', opacity: on ? 1 : 0, transform: `translateY(${(1 - s) * 18}px) scale(${0.85 + 0.15 * s})`, ...(light ? { color: cur ? '#2563eb' : '#0f172a' } : { color: cur ? C.cyan : '#fff', textShadow: '0 4px 0 rgba(0,0,0,.55), 0 0 30px rgba(0,0,0,.6)', WebkitTextStroke: '2px rgba(2,6,18,.55)' }) }}>{w.w}</span>; })}
+  </div></div>);
 };
 
 /** A phone showing a real screenshot of the app. `scroll` pans the screenshot up by that many pixels over `frames`. */

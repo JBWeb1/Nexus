@@ -1446,5 +1446,329 @@
     ]
    }
   ]
+ },
+ "howpaid": {
+  "title": "From invoice to paid",
+  "scenes": [
+   {
+    "id": "intro",
+    "say": "Here's how getting paid works in Nexus Ledger.",
+    "cues": {
+     "paid": "getting paid",
+     "brand": "Nexus Ledger"
+    },
+    "sfx": [
+     [
+      "paid",
+      "whoosh"
+     ],
+     [
+      "brand",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "dash",
+    "say": "Start on your dashboard. You can see what's in the bank, and who owes you money.",
+    "cues": {
+     "bank": "in the bank",
+     "owe": "who owes"
+    },
+    "sfx": [
+     [
+      "bank",
+      "pop"
+     ],
+     [
+      "owe",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "new",
+    "say": "Click New invoice, choose your customer, and add what you sold.",
+    "cues": {
+     "click": "Click New",
+     "cust": "choose your",
+     "add": "add what"
+    },
+    "sfx": [
+     [
+      "click",
+      "tick"
+     ],
+     [
+      "cust",
+      "tick"
+     ],
+     [
+      "add",
+      "typing"
+     ]
+    ]
+   },
+   {
+    "id": "total",
+    "say": "Nexus works out the VAT and the total for you. Then send it by email or WhatsApp.",
+    "cues": {
+     "vat": "works out",
+     "send": "Then send"
+    },
+    "sfx": [
+     [
+      "vat",
+      "ding"
+     ],
+     [
+      "send",
+      "whoosh"
+     ]
+    ]
+   },
+   {
+    "id": "track",
+    "say": "Every invoice shows its status, so you always know what's paid, and what's overdue.",
+    "cues": {
+     "status": "shows its status",
+     "paid": "what's paid",
+     "over": "overdue"
+    },
+    "sfx": [
+     [
+      "status",
+      "pop"
+     ],
+     [
+      "paid",
+      "pop"
+     ],
+     [
+      "over",
+      "impact-soft"
+     ]
+    ]
+   },
+   {
+    "id": "remind",
+    "say": "When a customer is late, reminders go out on their own, on the days you choose.",
+    "cues": {
+     "late": "customer is late",
+     "days": "the days you choose"
+    },
+    "sfx": [
+     [
+      "late",
+      "whoosh"
+     ],
+     [
+      "days",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "pay",
+    "say": "And your customer pays online, from their own secure page.",
+    "cues": {
+     "pay": "pays online"
+    },
+    "sfx": [
+     [
+      "pay",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Invoice. Remind. Get paid. Nexus Ledger. Try it free for fourteen days.",
+    "cues": {
+     "i1": "Invoice",
+     "i2": "Remind",
+     "i3": "Get paid",
+     "brand": "Nexus Ledger",
+     "free": "Try it free"
+    },
+    "sfx": [
+     [
+      "i1",
+      "pop"
+     ],
+     [
+      "i2",
+      "pop"
+     ],
+     [
+      "i3",
+      "impact-soft"
+     ],
+     [
+      "free",
+      "ding"
+     ]
+    ]
+   }
+  ]
+ },
+ "monthend": {
+  "title": "Month end, sorted",
+  "scenes": [
+   {
+    "id": "intro",
+    "say": "It's month end. Here's how Nexus Ledger gets your books done.",
+    "cues": {
+     "me": "month end",
+     "brand": "Nexus Ledger"
+    },
+    "sfx": [
+     [
+      "me",
+      "whoosh"
+     ],
+     [
+      "brand",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "receipts",
+    "say": "Snap your slips. Nexus reads the supplier, the date and the total, and you save it as a bill.",
+    "cues": {
+     "snap": "Snap",
+     "read": "Nexus reads",
+     "save": "save it"
+    },
+    "sfx": [
+     [
+      "snap",
+      "glitch"
+     ],
+     [
+      "read",
+      "tick"
+     ],
+     [
+      "save",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "bank",
+    "say": "Your bank lines are matched to your invoices and bills, so every rand is accounted for.",
+    "cues": {
+     "match": "matched",
+     "all": "every rand"
+    },
+    "sfx": [
+     [
+      "match",
+      "pop"
+     ],
+     [
+      "all",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "queue",
+    "say": "The work queue shows anything that still needs a human, with the reason behind it.",
+    "cues": {
+     "need": "still needs",
+     "why": "the reason"
+    },
+    "sfx": [
+     [
+      "need",
+      "pop"
+     ],
+     [
+      "why",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "vat",
+    "say": "Your VAT two-oh-one is worked out straight from the ledger, ready to check before you file.",
+    "cues": {
+     "vat": "VAT two",
+     "check": "ready to check"
+    },
+    "sfx": [
+     [
+      "vat",
+      "impact-soft"
+     ],
+     [
+      "check",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "reports",
+    "say": "Your profit and loss, balance sheet and trial balance are always up to date. Export them to Excel in one click.",
+    "cues": {
+     "pl": "profit and loss",
+     "export": "Export them"
+    },
+    "sfx": [
+     [
+      "pl",
+      "whoosh"
+     ],
+     [
+      "export",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "insights",
+    "say": "And Insights explains why your numbers moved, right down to the customers behind it.",
+    "cues": {
+     "why": "why your numbers",
+     "cust": "the customers"
+    },
+    "sfx": [
+     [
+      "why",
+      "whoosh"
+     ],
+     [
+      "cust",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Month end, sorted. Nexus Ledger. Try it free for fourteen days.",
+    "cues": {
+     "title": "Month end",
+     "brand": "Nexus Ledger",
+     "free": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "impact-soft"
+     ],
+     [
+      "brand",
+      "pop"
+     ],
+     [
+      "free",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }
