@@ -1770,5 +1770,357 @@
     ]
    }
   ]
+ },
+ "chase": {
+  "title": "Still chasing?",
+  "music": "punchy",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Still chasing clients to pay you? Every. Single. Month?",
+    "cues": {
+     "b1": "Still",
+     "b2": "chasing",
+     "b3": "clients",
+     "b4": "to pay you",
+     "b5": "Every",
+     "b6": "Single",
+     "b7": "Month"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "impact-soft"
+     ],
+     [
+      "b3",
+      "impact-soft"
+     ],
+     [
+      "b4",
+      "impact"
+     ],
+     [
+      "b5",
+      "pop"
+     ],
+     [
+      "b6",
+      "pop"
+     ],
+     [
+      "b7",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "stop",
+    "say": "Stop. Let Nexus chase them for you.",
+    "cues": {
+     "b1": "Stop",
+     "b2": "Let Nexus",
+     "b3": "chase them"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "whoosh"
+     ],
+     [
+      "b3",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "remind",
+    "say": "Reminders go out on their own. Before it's due. On the day. And after.",
+    "cues": {
+     "b1": "Reminders",
+     "b2": "on their own",
+     "b3": "Before",
+     "b4": "On the day",
+     "b5": "And after"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "pop"
+     ],
+     [
+      "b3",
+      "tick"
+     ],
+     [
+      "b4",
+      "tick"
+     ],
+     [
+      "b5",
+      "tick"
+     ]
+    ]
+   },
+   {
+    "id": "channel",
+    "say": "By email, or on WhatsApp.",
+    "cues": {
+     "b1": "By email",
+     "b2": "WhatsApp"
+    },
+    "sfx": [
+     [
+      "b1",
+      "pop"
+     ],
+     [
+      "b2",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "pay",
+    "say": "Your customer taps the link, and pays online.",
+    "cues": {
+     "b1": "Your customer",
+     "b2": "taps the link",
+     "b3": "pays online"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "pop"
+     ],
+     [
+      "b3",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "paid",
+    "say": "And you? You just get paid.",
+    "cues": {
+     "b1": "And you",
+     "b2": "You just",
+     "b3": "get paid"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact-soft"
+     ],
+     [
+      "b2",
+      "pop"
+     ],
+     [
+      "b3",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Try it free for fourteen days.",
+    "cues": {
+     "b1": "Nexus Ledger",
+     "b2": "Try it free"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "ding"
+     ]
+    ]
+   }
+  ]
+ },
+ "sorted": {
+  "title": "Month end. Done.",
+  "music": "punchy",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Month end. A pile of slips. A bank statement. And VAT due.",
+    "cues": {
+     "b1": "Month end",
+     "b2": "A pile",
+     "b3": "A bank",
+     "b4": "And VAT"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "impact-soft"
+     ],
+     [
+      "b3",
+      "impact-soft"
+     ],
+     [
+      "b4",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "q",
+    "say": "Sound familiar?",
+    "cues": {
+     "b1": "Sound"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "fix",
+    "say": "Here's month end, the Nexus way.",
+    "cues": {
+     "b1": "Here's",
+     "b2": "the Nexus way"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "snap",
+    "say": "Snap a slip. Nexus reads it for you.",
+    "cues": {
+     "b1": "Snap",
+     "b2": "Nexus reads"
+    },
+    "sfx": [
+     [
+      "b1",
+      "glitch"
+     ],
+     [
+      "b2",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "bank",
+    "say": "Bank lines? Matched.",
+    "cues": {
+     "b1": "Bank lines",
+     "b2": "Matched"
+    },
+    "sfx": [
+     [
+      "b1",
+      "pop"
+     ],
+     [
+      "b2",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "vat",
+    "say": "VAT two-oh-one? Worked out.",
+    "cues": {
+     "b1": "VAT two",
+     "b2": "Worked out"
+    },
+    "sfx": [
+     [
+      "b1",
+      "pop"
+     ],
+     [
+      "b2",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "check",
+    "say": "And your books check themselves.",
+    "cues": {
+     "b1": "And your",
+     "b2": "check themselves"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Month end. Done. Nexus Ledger. Try it free.",
+    "cues": {
+     "b1": "Month end",
+     "b2": "Done",
+     "b3": "Nexus Ledger",
+     "b4": "Try it free"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact-soft"
+     ],
+     [
+      "b2",
+      "impact"
+     ],
+     [
+      "b3",
+      "whoosh"
+     ],
+     [
+      "b4",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }

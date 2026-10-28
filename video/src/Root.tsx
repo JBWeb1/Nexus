@@ -13,6 +13,7 @@ import { Leads } from './Leads';
 import { Promo } from './Promo';
 import { HowPaid } from './HowPaid';
 import { MonthEnd } from './MonthEnd';
+import { Chase, Sorted } from './Kinetic';
 
 const common = { width: 1080, height: 1920, fps: 30 } as const;
 export const Root: React.FC = () => (<>
@@ -30,4 +31,6 @@ export const Root: React.FC = () => (<>
   <Composition id="monthend" component={MonthEnd} durationInFrames={TL.monthend.frames} width={1920} height={1080} fps={30} />
   <Composition id="howpaid-tiktok" component={HowPaid} defaultProps={{ vertical: true }} durationInFrames={TL.howpaid.frames} {...common} />
   <Composition id="monthend-tiktok" component={MonthEnd} defaultProps={{ vertical: true }} durationInFrames={TL.monthend.frames} {...common} />
+  <Composition id="chase" component={Chase} durationInFrames={TL.chase.frames} {...common} />
+  <Composition id="sorted" component={Sorted} durationInFrames={TL.sorted.frames} {...common} />
 </>);

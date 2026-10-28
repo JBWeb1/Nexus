@@ -15,6 +15,8 @@ Twelve videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 
 | `promo` (16:9, 78 s) | "This is Nexus Ledger…" | Product promo, one feature per scene: invoicing, getting paid, receipts, banking, VAT201, stock/orders/projects, books health, security, accountant access and Excel export. No competitor comparison |
 | `howpaid` (16:9, 47 s, light) | "Here's how getting paid works…" | Explainer clicking through real app screens: dashboard, new invoice, VAT and totals, invoice statuses, reminders, customer portal |
 | `howpaid-tiktok`, `monthend-tiktok` (9:16) | same | TikTok versions of the two explainers: headline on top, a taller app window with a closer camera, callouts below |
+| `chase` (9:16, 24 s, kinetic) | "Still chasing clients to pay you? Every. Single. Month?" | Kinetic typography: every spoken beat is a full-screen card of huge words on a colour that flips with the beat, with flashes of the real app. "STOP." at 4 s, the fix by 7 s |
+| `sorted` (9:16, 24 s, kinetic) | "Month end. A pile of slips. A bank statement. And VAT due." | Same style: receipts, bank matching, VAT201, books that check themselves |
 | `monthend` (16:9, 55 s, light) | "It's month end…" | Explainer on real screens: receipts, bank matching, work queue, VAT201, reports to Excel, insights |
 | `leads` (41 s) | "Three quick questions…" | VAT201, late payers chased, R250 all included, 14 days free |
 
@@ -24,6 +26,7 @@ Twelve videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 
 - `public/audio/vo/<video>--<scene>.wav`: the recorded narration (Kokoro TTS, voice `af_heart`).
 - Narration: `af_heart` for the shorts, the male voice `am_michael` for `pitch`, `leads` and `promo`.
 - `src/explainer.tsx`: light explainer pieces for `howpaid` and `monthend`: a browser window that tilts in 3D and zooms like a camera onto real screenshots (`public/img/app/`), a cursor that clicks, highlight boxes and callout cards. Positions inside a screenshot are fractions of its width and height.
+- `src/kineticKit.tsx`: kinetic typography beats (slam, rise, split, stamp, zoom), shapes that snap with the beat, app shots and the logo beat. `src/Kinetic.tsx` lists each video's beats. Videos with `"music": "punchy"` in scripts.json get a 120 BPM track and tighter gaps between lines.
 - `src/mg.tsx`: motion-graphics pieces (masked word reveals, line drawing, panel wipes) used by `pitch`, `leads` and `promo`.
 - `tools/build.py` reads both and writes:
   - `src/timeline.json`: scene start times, the second each cue is spoken, and caption word timings

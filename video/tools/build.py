@@ -21,7 +21,8 @@ def build_timeline(scripts):
         t, scenes = 0.0, []
         for i, s in enumerate(v['scenes']):
             wav = f"{ROOT}/public/audio/vo/{vid}--{s['id']}.wav"; speech = sf.info(wav).duration
-            lead = HOOK_LEAD if i == 0 else LEAD; tail = TAIL + (END_HOLD if s['id'] == 'end' else 0)
+            tight = v.get('music') == 'punchy'  # kinetic videos: words land back to back
+            lead = HOOK_LEAD if i == 0 else (0.1 if tight else LEAD); tail = (0.3 if tight else TAIL) + (END_HOLD if s['id'] == 'end' else 0)
             dur = lead + speech + tail; say = s['say']
             at = lambda phrase: round(t + lead + speech * say.index(phrase) / len(say), 3)
             cues = {k: at(p) for k, p in s['cues'].items()}
@@ -98,7 +99,35 @@ def music(total, beat_at, seed):
     fi = int(0.6 * SR); mix[:fi] *= np.linspace(0, 1, fi)[:, None]; fo = int(2.5 * SR); end = N - int(0.5 * SR); mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None]; mix[end:] = 0
     return mix
 
-def soundtrack(vid, tl, seed):
+def music_punchy(total, seed):
+    """Driving 120 BPM bed for the kinetic videos: kick on every beat, claps on 2 and 4, off-beat hats, bass, pumping chords."""
+    r = np.random.default_rng(seed); N = int((total + 0.5) * SR); L = np.zeros(N); R_ = np.zeros(N); BEAT = 0.5
+    hz = lambda m: 440 * 2 ** ((m - 69) / 12)
+    ROOTS = [45, 41, 48, 43]; CH = [[57, 60, 64], [53, 57, 60], [55, 60, 64], [55, 59, 62]]  # Am F C G
+    def add(x, t, pan=0.0, g=1.0):
+        i = int(t * SR)
+        if i >= N: return
+        j = min(N, i + len(x)); L[i:j] += x[:j - i] * g * np.cos((pan + 1) * np.pi / 4); R_[i:j] += x[:j - i] * g * np.sin((pan + 1) * np.pi / 4)
+    hp = butter(2, 8000 / (SR / 2), 'high'); bp = butter(2, [900 / (SR / 2), 4000 / (SR / 2)], 'band')
+    n_beats = int(total / BEAT) + 1
+    for b in range(n_beats):
+        t = b * BEAT; bar = b // 4; root = ROOTS[bar % 4]
+        n = int(0.4 * SR); tt = np.arange(n) / SR; f = 45 + 110 * np.exp(-tt * 28)
+        add(np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tt * 9), t, 0, 0.5)  # kick
+        if b % 2 == 1:
+            n = int(0.25 * SR); add(lfilter(*bp, r.standard_normal(n)) * np.exp(-np.arange(n) / SR * 18), t, 0.1, 0.22)  # clap
+        n = int(0.05 * SR); add(lfilter(*hp, r.standard_normal(n)) * np.exp(-np.arange(n) / SR * 90), t + BEAT / 2, 0.3, 0.08)  # hat
+        n = int(BEAT * 0.45 * SR); tt = np.arange(n) / SR; m = root - 12
+        add((np.sin(2 * np.pi * hz(m) * tt) + 0.35 * np.sin(4 * np.pi * hz(m) * tt) + 0.15 * np.sin(6 * np.pi * hz(m) * tt)) * env(n, 0.004, 0.06), t + BEAT / 2, 0, 0.16)  # bass
+        n = int(BEAT * SR); tt = np.arange(n) / SR; x = np.zeros(n)
+        for c in CH[bar % 4]:
+            for det in (-0.06, 0.06): x += np.sin(2 * np.pi * hz(c + det) * tt + r.random() * 6) + 0.3 * np.sin(4 * np.pi * hz(c + det) * tt)
+        pump = 1 - 0.85 * np.exp(-tt * 9); add(x * pump * env(n, 0.01, 0.05) * 0.018, t, -0.25); add(x * pump * env(n, 0.01, 0.05) * 0.016, t + 0.01, 0.25)
+    mix = np.stack([L, R_], 1); mix /= np.max(np.abs(mix)) * 1.1
+    fo = int(1.5 * SR); end = N - int(0.5 * SR); mix[end - fo:end] *= np.linspace(1, 0, fo)[:, None]; mix[end:] = 0
+    return mix
+
+def soundtrack(vid, tl, seed, style='calm'):
     N = int((tl['total'] + 0.3) * SR); voice = np.zeros(N); fx = np.zeros(N)
     for s in tl['scenes']:
         v, vsr = sf.read(f"{ROOT}/public/audio/vo/{vid}--{s['id']}.wav"); v = v.mean(1) if v.ndim > 1 else v
@@ -111,7 +140,7 @@ def soundtrack(vid, tl, seed):
     pk = np.abs(voice); o = pk > 0.32; voice[o] = np.sign(voice[o]) * (0.32 + (pk[o] - 0.32) * 0.4)
     lvl = np.convolve(np.abs(voice), np.ones(1323) / 1323, mode='same'); sp = (lvl > 0.004).astype(float)
     a = np.exp(-1 / (0.25 * SR)); g = np.clip(lfilter([1 - a], [1, -a], sp) * 1.6, 0, 1)  # follows the voice, eases back in
-    m = music(tl['total'], tl['scenes'][1]['start'], seed)[:N]; m = np.pad(m, ((0, N - len(m)), (0, 0)))
+    m = (music_punchy(tl['total'], seed) if style == 'punchy' else music(tl['total'], tl['scenes'][1]['start'], seed))[:N]; m = np.pad(m, ((0, N - len(m)), (0, 0)))
     out = m * (1 - 0.6 * g)[:, None] * 0.6 + np.stack([voice + fx] * 2, 1)
     out /= max(1.0, np.max(np.abs(out)) / 0.95)
     sf.write(f"{ROOT}/public/audio/{vid}.wav", out.astype(np.float32), SR)
@@ -120,4 +149,4 @@ if __name__ == '__main__':
     scripts = json.load(open(f'{ROOT}/src/scripts.json'))
     tl = build_timeline(scripts)
     json.dump(tl, open(f'{ROOT}/src/timeline.json', 'w'), indent=1)
-    for k, vid in enumerate(tl): soundtrack(vid, tl[vid], 40 + k); print(vid, tl[vid]['total'], 's,', tl[vid]['frames'], 'frames')
+    for k, vid in enumerate(tl): soundtrack(vid, tl[vid], 40 + k, scripts[vid].get('music', 'calm')); print(vid, tl[vid]['total'], 's,', tl[vid]['frames'], 'frames')
