@@ -1,7 +1,7 @@
 // Two kinetic-typography TikToks. The hook lands in the first seconds; every spoken beat is its own full-screen card.
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
-import { Mail, MessageCircle, Check, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, MessageCircle, Check, ArrowRight, ShieldCheck, Lock, CreditCard } from 'lucide-react';
 import TL from './timeline.json';
 import { FONT, fontFace, useSpring, type Scene, type Video } from './lib';
 import { LPhone } from './explainer';
@@ -84,7 +84,38 @@ const SORTED: Record<string, Beat[]> = {
     { cue: 'b4', text: 'TRY IT|FREE', bg: K.blue, fx: 'rise', top: 560, shot: <Cta /> }],
 };
 
-const make = (id: 'chase' | 'sorted', beats: Record<string, Beat[]>): React.FC => () => {
+
+const GROW: Record<string, Beat[]> = {
+  hook: [
+    { cue: 'b1', text: 'RUN A SMALL|BUSINESS?', bg: K.dark, fx: 'slam', shape: 'ring', accent: { 1: KGRAD } },
+    { cue: 'b2', text: 'IN SOUTH|AFRICA?', bg: K.blue, fx: 'split', shape: 'bars' },
+    { cue: 'b3', text: 'THIS IS|FOR YOU.', bg: K.white, fx: 'stamp', accent: { 0: { color: K.blue } } }],
+  time: [
+    { cue: 'b1', text: 'LESS TIME|ON ADMIN.', bg: K.dark, fx: 'rise', shape: 'stripes' },
+    { cue: 'b2', text: 'MORE TIME|MAKING|MONEY.', bg: K.green, fx: 'slam', shake: true, shape: 'burst' }],
+  what: [
+    { cue: 'b1', bg: '#000', shot: <LogoBeat />, fx: 'zoom' },
+    { cue: 'b2', text: 'INVOICES', bg: K.white, fx: 'slam', size: 190, shot: <Shot src="img/app/invoices.png" aspect={0.625} fx={0.62} fy={0.4} zoom={1.5} mark={[0.826, 0.395, 0.058, 0.03]} markColor={K.blue} /> },
+    { cue: 'b3', text: 'VAT201', bg: K.blue, fx: 'slam', size: 210, shot: <Shot src="img/app/vat201.png" aspect={0.625} fx={0.5} fy={0.57} zoom={1.6} mark={[0.205, 0.62, 0.535, 0.04]} /> },
+    { cue: 'b4', text: 'BANKING', bg: K.dark, fx: 'split', size: 200, shot: <Shot src="img/app/banking.png" aspect={0.625} fx={0.8} fy={0.5} zoom={1.7} mark={[0.862, 0.305, 0.058, 0.67]} /> },
+    { cue: 'b5', text: 'ALL IN|ONE PLACE.', bg: K.cyan, fx: 'stamp' }],
+  paid: [
+    { cue: 'b1', text: 'CLIENTS GET|REMINDED.', bg: K.white, fx: 'rise', size: 150, shot: <Shot src="img/app/reminders.png" aspect={0.79} fx={0.6} fy={0.82} zoom={1.6} mark={[0.77, 0.75, 0.2, 0.21]} /> },
+    { cue: 'b2', text: 'AND PAY|ONLINE.', bg: K.blue, fx: 'slam', shape: 'burst' }],
+  trust: [
+    { cue: 'b1', text: 'BOOKS THAT|CHECK|THEMSELVES.', bg: K.green, fx: 'slam', size: 140, top: 260, shot: <Checks items={['Debits = credits', 'Receivables match', 'Every document posted']} /> },
+    { cue: 'b2', text: 'LOCKED.', bg: K.dark, fx: 'stamp', top: 380, shot: <IconTile bg={K.blue} y={1250}><Lock size={190} color="#fff" /></IconTile> },
+    { cue: 'b3', text: 'AND|YOURS.', bg: K.white, fx: 'slam', shape: 'ring', accent: { 1: { color: K.blue } } }],
+  offer: [
+    { cue: 'b1', text: 'R250|A MONTH', bg: K.dark, fx: 'slam', shape: 'ring', accent: { 0: KGRAD } },
+    { cue: 'b2', text: '14 DAYS|FREE', bg: K.amber, fx: 'stamp' },
+    { cue: 'b3', text: 'NO CARD|NEEDED.', bg: K.white, fx: 'rise', top: 380, shot: <IconTile bg={K.dark} y={1250}><CreditCard size={190} color="#fff" /></IconTile> }],
+  end: [
+    { cue: 'b1', bg: '#000', shot: <LogoBeat />, fx: 'zoom' },
+    { cue: 'b2', text: 'START FREE|TODAY', bg: K.blue, fx: 'rise', top: 560, shot: <Cta /> }],
+};
+
+const make = (id: 'chase' | 'sorted' | 'grow', beats: Record<string, Beat[]>): React.FC => () => {
   const v = (TL as unknown as Record<string, Video>)[id]; const { fps } = useVideoConfig();
   return (<AbsoluteFill style={{ background: K.dark }}><style>{fontFace}</style>
     {v.scenes.map((s, i) => <Sequence key={s.id} from={Math.round(s.start * fps)} durationInFrames={Math.round(s.dur * fps)}><KScene s={s as Scene} beats={beats[s.id]} seed={i} /></Sequence>)}
@@ -93,3 +124,4 @@ const make = (id: 'chase' | 'sorted', beats: Record<string, Beat[]>): React.FC =
 };
 export const Chase = make('chase', CHASE);
 export const Sorted = make('sorted', SORTED);
+export const Grow = make('grow', GROW);

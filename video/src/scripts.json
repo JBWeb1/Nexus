@@ -2122,5 +2122,167 @@
     ]
    }
   ]
+ },
+ "grow": {
+  "title": "Run a small business?",
+  "music": "punchy",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Run a small business in South Africa? This is for you.",
+    "cues": {
+     "b1": "Run a",
+     "b2": "in South Africa",
+     "b3": "This is"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "impact-soft"
+     ],
+     [
+      "b3",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "time",
+    "say": "Less time on admin. More time making money.",
+    "cues": {
+     "b1": "Less time",
+     "b2": "More time"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "what",
+    "say": "Nexus Ledger does your invoices, your VAT, and your banking. All in one place.",
+    "cues": {
+     "b1": "Nexus Ledger",
+     "b2": "invoices",
+     "b3": "your VAT",
+     "b4": "banking",
+     "b5": "All in one"
+    },
+    "sfx": [
+     [
+      "b1",
+      "whoosh"
+     ],
+     [
+      "b2",
+      "pop"
+     ],
+     [
+      "b3",
+      "pop"
+     ],
+     [
+      "b4",
+      "pop"
+     ],
+     [
+      "b5",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "paid",
+    "say": "Clients get reminded, and pay you online.",
+    "cues": {
+     "b1": "Clients",
+     "b2": "pay you online"
+    },
+    "sfx": [
+     [
+      "b1",
+      "pop"
+     ],
+     [
+      "b2",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "trust",
+    "say": "Your books check themselves. Your data stays locked, and yours.",
+    "cues": {
+     "b1": "Your books",
+     "b2": "Your data",
+     "b3": "and yours"
+    },
+    "sfx": [
+     [
+      "b1",
+      "ding"
+     ],
+     [
+      "b2",
+      "impact-soft"
+     ],
+     [
+      "b3",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "offer",
+    "say": "Two hundred and fifty rand a month. Fourteen days free. No card needed.",
+    "cues": {
+     "b1": "Two hundred",
+     "b2": "Fourteen days",
+     "b3": "No card"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "pop"
+     ],
+     [
+      "b3",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Nexus Ledger. Start free today.",
+    "cues": {
+     "b1": "Nexus Ledger",
+     "b2": "Start free"
+    },
+    "sfx": [
+     [
+      "b1",
+      "impact"
+     ],
+     [
+      "b2",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }
