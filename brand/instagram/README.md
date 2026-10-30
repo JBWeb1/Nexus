@@ -10,3 +10,15 @@ Four portrait posts at 1080 × 1350 (Instagram's tallest feed size), made with r
 | `nexus-ig-4-r250-everything-included.png` | "R250 a month. Everything included.": the features, 14 days free, no card needed |
 
 Remake them after a change with `node brand/make-instagram-posters.mjs <repo root> brand/instagram` (needs playwright-core and Chromium).
+
+## "Picture it" set
+
+Three posts in the style of the "Picture your business" video: night sky, glowing words, glass cards, sunrise. They work as one swipeable post in this order.
+
+| File | Message |
+|---|---|
+| `nexus-vision-1-picture-it.png` | "Picture it.": every invoice paid on time |
+| `nexus-vision-2-weekend-yours.png` | "Done by 3. Weekend? Yours.": month end finished in an afternoon |
+| `nexus-vision-3-one-decision.png` | "Your best year starts with one decision.": the logo and the 14-day free trial |
+
+Remake with `node brand/make-vision-posts.mjs <repo root> brand/instagram`.
