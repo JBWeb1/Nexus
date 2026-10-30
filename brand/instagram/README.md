@@ -18,7 +18,7 @@ Three posts in the style of the "Picture your business" video: night sky, glowin
 | File | Message |
 |---|---|
 | `nexus-vision-1-picture-it.png` | "Picture it.": every invoice paid on time |
-| `nexus-vision-2-weekend-yours.png` | "Done by 3. Weekend? Yours.": month end finished in an afternoon |
+| `nexus-vision-2-month-end-done.png` | "Month end… already done.": a ticked October checklist, "Your weekend stays yours." |
 | `nexus-vision-3-one-decision.png` | "Your best year starts with one decision.": the logo and the 14-day free trial |
 
 Remake with `node brand/make-vision-posts.mjs <repo root> brand/instagram`.

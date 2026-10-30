@@ -51,16 +51,19 @@ const POSTS = {
       <div style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:14px;border:4px solid #34d399;color:#34d399;font-size:28px;font-weight:800;transform:rotate(-6deg);box-shadow:0 0 30px rgba(52,211,153,.5)">${ic('check', 28, '#34d399', 3.4)}PAID</div></div>`).join('')}
     ${foot()}`),
 
-  'nexus-vision-2-weekend-yours.png': page(`<div class="a" style="inset:0;background:linear-gradient(180deg,#1e1b4b 0%,#6d28d9 38%,#db2777 62%,#f97316 84%,#fbbf24 100%)"></div>
-    <div class="a" style="width:1400px;height:900px;left:-160px;top:760px;background:radial-gradient(closest-side,rgba(253,230,138,.55),transparent)"></div>${stars(45, true)}
-    <div class="a" style="left:0;right:0;top:80px;text-align:center"><div class="lbl">${ic('sun', 26, '#fde68a')}MONTH END</div></div>
-    <div class="a h" style="left:0;right:0;top:170px;text-align:center;font-size:128px">Done by <span class="gw" style="text-shadow:none">3.</span></div>
-    <div class="a h" style="left:0;right:0;top:330px;text-align:center;font-size:104px">Weekend? <span style="color:#fde68a">Yours.</span></div>
-    <svg class="a" style="left:0;top:0" width="${W}" height="${H}"><path d="M150 1010 A390 390 0 0 1 930 1010" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="4" stroke-dasharray="10 14"/><line x1="110" y1="1010" x2="970" y2="1010" stroke="rgba(255,255,255,.5)" stroke-width="3"/></svg>
-    <div class="a" style="left:${540 + Math.cos(Math.PI * 0.62) * 390 - 80}px;top:${1010 - Math.sin(Math.PI * 0.62) * 390 - 80}px;width:160px;height:160px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#fef3c7,#f59e0b);box-shadow:0 0 120px #fbbf24,0 0 40px #fde68a">${ic('sun', 80, '#7c2d12', 2)}</div>
-    <div class="a glass" style="left:0;right:0;margin:auto;top:1050px;width:520px;padding:20px 30px;text-align:center;font-size:40px;font-weight:800">15:00 · books done ${ic('check', 36, '#34d399', 3.2)}</div>
-    <div class="a" style="left:0;right:0;top:470px;display:flex;justify-content:center;gap:16px">
-      ${['Saturday', 'Sunday'].map((d) => `<div class="glass" style="padding:16px 30px;font-size:34px;font-weight:800;border-radius:999px">${d} · free</div>`).join('')}</div>
+  'nexus-vision-2-month-end-done.png': page(`<div class="a" style="inset:0;background:linear-gradient(180deg,#060a24 0%,#0d1240 42%,#2a1458 70%,#7c2d64 88%,#c2410c 100%)"></div>
+    <div class="a" style="width:1500px;height:700px;left:-210px;top:1000px;background:radial-gradient(closest-side,rgba(251,191,36,.55),transparent)"></div>
+    <div class="a" style="width:1000px;height:1000px;left:400px;top:-350px;background:radial-gradient(closest-side,rgba(167,139,250,.28),transparent)"></div>${stars(80)}
+    <div class="a" style="left:0;right:0;top:80px;text-align:center"><div class="lbl">${ic('spark', 26, '#c7d2fe')}IMAGINE</div></div>
+    <div class="a h" style="left:0;right:0;top:165px;text-align:center;font-size:118px">Month end…</div>
+    <div class="a h" style="left:0;right:0;top:300px;text-align:center;font-size:118px"><span class="g">already done.</span></div>
+    ${ring(540, 830, 330, 'rgba(147,197,253,.25)', 2)}${ring(540, 830, 395, 'rgba(110,231,183,.18)', 2)}
+    <div class="a glass" style="left:150px;right:150px;top:520px;padding:26px 40px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:26px;font-weight:800;letter-spacing:.12em;color:#c7d2fe;padding:6px 0 14px">OCTOBER <span style="color:#6ee7b7">ALL DONE</span></div>
+      ${['Receipts captured', 'Bank lines matched', 'VAT201 ready', 'Books checked'].map((t, i) => `<div style="display:flex;align-items:center;gap:22px;padding:20px 0;border-top:1px solid rgba(255,255,255,.14);font-size:38px;font-weight:800">
+        <div style="width:58px;height:58px;border-radius:50%;background:#34d399;display:grid;place-items:center;box-shadow:0 0 30px rgba(52,211,153,.7);flex:none">${ic('check', 36, '#052e16', 3.4)}</div>${t}</div>`).join('')}
+    </div>
+    <div class="a h" style="left:0;right:0;top:1085px;text-align:center;font-size:58px">Your weekend <span style="color:#fde68a">stays yours.</span></div>
     ${foot('Try it free')}`),
 
   'nexus-vision-3-one-decision.png': page(`<div class="a" style="inset:0;background:radial-gradient(ellipse 900px 900px at 50% 46%,#13205a 0%,#060a24 60%,#02030c 100%)"></div>${stars(110)}
