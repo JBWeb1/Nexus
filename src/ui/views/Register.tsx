@@ -11,6 +11,7 @@ export default function Register() {
       <div><label className="label">Your name</label><input required className="field" value={f.name} onChange={set("name")} /></div>
       <div><label className="label">Email</label><input type="email" required className="field" value={f.email} onChange={set("email")} /></div>
       <div><label className="label">Password (min 8 characters)</label><input type="password" required minLength={8} className="field" value={f.password} onChange={set("password")} /></div>
+      <label className="flex items-start gap-2 text-sm text-muted-foreground"><input type="checkbox" required className="mt-1" /><span>I agree to the <a href="/terms" target="_blank" className="text-primary underline">Terms of Service</a> and have read the <a href="/privacy" target="_blank" className="text-primary underline">Privacy Policy</a>.</span></label>
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Creating…" : "Start free trial"}</Button>
       <p className="text-center text-xs text-muted-foreground">14 days free, no card needed. Then R250 a month, or R470 for multiple companies.</p></form></AuthShell>);
 }

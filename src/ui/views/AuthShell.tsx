@@ -7,5 +7,6 @@ export default function AuthShell({ title, children, footer }) {
       <motion.img src="/nexus-logo-clear.png" alt="Nexus" className="mx-auto w-36" initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 220, damping: 18, delay: 0.05 }} />
       <div className="mt-3 rounded-xl border border-white/10 bg-card p-7 shadow-pop"><h1 className="mb-5 text-2xl font-bold">{title}</h1>{children}</div>
       <div className="mt-5 text-center text-sm text-sidebar-muted [&_a]:font-medium [&_a]:text-white [&_a]:underline">{footer}</div>
+      <nav className="mt-4 flex justify-center gap-4 text-xs text-sidebar-muted [&_a:hover]:text-white"><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/legal">Business details</a></nav>
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="mt-6 flex items-center justify-center gap-2 text-xs text-sidebar-muted"><ShieldCheck className="size-4 text-success" />Passwords stored only as secure hashes · optional two-step sign-in · each company's data kept apart</motion.p></motion.div></div>);
 }

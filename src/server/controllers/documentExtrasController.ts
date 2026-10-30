@@ -9,7 +9,8 @@ async function load(c, orgId, table, linesTable, fk, id) {
 const TABLES = { invoice: ['invoices', 'invoice_lines', 'invoice_id'], quote: ['quotes', 'quote_lines', 'quote_id'], po: ['purchase_orders', 'purchase_order_lines', 'purchase_order_id'] };
 const build = async (c, orgId, kind, id) => {
   const t = TABLES[kind]; const x = await load(c, orgId, t[0], t[1], t[2], id);
-  const buf = await renderDocument(kind === 'invoice' ? { kind: 'Invoice', ...x, dueLabel: 'Due', footer: x.org }
+  const buf = await renderDocument(// A VAT vendor's invoice is titled "Tax invoice", the wording SARS expects (VAT Act s20).
+  kind === 'invoice' ? { kind: x.org.vat_number ? 'Tax invoice' : 'Invoice', ...x, dueLabel: 'Due', footer: x.org }
     : kind === 'quote' ? { kind: 'Quote', ...x, dueLabel: 'Valid until', footer: x.org }
     // A purchase order goes to the supplier: no banking details, and the delivery date in place of a due date.
     : { kind: 'Purchase order', ...x, doc: { ...x.doc, due_date: x.doc.delivery_date }, dueLabel: 'Deliver by', toLabel: 'SUPPLIER', footer: null });
