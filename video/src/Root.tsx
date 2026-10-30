@@ -15,6 +15,7 @@ import { HowPaid } from './HowPaid';
 import { MonthEnd } from './MonthEnd';
 import { Chase, Sorted, Grow } from './Kinetic';
 import { Numbers, Stock } from './Explain2';
+import { VisionFilm } from './Vision';
 
 const common = { width: 1080, height: 1920, fps: 30 } as const;
 export const Root: React.FC = () => (<>
@@ -37,4 +38,5 @@ export const Root: React.FC = () => (<>
   <Composition id="grow" component={Grow} durationInFrames={TL.grow.frames} {...common} />
   <Composition id="numbers" component={Numbers} durationInFrames={TL.numbers.frames} {...common} />
   <Composition id="stock" component={Stock} durationInFrames={TL.stock.frames} {...common} />
+  <Composition id="vision" component={VisionFilm} durationInFrames={TL.vision.frames} {...common} />
 </>);

@@ -13,7 +13,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 SR = 44100; FPS = 30
 HOOK_LEAD, LEAD, TAIL, END_HOLD = 0.15, 0.35, 0.95, 2.4
 # Spoken words written as people read them, for the captions.
-WRITTEN = [('Two hundred and fifty rand', 'R250'), ('a hundred rand', 'R100'), ('fourteen days', '14 days'), ('VAT two-oh-one', 'VAT201'), ('seven hundred and ninety thousand', '790,000'), ('four hundred and fifty rand', 'R450'), ('twenty invoices', '20 invoices'), ('one percent', '1%'), ('twenty three million rand', 'R23 million'), ('two hundred and fifty rand', 'R250'), ('Two hundred and fifty rand', 'R250'), ('Fourteen days', '14 days')]
+WRITTEN = [('Two hundred and fifty rand', 'R250'), ('a hundred rand', 'R100'), ('fourteen days', '14 days'), ('VAT two-oh-one', 'VAT201'), ('seven hundred and ninety thousand', '790,000'), ('four hundred and fifty rand', 'R450'), ('twenty invoices', '20 invoices'), ('one percent', '1%'), ('twenty three million rand', 'R23 million'), ('two hundred and fifty rand', 'R250'), ('Two hundred and fifty rand', 'R250'), ('Fourteen days', '14 days'), ('fourteen-day', '14-day')]
 
 def build_timeline(scripts):
     out = {}

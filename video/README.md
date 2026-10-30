@@ -20,6 +20,7 @@ Twelve videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 
 | `grow` (9:16, 30 s, kinetic) | "Run a small business in South Africa? This is for you." | Aimed at business owners: less admin, invoices, VAT201 and banking in one place, reminders and online payment, books that check themselves, R250 a month, 14 days free |
 | `numbers` (9:16, 39 s, light) | "Did your business actually make money last month?" | Light explainer on real screens: profit on the dashboard, insights, project profit, hours to invoice, Excel for the accountant |
 | `stock` (9:16, 34 s, light) | "Selling products? Stop guessing your stock." | Light explainer: stock on hand, average cost, low stock, stock history, purchase order to bill, stock value agreeing with the ledger |
+| `vision` (9:16, 40 s, dreamy) | "Close your eyes. Picture your business one year from now." | Aspirational: the viewer pictures invoices paid on time, month end done in an afternoon, clear books and more time for what they love, then meets Nexus. Night sky to sunrise, glowing words, dissolves, calm music |
 | `monthend` (16:9, 55 s, light) | "It's month end…" | Explainer on real screens: receipts, bank matching, work queue, VAT201, reports to Excel, insights |
 | `leads` (41 s) | "Three quick questions…" | VAT201, late payers chased, R250 all included, 14 days free |
 

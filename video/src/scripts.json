@@ -2538,5 +2538,162 @@
     ]
    }
   ]
+ },
+ "vision": {
+  "title": "Picture your business",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Close your eyes for a second. Picture your business one year from now.",
+    "cues": {
+     "close": "Close your eyes",
+     "picture": "Picture your business",
+     "year": "one year"
+    },
+    "sfx": [
+     [
+      "close",
+      "whoosh"
+     ],
+     [
+      "year",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "paid",
+    "say": "Invoices, paid on time. Every time.",
+    "cues": {
+     "inv": "Invoices",
+     "every": "Every time"
+    },
+    "sfx": [
+     [
+      "inv",
+      "pop"
+     ],
+     [
+      "every",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "month",
+    "say": "Month end, done in an afternoon. Not a weekend.",
+    "cues": {
+     "me": "Month end",
+     "aft": "an afternoon",
+     "not": "Not a weekend"
+    },
+    "sfx": [
+     [
+      "me",
+      "whoosh"
+     ],
+     [
+      "aft",
+      "ding"
+     ],
+     [
+      "not",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "clear",
+    "say": "Your books checked. Your VAT ready. Your numbers clear.",
+    "cues": {
+     "b1": "books checked",
+     "b2": "VAT ready",
+     "b3": "numbers clear"
+    },
+    "sfx": [
+     [
+      "b1",
+      "tick"
+     ],
+     [
+      "b2",
+      "tick"
+     ],
+     [
+      "b3",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "love",
+    "say": "More time for the work you love, and the people you love.",
+    "cues": {
+     "work": "the work",
+     "people": "the people"
+    },
+    "sfx": [
+     [
+      "work",
+      "whoosh"
+     ],
+     [
+      "people",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "one",
+    "say": "That business starts with one decision.",
+    "cues": {
+     "starts": "starts",
+     "one": "one decision"
+    },
+    "sfx": [
+     [
+      "one",
+      "impact-soft"
+     ]
+    ]
+   },
+   {
+    "id": "brand",
+    "say": "Nexus Ledger. Accounting that works for you, so you can grow.",
+    "cues": {
+     "brand": "Nexus Ledger",
+     "works": "Accounting that",
+     "grow": "you can grow"
+    },
+    "sfx": [
+     [
+      "brand",
+      "impact"
+     ],
+     [
+      "grow",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Start your fourteen-day free trial today, and step into it.",
+    "cues": {
+     "free": "Start your",
+     "step": "step into it"
+    },
+    "sfx": [
+     [
+      "free",
+      "pop"
+     ],
+     [
+      "step",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }
