@@ -2284,5 +2284,259 @@
     ]
    }
   ]
+ },
+ "numbers": {
+  "title": "Did you make money?",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Quick question. Did your business actually make money last month?",
+    "cues": {
+     "q": "Quick",
+     "money": "make money"
+    },
+    "sfx": [
+     [
+      "q",
+      "impact"
+     ],
+     [
+      "money",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "dash",
+    "say": "Nexus shows you the moment you sign in. Profit this month, right on your dashboard.",
+    "cues": {
+     "show": "Nexus shows",
+     "profit": "Profit this month"
+    },
+    "sfx": [
+     [
+      "show",
+      "whoosh"
+     ],
+     [
+      "profit",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "why",
+    "say": "Click any month to see why it moved, down to the customers behind it.",
+    "cues": {
+     "click": "Click any",
+     "cust": "the customers"
+    },
+    "sfx": [
+     [
+      "click",
+      "tick"
+     ],
+     [
+      "cust",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "jobs",
+    "say": "Run projects? See which jobs make money, and which ones lose it.",
+    "cues": {
+     "jobs": "which jobs",
+     "lose": "lose it"
+    },
+    "sfx": [
+     [
+      "jobs",
+      "pop"
+     ],
+     [
+      "lose",
+      "impact-soft"
+     ]
+    ]
+   },
+   {
+    "id": "hours",
+    "say": "Log your team's hours, and invoice them in one click.",
+    "cues": {
+     "log": "Log your",
+     "bill": "invoice them"
+    },
+    "sfx": [
+     [
+      "log",
+      "typing"
+     ],
+     [
+      "bill",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "excel",
+    "say": "And when your accountant asks? Export it to Excel.",
+    "cues": {
+     "asks": "accountant asks",
+     "export": "Export it"
+    },
+    "sfx": [
+     [
+      "asks",
+      "whoosh"
+     ],
+     [
+      "export",
+      "pop"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Know your numbers. Nexus Ledger. Try it free for fourteen days.",
+    "cues": {
+     "title": "Know your",
+     "brand": "Nexus Ledger",
+     "free": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "impact-soft"
+     ],
+     [
+      "brand",
+      "pop"
+     ],
+     [
+      "free",
+      "ding"
+     ]
+    ]
+   }
+  ]
+ },
+ "stock": {
+  "title": "Stop guessing your stock",
+  "scenes": [
+   {
+    "id": "hook",
+    "say": "Selling products? Stop guessing what's on your shelves.",
+    "cues": {
+     "sell": "Selling",
+     "stop": "Stop guessing"
+    },
+    "sfx": [
+     [
+      "sell",
+      "impact"
+     ],
+     [
+      "stop",
+      "impact"
+     ]
+    ]
+   },
+   {
+    "id": "track",
+    "say": "Nexus tracks every item. What's on hand, what it cost you, and what's running low.",
+    "cues": {
+     "hand": "on hand",
+     "cost": "what it cost",
+     "low": "running low"
+    },
+    "sfx": [
+     [
+      "hand",
+      "pop"
+     ],
+     [
+      "cost",
+      "pop"
+     ],
+     [
+      "low",
+      "impact-soft"
+     ]
+    ]
+   },
+   {
+    "id": "history",
+    "say": "Every sale and every delivery updates your stock, at average cost.",
+    "cues": {
+     "sale": "Every sale",
+     "avg": "average cost"
+    },
+    "sfx": [
+     [
+      "sale",
+      "tick"
+     ],
+     [
+      "avg",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "po",
+    "say": "Running low? Raise a purchase order, and turn it into a bill when the stock arrives.",
+    "cues": {
+     "raise": "Raise a",
+     "bill": "turn it into"
+    },
+    "sfx": [
+     [
+      "raise",
+      "tick"
+     ],
+     [
+      "bill",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "books",
+    "say": "And your stock value always agrees with your books.",
+    "cues": {
+     "agree": "always agrees"
+    },
+    "sfx": [
+     [
+      "agree",
+      "ding"
+     ]
+    ]
+   },
+   {
+    "id": "end",
+    "say": "Stock, sorted. Nexus Ledger. Try it free for fourteen days.",
+    "cues": {
+     "title": "Stock, sorted",
+     "brand": "Nexus Ledger",
+     "free": "Try it free"
+    },
+    "sfx": [
+     [
+      "title",
+      "impact-soft"
+     ],
+     [
+      "brand",
+      "pop"
+     ],
+     [
+      "free",
+      "ding"
+     ]
+    ]
+   }
+  ]
  }
 }

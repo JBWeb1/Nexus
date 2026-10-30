@@ -18,6 +18,8 @@ Twelve videos: seven 9:16 shorts (1080×1920, 30 fps, about 30 seconds each), a 
 | `chase` (9:16, 24 s, kinetic) | "Still chasing clients to pay you? Every. Single. Month?" | Kinetic typography: every spoken beat is a full-screen card of huge words on a colour that flips with the beat, with flashes of the real app. "STOP." at 4 s, the fix by 7 s |
 | `sorted` (9:16, 24 s, kinetic) | "Month end. A pile of slips. A bank statement. And VAT due." | Same style: receipts, bank matching, VAT201, books that check themselves |
 | `grow` (9:16, 30 s, kinetic) | "Run a small business in South Africa? This is for you." | Aimed at business owners: less admin, invoices, VAT201 and banking in one place, reminders and online payment, books that check themselves, R250 a month, 14 days free |
+| `numbers` (9:16, 39 s, light) | "Did your business actually make money last month?" | Light explainer on real screens: profit on the dashboard, insights, project profit, hours to invoice, Excel for the accountant |
+| `stock` (9:16, 34 s, light) | "Selling products? Stop guessing your stock." | Light explainer: stock on hand, average cost, low stock, stock history, purchase order to bill, stock value agreeing with the ledger |
 | `monthend` (16:9, 55 s, light) | "It's month end…" | Explainer on real screens: receipts, bank matching, work queue, VAT201, reports to Excel, insights |
 | `leads` (41 s) | "Three quick questions…" | VAT201, late payers chased, R250 all included, 14 days free |
 
