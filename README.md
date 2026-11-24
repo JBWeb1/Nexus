@@ -50,6 +50,13 @@ bills add stock, invoices post cost of sales, stock counts post the difference, 
 the ledger. Purchase orders go to suppliers as PDFs and become draft bills when the supplier's invoice arrives. Projects
 collect the invoice and bill lines tagged with them, log hours, and invoice billable hours; each shows its profit.
 
+## API, passkeys and the map
+
+Owners connect other software with API keys (Settings > API keys); the endpoints are documented at `/developers` and in
+`/api/openapi.json`. Anyone can add a passkey or security key under Settings > Security and sign in with it instead of a
+password. Map (under Sales) shows customers and suppliers by address, with what each owes. Before going live run
+`npm run secrets` and read [KEYS.md](KEYS.md).
+
 ## Install as an app
 
 Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), as an Android APK
@@ -110,7 +117,7 @@ recurring invoices, credit notes, bills, purchase orders, products and services,
 sales and stock counts, projects with timesheets and profit per project, payments and reversals, bank accounts, bank matching, bank rules, spreadsheet import,
 VAT201 preview and period finalisation, month-end close, reports (P&L, balance sheet, trial balance, aged debtors and
 creditors), Excel and PDF export, insights with rule-based explanations, work queue, tasks and monthly checklists, notes, file
-attachments, activity log, guided tutorials, two-factor sign-in, password reset, company data export, and subscriptions
+attachments, activity log, guided tutorials, two-factor sign-in, passkeys and security keys, API keys with a public API, a map of customers and suppliers, password reset, company data export, and subscriptions
 (R250 a month for one company, R470 for all the companies a payer owns, 14-day trial).
 
 ## Not built

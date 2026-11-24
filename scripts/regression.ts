@@ -496,6 +496,40 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
     ok('passkey management needs a signed-in person', (await call('GET', '/api/auth/passkeys')).status === 401);
   }
 
+  console.log('Map');
+  {
+    // Address lookups go to a stand-in geocoder on this machine (GEOCODER_URL=http://127.0.0.1:4599), never to OpenStreetMap.
+    const gurl = process.env.GEOCODER_URL || ''; const local = /^http:\/\/(127\.0\.0\.1|localhost):\d+/.test(gurl);
+    const seen: string[] = []; let stub: any = null;
+    if (local) {
+      stub = require('http').createServer((rq, rs) => { const u = new URL(rq.url, gurl); seen.push(`${u.searchParams.get('q')}|${u.searchParams.get('countrycodes')}|${rq.headers['user-agent']}`);
+        rs.setHeader('Content-Type', 'application/json'); rs.end(JSON.stringify(/nowhere/i.test(u.searchParams.get('q') || '') ? [] : [{ lat: '-33.9221', lon: '18.4231', display_name: 'Long Street, Cape Town, South Africa' }])); });
+      await new Promise((r) => stub.listen(Number(new URL(gurl).port), '127.0.0.1', r));
+    }
+    const shopC = (await call('POST', '/api/contacts', ta, { name: 'Map Cafe', type: 'CUSTOMER', address: '12 Long Street, Cape Town' })).body.contact;
+    const supC = (await call('POST', '/api/contacts', ta, { name: 'Map Supplier', type: 'SUPPLIER', address: 'Nowhere Road' })).body.contact;
+    const mi = (await call('POST', '/api/invoices', ta, { contactId: shopC.id, issueDate: '2026-06-05', dueDate: '2026-06-20', lines: [{ description: 'Beans', quantity: 1, unitPrice: 1000, accountId: acc('4000'), taxRateId: vat15 }] })).body.invoice;
+    await call('POST', `/api/invoices/${mi.id}/send`, ta);
+    const mc = (await call('GET', '/api/map/contacts', ta)).body.contacts; const mcafe = mc.find((x) => x.id === shopC.id);
+    ok('map lists contacts with what they owe and what is overdue', mcafe && mcafe.owedToYou === 1150 && mcafe.overdueToYou === 1150 && mcafe.openInvoices === 1 && mcafe.latitude === null, JSON.stringify(mcafe));
+    ok('placing a pin by hand', (await call('PUT', `/api/contacts/${supC.id}/location`, ta, { latitude: -26.2041, longitude: 28.0473 })).body.location?.locationSource === 'MANUAL');
+    ok('impossible coordinates are refused', (await call('PUT', `/api/contacts/${supC.id}/location`, ta, { latitude: 120, longitude: 0 })).status === 400);
+    ok('another company cannot see or move these pins', (await call('PUT', `/api/contacts/${supC.id}/location`, tb, { latitude: 1, longitude: 1 })).status === 404 && !(await call('GET', '/api/map/contacts', tb)).body.contacts.some((x) => x.id === supC.id));
+    ok('pins need a signed-in person', (await call('DELETE', `/api/contacts/${supC.id}/location`)).status === 401);
+    if (local) {
+      const lo = await call('POST', `/api/contacts/${shopC.id}/locate`, ta);
+      ok('find from address pins the contact', lo.status === 200 && lo.body.location.latitude === -33.9221 && lo.body.location.locationSource === 'ADDRESS', JSON.stringify(lo.body));
+      ok('only the address goes to the geocoder, limited to South Africa, with a named User-Agent', seen.length === 1 && seen[0].startsWith('12 Long Street, Cape Town|za|NexusLedger') && !seen[0].includes('Map Cafe'), seen.join());
+      ok('an address that cannot be found says so', (await call('POST', `/api/contacts/${supC.id}/locate`, ta)).status === 422);
+      await call('PATCH', `/api/contacts/${shopC.id}`, ta, { address: '1 New Road, Durban' });
+      ok('changing the address clears a pin found from the old address', (await call('GET', '/api/map/contacts', ta)).body.contacts.find((x) => x.id === shopC.id).latitude === null);
+      await call('PATCH', `/api/contacts/${supC.id}`, ta, { address: '2 Other Road' });
+      ok('a pin placed by hand stays when the address changes', (await call('GET', '/api/map/contacts', ta)).body.contacts.find((x) => x.id === supC.id).latitude === -26.2041);
+      stub.close();
+    } else console.log('  skip  address lookups (set GEOCODER_URL=http://127.0.0.1:4599 for the server and this suite)');
+    ok('removing a pin', (await call('DELETE', `/api/contacts/${supC.id}/location`, ta)).body.location?.latitude === null);
+  }
+
   console.log('Webhook');
   ok('unsigned paystack webhook -> 401', (await call('POST', '/webhooks/paystack', null, { event: 'charge.success' })).status === 401);
   ok('no token -> 401', (await call('GET', '/api/invoices')).status === 401);

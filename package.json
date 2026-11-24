@@ -1,6 +1,6 @@
 {
   "name": "nexus-ledger",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -14,6 +14,7 @@
     "test": "tsx --env-file=.env scripts/regression.ts",
     "test:unit": "tsx scripts/unit.ts",
     "test:business": "tsx scripts/business-sim.ts",
+    "secrets": "tsx scripts/generate-secrets.ts",
     "update": "tsx scripts/self-update.ts",
     "update:check": "tsx scripts/self-update.ts --check",
     "postinstall": "prisma generate"

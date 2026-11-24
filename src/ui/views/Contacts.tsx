@@ -1,7 +1,7 @@
 "use client";
 import { SkeletonRows } from "../components/ui/skeleton";
 import { useEffect, useState } from "react"; import { api } from "../api/client"; import Panel from "../components/Panel"; import Button from "../components/Button"; import ErrorNote from "../components/ErrorNote"; import StatementPanel from "../components/StatementPanel";
-const blank = { name: "", email: "", phone: "", vatNumber: "", type: "CUSTOMER" };
+const blank = { name: "", email: "", phone: "", vatNumber: "", address: "", type: "CUSTOMER" };
 export default function Contacts() {
   const [rows, setRows] = useState(null); const [error, setError] = useState(null); const [f, setF] = useState(blank); const [show, setShow] = useState(false); const [stmt, setStmt] = useState(null);
   const load = () => api.get("/contacts").then((d) => setRows(d.contacts)).catch((e) => setError(e.message)); useEffect(() => { load(); }, []);
@@ -12,6 +12,7 @@ export default function Contacts() {
     {show && <Panel title="New contact"><form onSubmit={add} className="grid grid-cols-1 md:grid-cols-3 gap-3"><div><label className="label">Name</label><input required className="field" value={f.name} onChange={set("name")} /></div>
       <div><label className="label">Email</label><input type="email" className="field" value={f.email} onChange={set("email")} /></div><div><label className="label">Phone (WhatsApp)</label><input className="field figure" placeholder="+27…" value={f.phone} onChange={set("phone")} /></div>
       <div><label className="label">VAT number</label><input className="field figure" value={f.vatNumber} onChange={set("vatNumber")} /></div><div><label className="label">Type</label><select className="field" value={f.type} onChange={set("type")}><option value="CUSTOMER">Customer</option><option value="SUPPLIER">Supplier</option><option value="BOTH">Both</option></select></div>
+      <div className="md:col-span-2"><label className="label">Street address (for invoices and the map)</label><input className="field" placeholder="12 Long Street, Cape Town" value={f.address} onChange={set("address")} /></div>
       <div className="flex items-end"><Button type="submit">Save contact</Button></div></form></Panel>}
     {stmt && rows?.find((c) => c.id === stmt) && <StatementPanel contact={rows.find((c) => c.id === stmt)} onClose={() => setStmt(null)} onChanged={load} />}
     <Panel>{!rows ? <SkeletonRows rows={4} /> : rows.length === 0 ? <p className="text-sm text-ink-soft">No contacts yet.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-ink-soft ledger-rule"><th className="pb-2 font-normal">Name</th><th className="pb-2 font-normal">Type</th><th className="pb-2 font-normal">Email</th><th className="pb-2 font-normal">Phone</th><th /></tr></thead>

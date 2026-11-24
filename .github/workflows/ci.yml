@@ -35,6 +35,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: cp .env.example .env
+      # The production server refuses the example secrets, so give CI its own random ones.
+      - run: npm run secrets -- --into .env
+      # Address lookups in the tests go to a stand-in geocoder that the regression suite runs itself.
+      - run: echo "GEOCODER_URL=http://127.0.0.1:4599" >> .env
       - run: npm run typecheck
       - run: npm run test:unit
       - name: Create database and apply migrations

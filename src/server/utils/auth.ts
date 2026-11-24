@@ -1,10 +1,16 @@
 import bcrypt from 'bcryptjs'; import jwt from 'jsonwebtoken';
 /** Falls back to a public dev value only outside production, so a missing JWT_SECRET can never let anyone forge sign-in tokens. */
 export const jwtSecret = () => {
-  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET is not set');
-  return 'dev-only-change-me';
+  const s = process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    if (!s) throw new Error('JWT_SECRET is not set');
+    if (weakSecret(s)) throw new Error('JWT_SECRET is too weak for production. Run npm run secrets to make a strong one (see KEYS.md).');
+    if (weakSecret(process.env.AUTH_SECRET || s)) throw new Error('AUTH_SECRET is too weak for production. Run npm run secrets to make a strong one (see KEYS.md).');
+  }
+  return s || 'dev-only-change-me';
 };
+/** Shorter than 32 characters, or still the example value: anyone could guess it and forge sign-ins. */
+export const weakSecret = (s: string) => s.length < 32 || /change-?me|example/i.test(s);
 const secret = jwtSecret;
 export const hashPassword = (p: string) => bcrypt.hash(p, 10);
 export const comparePassword = (p: string, h: string) => bcrypt.compare(p, h);

@@ -9,20 +9,18 @@ Both have free tiers that are enough for a demo and first testers. Check their c
 3. Run `npm run db:migrate`. This creates the tables, the three database roles and the security rules.
    The migrations need no superuser and no BYPASSRLS attribute. This was tested here against a plain non-superuser owner,
    not against Neon or Supabase themselves, so watch the output the first time.
-4. Give the three roles real passwords. In the provider's SQL editor run, with your own long random values:
-   ```sql
-   ALTER ROLE nexus_app PASSWORD '...';
-   ALTER ROLE nexus_authn PASSWORD '...';
-   ALTER ROLE nexus_service PASSWORD '...';
-   ```
-5. Build three connection strings from the provider's **pooled** host, one per role, same database name:
-   `DATABASE_URL` (nexus_app), `AUTHN_DATABASE_URL` (nexus_authn), `SERVICE_DATABASE_URL` (nexus_service).
+4. Give the three roles real passwords. On your own computer run `npm run secrets -- --db-host <pooled-host>:5432/<db>`.
+   It writes `secrets.local.sql` and `secrets.local.env` (git ignores both). Run the SQL once in the provider's SQL editor
+   or with `psql "$DIRECT_URL" -f secrets.local.sql`. It sets new passwords for the three roles.
+5. The three connection strings are already in `secrets.local.env`: `DATABASE_URL` (nexus_app), `AUTHN_DATABASE_URL`
+   (nexus_authn) and `SERVICE_DATABASE_URL` (nexus_service), each using the provider's **pooled** host.
 
 ## 2. App (Vercel)
 
 1. Push this folder to a GitHub repository and import it in Vercel. The defaults work (`npm run build`).
-2. Add environment variables: the three database URLs, `AUTH_SECRET` and `JWT_SECRET` (long random strings, for example
-   from `openssl rand -base64 32`), and `APP_URL` (your site address, no trailing slash).
+2. Add environment variables: every line of `secrets.local.env` (the three database URLs, `AUTH_SECRET`, `JWT_SECRET`,
+   `CRON_SECRET`), and `APP_URL` (your site address, no trailing slash). Then delete both secrets files. The server refuses
+   to start sign-ins with the example secrets or ones shorter than 32 characters. [KEYS.md](KEYS.md) lists every key.
 3. Deploy, open the site and create your account.
 
 ## 3. Optional services

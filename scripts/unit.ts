@@ -7,6 +7,9 @@ import { parseExpenseSpreadsheet, parseSigned } from '../src/server/services/imp
 import { readReceipt, normaliseReading } from '../src/server/services/receiptService';
 import { receiptLines } from '../src/server/controllers/receiptsController';
 import { dueStage, reminderText } from '../src/server/services/reminderService';
+import { geocode } from '../src/server/services/geocodeService';
+import { jwtSecret, weakSecret } from '../src/server/utils/auth';
+import { hashKey, newKey, keyRole, isApiKey, KEY_BLOCKED } from '../src/server/services/apiKeyService';
 import { compareVersions, latestRelease, clearReleaseCache, databaseStatus, updateStatus } from '../src/server/services/updateService';
 let pass = 0, fail = 0;
 const ok = (name: string, cond: boolean, extra: any = '') => { cond ? pass++ : fail++; console.log(`${cond ? '  PASS' : '  FAIL'}  ${name}${cond ? '' : '  ' + (typeof extra === 'string' ? extra : JSON.stringify(extra))}`); };
@@ -108,6 +111,34 @@ const throws = (f: () => void) => { try { f(); return false; } catch (e: any) { 
   const prevKey = process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_API_KEY; delete process.env.ANTHROPIC_AUTH_TOKEN;
   ok('without ANTHROPIC_API_KEY it says how to set it up', (await err(readReceipt({ buffer: Buffer.from('x'), mimetype: 'image/png' }, [])))?.status === 503);
   if (prevKey) process.env.ANTHROPIC_API_KEY = prevKey;
+
+  console.log('Geocoder');
+  {
+    let url = ''; let headers: any = {};
+    const fake = (body: any, status = 200) => (async (u: any, init: any) => { url = String(u); headers = init.headers; return new Response(JSON.stringify(body), { status }); }) as any;
+    const g = await geocode('12  Long Street,\n Cape Town', fake([{ lat: '-33.92210049', lon: '18.4231', display_name: 'Long Street' }]));
+    ok('geocode returns rounded coordinates', g?.latitude === -33.9221 && g?.longitude === 18.4231, g);
+    const q = new URL(url).searchParams; ok('geocode sends only the tidied address, limited to South Africa, with a named User-Agent', q.get('q') === '12 Long Street, Cape Town' && q.get('countrycodes') === 'za' && /^NexusLedger/.test(headers['User-Agent']), url);
+    ok('geocode returns null when nothing matches', (await geocode('Nowhere Road', fake([]))) === null);
+    let threw = ''; try { await geocode('Some Road', fake({}, 503)); } catch (e: any) { threw = e.message; } ok('geocode explains when the service is down', /not answering/.test(threw), threw);
+    const t0 = Date.now(); await geocode('A Road', fake([])); await geocode('B Road', fake([])); ok('geocode waits a second between lookups (OpenStreetMap policy)', Date.now() - t0 >= 990, Date.now() - t0);
+  }
+
+  console.log('Secrets and API keys');
+  {
+    const env = { ...process.env }; const set = (o: Record<string, string | undefined>) => Object.assign(process.env, o);
+    const throws = (f: () => any, re: RegExp) => { try { f(); return false; } catch (e: any) { return re.test(e.message); } };
+    set({ NODE_ENV: 'production', JWT_SECRET: 'dev-only-change-me', AUTH_SECRET: 'x'.repeat(40) });
+    ok('production refuses the example JWT secret', throws(jwtSecret, /JWT_SECRET is too weak/));
+    set({ JWT_SECRET: 'short' }); ok('production refuses a short JWT secret', throws(jwtSecret, /too weak/));
+    set({ JWT_SECRET: newKey().key + newKey().key, AUTH_SECRET: 'dev-only-change-me' }); ok('production refuses the example AUTH secret', throws(jwtSecret, /AUTH_SECRET is too weak/));
+    set({ AUTH_SECRET: newKey().key }); ok('production accepts long random secrets', !throws(jwtSecret, /./));
+    Object.assign(process.env, { NODE_ENV: env.NODE_ENV, JWT_SECRET: env.JWT_SECRET ?? '', AUTH_SECRET: env.AUTH_SECRET ?? '' });
+    ok('weakSecret flags the example value only', weakSecret('dev-only-change-me') && !weakSecret(newKey().key));
+    const k = newKey(); ok('API keys look like nxs_ + 32 random characters, and only the hash is stored', isApiKey(k.key) && k.key.length === 36 && k.hash === hashKey(k.key) && k.hash !== k.key && k.key.startsWith(k.prefix), k);
+    ok('API key access is capped: read -> viewer, write -> accountant, never more than the creator', keyRole('READ', 'OWNER') === 'VIEWER' && keyRole('WRITE', 'OWNER') === 'ACCOUNTANT' && keyRole('WRITE', 'VIEWER') === 'VIEWER');
+    ok('API keys are kept away from team, billing, keys and sign-in', ['/api/team', '/api/billing/checkout', '/api/api-keys', '/api/auth/passkeys', '/api/auth/2fa/setup', '/api/companies/x/switch'].every((p) => KEY_BLOCKED.test(p)) && !['/api/invoices', '/api/auth/me', '/api/teams-report'].some((p) => KEY_BLOCKED.test(p)));
+  }
 
   console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

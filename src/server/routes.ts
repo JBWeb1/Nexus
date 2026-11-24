@@ -36,6 +36,7 @@ import * as act from './controllers/activityController';
 import * as keys from './controllers/apiKeysController';
 import { openApi } from './apiSpec';
 import * as pk from './controllers/passkeyController';
+import * as map from './controllers/mapController';
 import * as sec from './controllers/securityController';
 import * as att from './controllers/attachmentsController';
 import * as sys from './controllers/systemController';
@@ -100,6 +101,7 @@ r.get('/reports/profit-and-loss', h(rep.profitAndLoss)); r.get('/reports/balance
 r.get('/books-health', h(rep.health)); r.get('/reports/aged-receivables', h(rep.agedReceivables)); r.get('/reports/aged-payables', h(rep.agedPayables));
 
 r.post('/import/expenses/preview', h(imp.preview)); r.post('/import/expenses/commit', h(imp.commit));
+r.get('/map/contacts', h(map.contacts)); r.post('/contacts/:id/locate', h(map.locate)); r.put('/contacts/:id/location', h(map.place)); r.delete('/contacts/:id/location', h(map.clear));
 r.get('/contacts/:id/statement', h(stmt.get)); r.get('/contacts/:id/statement/pdf', h(stmt.pdf)); r.post('/contacts/:id/statement/email', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.email));
 r.post('/contacts/:id/portal-link', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.portalLink)); r.delete('/contacts/:id/portal-link', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(stmt.revokePortal));
 r.post('/receipts/read', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(rcpt.read)); r.post('/receipts/save', requireRole('OWNER', 'ADMIN', 'ACCOUNTANT'), h(rcpt.save));

@@ -29,6 +29,10 @@ export async function update(req: Req, res: Res, c: Queryable) {
   if (!(await c.prisma.contact.findFirst({ where: { id: req.params.id, organizationId: req.user.orgId }, select: { id: true } }))) throw new ApiError(404, 'Contact not found');
   // Only the fields that were sent are changed.
   const data = { ...(b.name?.trim() ? { name: b.name.trim() } : {}), ...(b.email != null ? { email: b.email } : {}), ...(b.phone != null ? { phone: b.phone } : {}), ...(b.address != null ? { address: b.address } : {}), ...(b.vatNumber != null ? { vatNumber: b.vatNumber } : {}), ...(b.type ? { type: b.type } : {}) , ...(typeof b.remindersPaused === 'boolean' ? { remindersPaused: b.remindersPaused } : {}) };
+  if (b.address != null) { // A pin found from the old address no longer matches; a pin placed by hand stays.
+    const cur = await c.prisma.contact.findFirst({ where: { id: req.params.id }, select: { address: true, locationSource: true } });
+    if (cur?.locationSource === 'ADDRESS' && (cur.address || '') !== String(b.address)) Object.assign(data, { latitude: null, longitude: null, locationSource: null, locatedAt: null });
+  }
   res.json({ contact: plain(await c.prisma.contact.update({ where: { id: req.params.id }, data })) });
 }
 export async function remove(req: Req, res: Res, c: Queryable) {

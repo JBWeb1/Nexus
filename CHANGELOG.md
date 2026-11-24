@@ -2,6 +2,32 @@
 
 Each version's section becomes its release notes, which owners see under Settings > Updates.
 
+## [2.4.0] - 2026-11-24
+
+### New: an API for your own software
+- Settings > API keys: owners and admins create keys for other software, such as an online shop, a point of sale or a
+  spreadsheet. A key is read-only or read-and-write, works for one company and is shown once. Revoke it at any time.
+- Every change made with a key is in the activity log under the key's name. Keys cannot manage people, billing, other
+  keys or sign-in, and each key may make up to 300 requests a minute.
+- The API is documented at `/developers`, with examples for every endpoint, and as an OpenAPI file at
+  `/api/openapi.json` for Postman and code generators.
+
+### New: sign in with a passkey or security key
+- Add a passkey under Settings > Security and sign in with your fingerprint, face, Windows Hello, a phone or a YubiKey
+  instead of typing a password.
+- A passkey checks it is really you, so it counts as two-factor on its own.
+
+### New: map of customers and suppliers
+- Map (under Sales) shows where your customers and suppliers are. Pins are coloured by type, turn red when payment is
+  overdue, and grow with the amount owed. Click a pin to see what they owe.
+- Pin a contact from its address (looked up on OpenStreetMap, one address at a time; only the address is sent) or by
+  clicking the map. Contacts now have a street address field.
+
+### Going live
+- `npm run secrets` makes the secrets and database passwords needed to go live. KEYS.md lists every key, what it does
+  and where it comes from.
+- In production, sign-ins are refused while `AUTH_SECRET` or `JWT_SECRET` is still the example value or too short.
+
 ## [2.3.0] - 2026-10-22
 
 ### New: products and stock
