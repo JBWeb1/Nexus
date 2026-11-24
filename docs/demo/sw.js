@@ -2,7 +2,7 @@
 // The demo is one page with sample data kept in the browser, so caching it is safe. Pages come from the network
 // first, so a newer demo shows up as soon as you are online; the saved copy is used when you are not.
 const VERSION = 'nexus-demo-v1';
-const FILES = ['./', './index.html', './nexus-logo.png', './favicon.png', './icons/icon-192.png', './icons/icon-512.png'];
+const FILES = ['./', './index.html', '../nexus-logo.png', '../favicon.png', '../icons/icon-192.png', '../icons/icon-512.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((n) => n !== VERSION).map((n) => caches.delete(n)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {

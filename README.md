@@ -1,6 +1,6 @@
 # Nexus Ledger
 
-**Try it in your browser:** [interactive demo](https://jbweb1.github.io/Nexus/) with sample books for a coffee roaster (the page is `docs/index.html`, served by GitHub Pages).
+**See it in your browser:** the [Nexus website](https://jbweb1.github.io/Nexus/) (`docs/index.html`) and an [interactive demo](https://jbweb1.github.io/Nexus/demo/) with sample books for a coffee roaster (`docs/demo/`), both served by GitHub Pages.
 
 Accounting for South African businesses and their accountants.
 

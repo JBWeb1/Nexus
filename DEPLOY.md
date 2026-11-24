@@ -113,7 +113,7 @@ The /download page checks that release every ten minutes and shows a download bu
 release is marked as a pre-release, so it never shows up as a Nexus update. Set `APP_DOWNLOADS_REPO` (owner/repo) if your
 code lives in another repository, or `APP_DOWNLOADS=off` to show only the browser install steps.
 
-**The GitHub Pages demo** (`docs/`) installs too: open it and press **Install app** in the demo banner (on iPhone it shows
+**The GitHub Pages demo** (`docs/demo/`, linked from the Nexus website at `docs/index.html`) installs too: open it and press **Install app** in the demo banner (on iPhone it shows
 the Safari steps). It works offline, because the demo keeps its sample books in the browser.
 
 ### Android app (APK)

@@ -3,495 +3,387 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nexus Ledger · Interactive demo</title>
-<meta name="description" content="Try Nexus Ledger, accounting software built for South Africa, in your browser. Sample books for a coffee roaster: invoices, VAT201, banking, stock and reports.">
-<meta property="og:title" content="Nexus Ledger · Interactive demo">
-<meta property="og:description" content="Accounting software built for South Africa. Click around a working demo, no sign-up.">
+<title>Nexus Ledger · Accounting built for South Africa</title>
+<meta name="description" content="Invoices, VAT201, bank matching, receipts and stock in one place. Accounting software built for South African businesses and their accountants.">
+<meta property="og:title" content="Nexus Ledger · Accounting built for South Africa">
+<meta property="og:description" content="Invoices, VAT201, bank matching, receipts and stock in one place. 14-day free trial.">
 <meta property="og:image" content="social-preview.png">
+<meta name="theme-color" content="#070b14">
 <link rel="icon" href="favicon.png">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0b1220">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Nexus demo">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f6fb;--card:#fff;--ink:#0f172a;--soft:#64748b;--line:#e5e9f2;--blue:#2563eb;--blue-soft:#eff4ff;--green:#059669;--green-soft:#ecfdf5;--red:#dc2626;--red-soft:#fef2f2;--amber:#d97706;--amber-soft:#fffbeb;--side:#0b1220;--side-ink:#cbd5e1;--side-muted:#64748b}
-*{box-sizing:border-box;margin:0}
-html,body{height:100%}
-body{font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer}
-a{color:var(--blue);text-decoration:none}
+/* Scroll animations: every [data-scroll] section gets --p, 0 when it starts and 1 when it ends, updated on scroll.
+   CSS turns --p into movement, so the page stays smooth and works with JavaScript off (everything simply shows). */
+:root{--bg:#070b14;--bg2:#0b1220;--card:#111a2e;--line:#1e2a44;--ink:#f1f5ff;--soft:#93a1bd;--dim:#4b5878;--blue:#2f6bff;--blue2:#5b8cff;--cyan:#22d3ee;--green:#10b981;--amber:#f59e0b;--red:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
 .fig{font-variant-numeric:tabular-nums}
-/* layout */
-.app{display:flex;min-height:100vh}
-.side{width:248px;background:var(--side);color:var(--side-ink);position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;padding:18px 12px;z-index:40;transition:transform .25s}
-.side .logo{display:flex;justify-content:center;padding:6px 0 14px}
-.side .logo img{height:62px}
-.co{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:10px;padding:10px;margin-bottom:14px}
-.co .av{width:30px;height:30px;border-radius:8px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px}
-.co b{display:block;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.co small{color:var(--side-muted);font-size:11px}
-.nav{display:flex;flex-direction:column;gap:2px;overflow:auto}
-.nav .grp{font-size:11px;color:var(--side-muted);padding:12px 10px 4px;font-weight:600}
-.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--side-ink);font-size:14px;font-weight:500}
-.nav a:hover{background:rgba(255,255,255,.06)}
-.nav a.on{background:rgba(37,99,235,.22);color:#fff}
-.nav svg{width:17px;height:17px;flex:none}
-.main{margin-left:248px;flex:1;min-width:0;padding:22px 34px 60px}
-.topbar{display:none}
-@media (max-width:860px){.side{transform:translateX(-100%)}.side.open{transform:none}.main{margin-left:0;padding:16px 16px 60px}.topbar{display:flex;align-items:center;gap:12px;background:var(--side);color:#fff;padding:10px 16px;position:sticky;top:0;z-index:30}.topbar img{height:30px}.scrim{position:fixed;inset:0;background:rgba(2,6,23,.5);z-index:35}}
-/* bits */
-.demo{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:linear-gradient(90deg,#1d4ed8,#0ea5e9);color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:20px;font-size:14px}
-.demo b{font-weight:800}
-.demo .sp{flex:1}
-.demo button,.demo a.btnw{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px}
-.demo a.btnw{background:#fff;color:#1d4ed8;border-color:#fff}
-h1{font-size:28px;font-weight:800;letter-spacing:-.02em}
-.head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:18px}
-.head .sp{flex:1}
-.sub{color:var(--soft);margin-top:4px;font-size:14px}
-.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:14px;background:var(--blue);color:#fff}
-.btn:hover{filter:brightness(1.07)}
-.btn.sec{background:#fff;color:var(--ink);border:1px solid var(--line)}
-.btn.green{background:var(--green)}
-.btn.sm{padding:6px 11px;font-size:13px;border-radius:8px}
-.btn svg{width:16px;height:16px}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
-.pad{padding:18px 20px}
-.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.grid2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px}
-@media (max-width:1100px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:1fr}}
-@media (max-width:520px){.grid4{grid-template-columns:1fr}}
-.stat .t{display:flex;justify-content:space-between;color:var(--soft);font-size:13px;font-weight:600}
-.stat .v{font-size:26px;font-weight:800;margin-top:8px;letter-spacing:-.02em}
-.stat .f{font-size:12px;margin-top:4px;color:var(--soft)}
-.ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center}
-.ico svg{width:16px;height:16px}
-table{width:100%;border-collapse:collapse}
-th{font-size:12px;color:var(--soft);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
-tr:last-child td{border-bottom:0}
-.r{text-align:right}
-.tw{overflow-x:auto}
-.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
-.pill:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.p-draft{background:#f1f5f9;color:#475569}.p-sent{background:var(--blue-soft);color:var(--blue)}.p-paid{background:var(--green-soft);color:var(--green)}.p-overdue{background:var(--red-soft);color:var(--red)}.p-low{background:var(--amber-soft);color:var(--amber)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600}
-.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.health{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px 16px;margin-bottom:18px;font-weight:700}
-.health.ok{background:var(--green-soft);color:#065f46;border:1px solid #a7f3d0}
-.health.warn{background:var(--amber-soft);color:#92400e;border:1px solid #fde68a}
-.health svg{width:20px;height:20px}
-.health .sp{flex:1}
-.check{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
-.check:last-child{border-bottom:0}
-.check .dot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none}
-.check .dot svg{width:15px;height:15px}
-.check b{display:block}
-.check small{color:var(--soft)}
-/* modal */
-.modal{position:fixed;inset:0;background:rgba(2,6,23,.55);display:grid;place-items:center;z-index:60;padding:16px;animation:fade .15s}
-.dlg{background:#fff;border-radius:16px;width:min(760px,100%);max-height:92vh;overflow:auto;box-shadow:0 30px 80px -20px rgba(2,6,23,.5);animation:pop .2s}
-.dlg .dh{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
-.dlg .dh h2{font-size:18px;font-weight:800}
-.dlg .db{padding:18px 20px}
-.dlg .df{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
-.x{background:none;border:0;font-size:22px;line-height:1;color:var(--soft)}
-label{display:block;font-size:12px;font-weight:600;color:var(--soft);margin-bottom:5px}
-.field{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;font-size:14px}
-.field:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
-.row{display:grid;gap:12px}
-.lines{display:grid;grid-template-columns:2fr 70px 110px 110px 30px;gap:8px;align-items:center;margin-bottom:8px}
-@media (max-width:560px){.lines{grid-template-columns:1fr 60px 90px;}.lines .lt,.lines .rm{display:none}}
-.totals{margin-left:auto;width:260px;margin-top:10px}
-.totals div{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
-.totals .tt{border-top:2px solid var(--ink);margin-top:6px;padding-top:8px;font-weight:800;font-size:17px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;border-radius:12px;padding:12px 18px;font-weight:600;font-size:14px;z-index:80;box-shadow:0 20px 40px -10px rgba(2,6,23,.5);animation:pop .2s;max-width:92vw}
-@keyframes fade{from{opacity:0}}@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
-.chart{display:flex;align-items:flex-end;gap:16px;height:170px;padding:10px 4px 0}
-.chart .m{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
-.chart .bars{display:flex;align-items:flex-end;gap:4px;height:140px}
-.chart .bars div{width:16px;border-radius:5px 5px 0 0}
-.chart small{color:var(--soft);font-size:12px}
-.legend{display:flex;gap:16px;font-size:12px;color:var(--soft);margin-top:8px}
-.legend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;background:var(--c)}
-.slip{font-family:ui-monospace,Menlo,Consolas,monospace;background:#fbfaf6;color:#1f2937;padding:18px 18px 26px;font-size:12.5px;line-height:1.55;box-shadow:0 10px 30px rgba(15,23,42,.18);border-radius:4px}
-.slip .c{text-align:center}
-.slip hr{border:0;border-top:1px dashed #9ca3af;margin:6px 0}
-.hl{background:#dbeafe;outline:2px solid var(--blue);border-radius:3px}
-.scan{position:relative;overflow:hidden}
-.scan:after{content:"";position:absolute;left:0;right:0;height:3px;background:#22d3ee;box-shadow:0 0 14px #22d3ee;animation:scan 1.1s linear infinite;top:0}
-@keyframes scan{to{top:100%}}
-.empty{color:var(--soft);text-align:center;padding:28px}
-.muted{color:var(--soft)}
-.tip{display:flex;gap:10px;align-items:flex-start;background:var(--blue-soft);color:#1e3a8a;border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:16px}
-.tip svg{width:18px;height:18px;flex:none;margin-top:1px}
-.welcome .dlg{width:min(560px,100%)}
-.welcome ul{margin:12px 0 0 0;padding:0;list-style:none;display:grid;gap:10px}
-.welcome li{display:flex;gap:10px;align-items:center;font-weight:600}
-.welcome li span{width:30px;height:30px;border-radius:9px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;flex:none}
-.welcome li svg{width:16px;height:16px}
+
+/* progress bar */
+#progress{position:fixed;inset:0 0 auto 0;height:3px;z-index:60;transform-origin:0 50%;transform:scaleX(var(--sp,0));background:linear-gradient(90deg,var(--blue),var(--cyan))}
+
+/* nav */
+nav.top{position:fixed;top:0;left:0;right:0;z-index:50;transition:background .3s,backdrop-filter .3s,border-color .3s;border-bottom:1px solid transparent}
+nav.top.solid{background:rgba(7,11,20,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-color:var(--line)}
+nav.top .wrap{display:flex;align-items:center;gap:28px;height:68px}
+nav.top img{height:34px}
+nav.top .links{display:flex;gap:24px;margin-left:auto;font-size:14px;color:var(--soft)}
+nav.top .links a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:12px 22px;font-weight:700;font-size:15px;transition:transform .2s,box-shadow .2s,background .2s}
+.btn.pri{background:var(--blue);color:#fff;box-shadow:0 8px 30px -8px rgba(47,107,255,.7)}
+.btn.pri:hover{transform:translateY(-2px);box-shadow:0 14px 40px -10px rgba(47,107,255,.9)}
+.btn.ghost{border:1px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{background:var(--card)}
+.btn.sm{padding:9px 16px;font-size:14px}
+
+/* 1. hero: words rise in, then the dashboard tilts flat and grows as you scroll */
+.hero{position:relative;min-height:200vh}
+.hero .stick{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-top:clamp(96px,14vh,150px)}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.55;pointer-events:none}
+.orb.a{width:520px;height:520px;background:#1d4ed8;left:-160px;top:-120px;transform:translate3d(0,calc(var(--p,0)*180px),0)}
+.orb.b{width:420px;height:420px;background:#0e7490;right:-140px;top:120px;transform:translate3d(0,calc(var(--p,0)*-140px),0)}
+.hero h1{font-size:clamp(40px,7.2vw,92px);line-height:1.02;letter-spacing:-.045em;font-weight:800;text-align:center;max-width:980px;position:relative;
+  transform:translate3d(0,calc(var(--p,0)*-120px),0) scale(calc(1 - var(--p,0)*.12));opacity:calc(1 - var(--p,0)*1.6)}
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(.6em) rotate(4deg);filter:blur(8px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1),filter .8s}
+.hero.ready h1 .w{opacity:1;transform:none;filter:none}
+.hero h1 .grad{background:linear-gradient(90deg,var(--blue2),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .intro{display:flex;flex-direction:column;align-items:center;position:relative;opacity:calc(1 - var(--p,0)*2.4);transform:translate3d(0,calc(var(--p,0)*-80px),0)}
+.hero .sub{margin-top:22px;font-size:clamp(16px,1.6vw,19px);color:var(--soft);text-align:center;max-width:620px;line-height:1.6}
+.hero .cta{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity .9s .55s,transform .9s .55s}
+.hero.ready .fade-in{opacity:1;transform:none}
+.stage{perspective:1400px;width:min(1040px,92vw);margin-top:clamp(36px,6vh,64px);position:relative}
+.laptop{transform-origin:50% 0;transform:rotateX(calc(28deg - var(--p,0)*28deg)) translate3d(0,calc(var(--p,0)*-46vh),0) scale(calc(.86 + var(--p,0)*.2));
+  border-radius:18px;background:linear-gradient(180deg,#16213a,#0d1528);border:1px solid #26344f;box-shadow:0 60px 120px -40px rgba(0,0,0,.8),0 0 0 8px rgba(255,255,255,.02);overflow:hidden}
+
+/* the app mock-ups (built in HTML, so they are sharp on every screen) */
+.app{display:grid;grid-template-columns:180px 1fr;min-height:440px;font-size:12px;color:#cdd6ea}
+.app .side{background:#0a1122;padding:16px 12px;border-right:1px solid #1c2740}
+.app .side img{height:22px;margin:0 0 18px 6px}
+.app .side div{padding:7px 10px;border-radius:8px;color:#8c99b5;margin-bottom:2px}
+.app .side div.on{background:#18264a;color:#fff}
+.app .main{padding:20px 22px}
+.app h3{font-size:18px;color:#fff;letter-spacing:-.02em}
+.app .muted{color:#7b88a6}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.kpi{background:#121c33;border:1px solid #1e2a46;border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:19px;color:#fff;margin-top:4px;letter-spacing:-.02em}
+.chart{display:flex;align-items:flex-end;gap:8px;height:110px;background:#121c33;border:1px solid #1e2a46;border-radius:12px;padding:14px}
+.chart i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--blue2),#1e3a8a)}
+.rows{margin-top:12px;background:#121c33;border:1px solid #1e2a46;border-radius:12px;overflow:hidden}
+.rows div{display:flex;justify-content:space-between;padding:9px 14px;border-top:1px solid #1b2643}
+.rows div:first-child{border-top:0}
+.pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px}
+.p-paid{background:rgba(16,185,129,.15);color:#34d399}.p-sent{background:rgba(91,140,255,.15);color:#93b4ff}.p-over{background:rgba(239,68,68,.15);color:#f87171}
+
+/* 2. a statement that lights up word by word */
+.statement{min-height:220vh;position:relative}
+.statement .stick{position:sticky;top:0;height:100vh;display:flex;align-items:center}
+.statement p{font-size:clamp(28px,4.6vw,58px);line-height:1.18;font-weight:800;letter-spacing:-.035em;max-width:1000px}
+.statement p span{color:var(--dim);transition:color .25s}
+.statement p span.lit{color:var(--ink)}
+.statement p span.lit.hl{color:var(--cyan)}
+.kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--blue2);margin-bottom:18px}
+
+/* 3. pinned phone: the screen changes as each step scrolls past */
+.story{position:relative;min-height:440vh}
+.story .stick{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:40px}
+.steps{position:relative;height:300px}
+.step{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateY(40px);transition:opacity .6s,transform .6s cubic-bezier(.2,.7,.2,1)}
+.step.on{opacity:1;transform:none}
+.step.past{opacity:0;transform:translateY(-40px)}
+.step .n{font-size:14px;font-weight:800;color:var(--blue2);letter-spacing:.1em}
+.step h2{font-size:clamp(30px,4vw,50px);letter-spacing:-.035em;line-height:1.05;margin:10px 0 14px}
+.step p{color:var(--soft);font-size:17px;line-height:1.65;max-width:460px}
+.dots{display:flex;gap:8px;margin-top:26px}
+.dots i{width:28px;height:4px;border-radius:4px;background:var(--line);overflow:hidden;position:relative}
+.dots i b{position:absolute;inset:0;background:var(--blue2);transform-origin:0 50%;transform:scaleX(0)}
+.phone{justify-self:center;width:min(310px,72vw);aspect-ratio:9/19;border-radius:46px;background:#05070d;border:10px solid #1b2337;box-shadow:0 50px 100px -30px rgba(0,0,0,.9),0 0 0 1px #2c3956,0 0 80px -20px rgba(47,107,255,.45);position:relative;overflow:hidden;
+  transform:rotate(calc(-6deg + var(--p,0)*12deg)) translate3d(0,calc((var(--p,0) - .5)*-40px),0)}
+.phone .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:92px;height:26px;border-radius:20px;background:#000;z-index:3}
+.screen{position:absolute;inset:0;padding:46px 16px 16px;background:linear-gradient(180deg,#0f1830,#0a1020);opacity:0;transform:scale(1.06);transition:opacity .55s,transform .55s;font-size:12px;color:#cdd6ea}
+.screen.on{opacity:1;transform:none}
+.screen h4{font-size:17px;color:#fff;margin:6px 0 12px;letter-spacing:-.02em}
+.card{background:#141f3a;border:1px solid #22305a;border-radius:14px;padding:12px;margin-bottom:10px}
+.line{display:flex;justify-content:space-between;gap:6px;padding:5px 0}
+.line>:last-child,.match>.fig{white-space:nowrap}
+.big{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.03em}
+.ok{color:#34d399}
+.toast{position:absolute;left:12px;right:12px;top:44px;background:#10b981;color:#04130d;border-radius:14px;padding:10px 12px;font-weight:700;font-size:12px;box-shadow:0 14px 30px -10px rgba(16,185,129,.7);transform:translateY(-140%);transition:transform .6s cubic-bezier(.2,.9,.3,1.3) .3s}
+.screen.on .toast{transform:none}
+.match{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid #1f2b4d}
+.match:first-of-type{border-top:0}
+.tick{width:18px;height:18px;border-radius:50%;background:#10b981;color:#04130d;display:grid;place-items:center;font-size:11px;font-weight:900;flex:none;transform:scale(0);transition:transform .4s cubic-bezier(.2,.9,.3,1.5)}
+.screen.on .tick{transform:scale(1)}
+.screen.on .match:nth-of-type(2) .tick{transition-delay:.25s}.screen.on .match:nth-of-type(3) .tick{transition-delay:.5s}.screen.on .match:nth-of-type(4) .tick{transition-delay:.75s}
+.bar{height:8px;border-radius:8px;background:#1f2b4d;overflow:hidden;margin-top:6px}
+.bar b{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,var(--blue2),var(--cyan));transition:width 1.2s cubic-bezier(.2,.7,.2,1) .2s}
+.screen.on .bar b{width:var(--w)}
+
+/* 4. sideways strip of features, moved by scrolling down */
+.hscroll{position:relative;min-height:420vh}
+.hscroll .stick{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.hscroll .head{margin-bottom:34px}
+.hscroll h2,.sec h2{font-size:clamp(32px,4.6vw,58px);letter-spacing:-.04em;line-height:1.04}
+.track{display:flex;gap:22px;padding-left:max(20px,calc((100vw - 1160px)/2 + 20px));will-change:transform;transform:translate3d(calc(var(--p,0) * var(--dist,0px) * -1),0,0)}
+.feat{flex:none;width:min(380px,78vw);height:440px;border-radius:26px;padding:28px;background:linear-gradient(160deg,#121c33,#0c1426);border:1px solid var(--line);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.feat .ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;background:rgba(47,107,255,.14);margin-bottom:auto}
+.feat h3{font-size:26px;letter-spacing:-.03em;margin-bottom:10px}
+.feat p{color:var(--soft);line-height:1.6;font-size:15px}
+.feat .glow{position:absolute;width:260px;height:260px;border-radius:50%;filter:blur(60px);opacity:.35;right:-80px;top:-80px}
+.feat .num{position:absolute;right:26px;top:22px;font-size:13px;font-weight:800;color:var(--dim)}
+
+/* 5. numbers that count up */
+.sec{padding:140px 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:50px}
+.stat{border-top:1px solid var(--line);padding-top:22px}
+.stat b{display:block;font-size:clamp(40px,5vw,64px);letter-spacing:-.05em;font-weight:800;background:linear-gradient(180deg,#fff,#9fb3dd);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat span{color:var(--soft);font-size:15px}
+
+/* reveal when it comes into view */
+.rv{opacity:0;transform:translateY(46px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}
+
+/* 6. cards that stack as you scroll */
+.stack{padding-bottom:10vh}
+.scard{position:sticky;top:calc(90px + var(--i)*26px);height:min(460px,70vh);margin-bottom:12vh;border-radius:30px;padding:clamp(26px,4vw,48px);display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 -20px 60px -20px rgba(0,0,0,.6);transform-origin:50% 0;transform:scale(calc(1 - var(--shrink,0)*.06));filter:brightness(calc(1 - var(--shrink,0)*.35))}
+.scard h3{font-size:clamp(28px,3.6vw,44px);letter-spacing:-.035em;line-height:1.05;margin-bottom:14px}
+.scard p{color:rgba(241,245,255,.78);font-size:17px;line-height:1.65}
+.scard .vis{height:100%;max-height:320px;border-radius:20px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);padding:18px;display:flex;flex-direction:column;justify-content:center;gap:10px;font-size:14px}
+.c1{background:linear-gradient(135deg,#1e3a8a,#0b1220)}.c2{background:linear-gradient(135deg,#065f46,#0b1220)}.c3{background:linear-gradient(135deg,#6d28d9,#0b1220)}.c4{background:linear-gradient(135deg,#9a3412,#0b1220)}
+.chip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border-radius:999px;padding:8px 14px;width:max-content}
+
+/* 7. a circle that grows to fill the screen */
+.finale{position:relative;min-height:240vh}
+.finale .stick{position:sticky;top:0;height:100vh;display:grid;place-items:center;overflow:hidden}
+.finale .disc{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#3b82f6,#1d4ed8 60%,#1e3a8a);clip-path:circle(calc(6% + var(--p,0)*90%) at 50% 50%)}
+.finale .inner{position:relative;text-align:center;padding:0 20px;transform:scale(calc(.7 + min(var(--p,0)*1.6,1)*.3));opacity:calc(min(var(--p,0)*2.2,1))}
+.finale h2{font-size:clamp(40px,7vw,96px);letter-spacing:-.05em;line-height:1}
+.finale p{font-size:19px;margin:20px auto 32px;max-width:560px;color:rgba(255,255,255,.85);line-height:1.6}
+.finale .btn.pri{background:#fff;color:#1d4ed8;box-shadow:0 20px 50px -15px rgba(0,0,0,.5)}
+.price{display:inline-block;margin-top:22px;font-size:14px;color:rgba(255,255,255,.8)}
+
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--soft);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+footer img{height:26px}
+footer .sp{flex:1}
+
+@media (max-width:860px){
+  nav.top .links{display:none}
+  .app{grid-template-columns:1fr}.app .side{display:none}.kpis{grid-template-columns:1fr 1fr}.kpis .kpi:nth-child(3){display:none}
+  .story .stick{grid-template-columns:1fr;grid-template-rows:auto 1fr;align-content:center;gap:10px;padding-top:70px}
+  .phone{width:min(200px,50vw,calc((100svh - 380px)*9/19));grid-row:1;border-width:7px;border-radius:32px}
+  .story .stick{padding-top:84px}
+  .screen{padding:34px 10px 10px;font-size:8.5px}.screen h4{font-size:12px;margin:3px 0 7px}.card{padding:7px;border-radius:10px;margin-bottom:6px}.line{padding:2px 0}
+  .big{font-size:17px}.toast{font-size:9px;padding:7px 9px;top:32px;left:8px;right:8px}.match{padding:5px 0;gap:5px}.tick{width:13px;height:13px;font-size:8px}
+  .pill{font-size:7.5px;padding:1px 5px}.phone .notch{width:60px;height:18px;top:6px}
+  .story .stick>div:first-child{grid-row:2}
+  .steps{height:200px}
+  .step h2{font-size:28px;margin:6px 0 8px}.step p{font-size:15px}
+  .stats{grid-template-columns:1fr 1fr;gap:28px}
+  .scard{grid-template-columns:1fr;height:auto;min-height:60vh}.scard .vis{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+  .hero h1,.hero .intro,.laptop,.phone,.orb,.track,.finale .inner{transform:none!important;opacity:1!important}
+  .hero h1 .w,.rv,.fade-in{opacity:1!important;transform:none!important;filter:none!important}
+  .statement p span{color:var(--ink)}
+  .finale .disc{clip-path:none}
+}
 </style>
 </head>
 <body>
-<div id="app"></div>
-<script>
-"use strict";
-// ---------------------------------------------------------------- icons (Lucide-style paths)
-const P = {
-  dash:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
-  inv:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
-  bill:'<path d="M4 3v18l3-2 3 2 3-2 3 2 3-2 1 1V3l-1 1-3-2-3 2-3-2-3 2-3-2z"/><path d="M8 9h8M8 13h6"/>',
-  bank:'<path d="M3 21h18M5 21V10M19 21V10M9 21V10M15 21V10M2 10l10-6 10 6"/>',
-  box:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/>',
-  vat:'<path d="M19 5L5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
-  rep:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
-  shield:'<path d="M12 3l8 3v6c0 5-3.4 8.4-8 9.6-4.6-1.2-8-4.6-8-9.6V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
-  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
-  plus:'<path d="M12 5v14M5 12h14"/>', check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', warn:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
-  cam:'<path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/>',
-  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>', down:'<path d="M12 4v12M6 10l6 6 6-6M4 20h16"/>',
-  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7L11.5 7"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7L12.5 17"/>',
-  up:'<path d="M7 17L17 7M9 7h8v8"/>', dn:'<path d="M17 7L7 17M15 17H7V9"/>', menu:'<path d="M4 6h16M4 12h16M4 18h16"/>', reset:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>',
-  spark:'<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/>', trend:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
-};
-const I = (n, s = 17) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
+<div id="progress"></div>
 
-// ---------------------------------------------------------------- helpers
-const VAT = 0.15;
-const r2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
-const money = (n) => (n < 0 ? "−R " : "R ") + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
-const day = (offset) => { const d = new Date(TODAY); d.setDate(d.getDate() + offset); return d.toISOString().slice(0, 10); };
-const fmtDate = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
-const uid = () => Math.random().toString(36).slice(2, 9);
-const monthKey = (iso) => iso.slice(0, 7);
+<nav class="top" id="nav"><div class="wrap">
+  <a href="#top"><img src="nexus-logo.png" alt="Nexus Ledger"></a>
+  <div class="links"><a href="#how">How it works</a><a href="#features">Features</a><a href="#why">Why Nexus</a><a href="#start">Pricing</a></div>
+  <a class="btn pri sm" href="demo/">Try the demo</a>
+</div></nav>
 
-// ---------------------------------------------------------------- sample books: Karoo Coffee Roasters
-function sampleBooks() {
-  const items = [
-    { code: "ESP-1KG", name: "Espresso Roast 1kg", price: 290, cost: 155, onHand: 4, stocked: true },
-    { code: "HB-1KG", name: "House Blend 1kg", price: 260, cost: 146, onHand: 70, stocked: true },
-    { code: "DECAF-500", name: "Swiss Water Decaf 500g", price: 175, cost: 92, onHand: 6, stocked: true },
-    { code: "COLD-1L", name: "Cold Brew Concentrate 1L", price: 120, cost: 48, onHand: 22, stocked: true },
-    { code: "TRAIN", name: "Barista training (per hour)", price: 450, cost: 0, onHand: 0, stocked: false },
-  ];
-  const customers = ["Hotel Breede", "Stellenbosch Deli", "Bean There Cafe", "Cape Gear Hire"];
-  const L = (code, qty) => ({ code, qty, price: items.find((i) => i.code === code).price });
-  const invoices = [
-    { number: "KCR-0001", customer: "Hotel Breede", date: day(-118), due: day(-88), lines: [L("HB-1KG", 20), L("ESP-1KG", 6)], status: "paid" },
-    { number: "KCR-0002", customer: "Bean There Cafe", date: day(-95), due: day(-65), lines: [L("HB-1KG", 10), L("COLD-1L", 7)], status: "sent" },
-    { number: "KCR-0003", customer: "Bean There Cafe", date: day(-80), due: day(-50), lines: [L("ESP-1KG", 30), L("HB-1KG", 15)], status: "paid" },
-    { number: "KCR-0004", customer: "Stellenbosch Deli", date: day(-70), due: day(-40), lines: [L("DECAF-500", 12), L("COLD-1L", 30), L("TRAIN", 6)], status: "sent" },
-    { number: "KCR-0005", customer: "Hotel Breede", date: day(-62), due: day(-32), lines: [L("HB-1KG", 45), L("ESP-1KG", 18)], status: "paid" },
-    { number: "KCR-0006", customer: "Bean There Cafe", date: day(-40), due: day(-10), lines: [L("ESP-1KG", 28), L("TRAIN", 4)], status: "sent" },
-    { number: "KCR-0007", customer: "Stellenbosch Deli", date: day(-34), due: day(-4), lines: [L("DECAF-500", 6), L("COLD-1L", 8)], status: "paid" },
-    { number: "KCR-0009", customer: "Hotel Breede", date: day(-24), due: day(6), lines: [L("HB-1KG", 40), L("TRAIN", 10)], status: "sent" },
-    { number: "KCR-0010", customer: "Bean There Cafe", date: day(-19), due: day(11), lines: [L("HB-1KG", 25), L("ESP-1KG", 18)], status: "sent" },
-    { number: "KCR-0011", customer: "Hotel Breede", date: day(-15), due: day(15), lines: [L("HB-1KG", 30), L("TRAIN", 6)], status: "sent" },
-    { number: "KCR-0012", customer: "Stellenbosch Deli", date: day(-10), due: day(20), lines: [L("DECAF-500", 24), L("COLD-1L", 25), L("TRAIN", 2)], status: "sent" },
-    { number: "KCR-0013", customer: "Hotel Breede", date: day(-6), due: day(24), lines: [L("ESP-1KG", 9)], status: "sent" },
-    { number: "KCR-0014", customer: "Bean There Cafe", date: day(-1), due: day(29), lines: [L("COLD-1L", 7)], status: "draft" },
-  ].map((i) => ({ id: uid(), ...i, paid: 0 }));
-  invoices.forEach((i) => { if (i.status === "paid") i.paid = invTotals(i).total; });
-  const bills = [
-    { number: "HGB-5512", supplier: "Highland Green Beans", date: day(-90), due: day(-60), desc: "Green coffee beans", account: "Stock purchases", amount: 9246, vat: true, paid: true },
-    { number: "RENT-09", supplier: "Unit 4 Industria", date: day(-60), due: day(-58), desc: "Rent: roastery", account: "Rent", amount: 12000, vat: false, paid: true },
-    { number: "ESK-221", supplier: "Eskom", date: day(-55), due: day(-55), desc: "Prepaid electricity", account: "Electricity & water", amount: 1920, vat: true, paid: true },
-    { number: "TLK-0921", supplier: "Telkom", date: day(-48), due: day(-40), desc: "Fibre: September", account: "Telephone & internet", amount: 899, vat: true, paid: true },
-    { number: "HGB-5530", supplier: "Highland Green Beans", date: day(-30), due: day(0), desc: "Green coffee beans", account: "Stock purchases", amount: 14720, vat: true, paid: false },
-    { number: "RENT-10", supplier: "Unit 4 Industria", date: day(-29), due: day(-27), desc: "Rent: roastery", account: "Rent", amount: 12000, vat: false, paid: true },
-    { number: "PKG-778", supplier: "Cape Packaging", date: day(-21), due: day(-6), desc: "Valve bags and labels", account: "Cost of sales", amount: 5080, vat: true, paid: false },
-    { number: "FB-1009", supplier: "Meta Platforms", date: day(-12), due: day(-12), desc: "Facebook ads", account: "Marketing & advertising", amount: 1500, vat: true, paid: true },
-    { number: "TLK-1021", supplier: "Telkom", date: day(-8), due: day(2), desc: "Fibre: October", account: "Telephone & internet", amount: 899, vat: true, paid: false },
-  ].map((b) => ({ id: uid(), ...b }));
-  // Bank statement: payments in for paid invoices, payments out for paid bills, plus a few lines still to match.
-  const bank = [];
-  invoices.filter((i) => i.status === "paid").forEach((i) => bank.push({ id: uid(), date: day(-(Math.max(1, daysAgo(i.due) - 3))), desc: `EFT ${i.customer.toUpperCase()}`, amount: invTotals(i).total, match: { type: "invoice", id: i.id } }));
-  bills.filter((b) => b.paid).forEach((b) => bank.push({ id: uid(), date: b.due, desc: b.supplier.toUpperCase(), amount: -b.amount, match: { type: "bill", id: b.id } }));
-  bank.push({ id: uid(), date: day(-2), desc: "FNB SERVICE FEE", amount: -185, match: null, rule: "Bank charges" });
-  bank.push({ id: uid(), date: day(-3), desc: "SASOL PAARL", amount: -650, match: null, rule: "Fuel & travel" });
-  const kcr2 = invoices.find((i) => i.number === "KCR-0006");
-  bank.push({ id: uid(), date: day(-1), desc: "EFT BEAN THERE CAFE", amount: invTotals(kcr2).total, match: null });
-  bank.sort((a, b) => (a.date < b.date ? 1 : -1));
-  return { org: "Karoo Coffee Roasters", opening: 48210.55, items, customers, invoices, bills, bank, next: 15, created: Date.now() };
-}
-function daysAgo(iso) { return Math.round((TODAY - new Date(iso + "T00:00:00")) / 86400000); }
+<!-- 1. HERO -->
+<section class="hero" id="top" data-scroll>
+  <div class="stick">
+    <div class="orb a"></div><div class="orb b"></div>
+    <h1 data-words>Your books, sorted. <span class="grad">The South African way.</span></h1>
+    <div class="intro"><p class="sub fade-in">Invoices, VAT201, bank matching, receipts and stock in one place, checked for you every day. Built for South African businesses and the accountants who look after them.</p>
+    <div class="cta fade-in"><a class="btn pri" href="demo/">Try the live demo &rarr;</a><a class="btn ghost" href="#how">See how it works</a></div></div>
+    <div class="stage fade-in"><div class="laptop">
+      <div class="app">
+        <div class="side"><img src="nexus-logo.png" alt=""><div class="on">Dashboard</div><div>Invoices</div><div>Bills</div><div>Banking</div><div>VAT201</div><div>Products &amp; stock</div><div>Map</div><div>Reports</div></div>
+        <div class="main">
+          <h3>Good morning, Thandi</h3><div class="muted">Karoo Coffee Roasters · here's where you stand today</div>
+          <div class="kpis"><div class="kpi">Bank balance<b class="fig">R 65 459,05</b></div><div class="kpi">Owed to you<b class="fig">R 24 250,00</b></div><div class="kpi">VAT due 25 Dec<b class="fig">R 8 912,40</b></div></div>
+          <div class="chart" aria-hidden="true"><i style="height:38%"></i><i style="height:52%"></i><i style="height:46%"></i><i style="height:64%"></i><i style="height:58%"></i><i style="height:72%"></i><i style="height:69%"></i><i style="height:84%"></i><i style="height:78%"></i><i style="height:92%"></i><i style="height:88%"></i><i style="height:100%"></i></div>
+          <div class="rows"><div><span>INV-0042 · Bean There Cafe</span><span class="fig">R 3 450,00 <span class="pill p-over">Overdue</span></span></div><div><span>INV-0043 · Durban Brew Bar</span><span class="fig">R 8 200,00 <span class="pill p-sent">Sent</span></span></div><div><span>INV-0041 · Joburg Espresso Co</span><span class="fig">R 12 600,00 <span class="pill p-paid">Paid</span></span></div></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</section>
 
-// ---------------------------------------------------------------- the books
-function invTotals(i) { const sub = r2(i.lines.reduce((s, l) => s + l.qty * l.price, 0)); const vat = r2(sub * VAT); return { sub, vat, total: r2(sub + vat) }; }
-const invBalance = (i) => r2(invTotals(i).total - i.paid);
-function invState(i) { if (i.status === "draft") return "draft"; if (invBalance(i) <= 0) return "paid"; return i.due < day(0) ? "overdue" : "sent"; }
-const isStock = (b) => b.account === "Stock purchases";
-const billNet = (b) => (b.vat ? r2(b.amount / (1 + VAT)) : b.amount);
-const billVat = (b) => r2(b.amount - billNet(b));
-const live = (i) => i.status !== "draft";
+<!-- 2. STATEMENT -->
+<section class="statement" data-scroll>
+  <div class="stick"><div class="wrap">
+    <div class="kicker">Why we built it</div>
+    <p data-light>Running a business is hard enough. Your books should not be. Nexus works out the VAT, matches the bank, chases late payers and tells you when something does not add up, so you can get back to the work that pays.</p>
+  </div></div>
+</section>
 
-const KEY = "nexus-demo-v1";
-let S = load();
-function load() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s && s.items) return s; } catch (e) {} return sampleBooks(); }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-
-function numbers() {
-  const bankBal = r2(S.opening + S.bank.reduce((s, t) => s + t.amount, 0));
-  const owed = r2(S.invoices.filter(live).reduce((s, i) => s + invBalance(i), 0));
-  const overdue = S.invoices.filter((i) => invState(i) === "overdue");
-  const youOwe = r2(S.bills.filter((b) => !b.paid).reduce((s, b) => s + b.amount, 0));
-  // Last 30 days, so the figure means the same whatever day of the month someone visits. Stock purchases are not a cost
-  // until the stock is sold (then they count as cost of sales).
-  const since = day(-29), recent = (d) => d >= since;
-  const salesM = r2(S.invoices.filter((i) => live(i) && recent(i.date)).reduce((s, i) => s + invTotals(i).sub, 0));
-  const costM = r2(S.bills.filter((b) => recent(b.date) && !isStock(b)).reduce((s, b) => s + billNet(b), 0) + cogs(S.invoices.filter((i) => live(i) && recent(i.date))));
-  return { bankBal, owed, overdue, youOwe, salesM, costM, profitM: r2(salesM - costM) };
-}
-function cogs(invs) { return r2(invs.reduce((s, i) => s + i.lines.reduce((t, l) => { const it = S.items.find((x) => x.code === l.code); return t + (it && it.stocked ? it.cost * l.qty : 0); }, 0), 0)); }
-
-/** The same checks Nexus runs every time the books open, recomputed from the demo data. */
-function health() {
-  const n = numbers();
-  const owedByLedger = r2(S.invoices.filter(live).reduce((s, i) => s + invTotals(i).total, 0) - S.invoices.filter(live).reduce((s, i) => s + i.paid, 0));
-  const unmatched = S.bank.filter((t) => !t.match);
-  const negative = S.items.filter((i) => i.stocked && i.onHand < 0);
-  const low = S.items.filter((i) => i.stocked && i.onHand >= 0 && i.onHand < 8);
-  const drafts = S.invoices.filter((i) => i.status === "draft");
-  const checks = [
-    { ok: true, t: "Debits equal credits", d: "Every invoice, bill and payment balances to the cent." },
-    { ok: Math.abs(owedByLedger - n.owed) < 0.005, t: "Customers owe what the invoices say", d: `Receivables ${money(owedByLedger)} = unpaid invoices ${money(n.owed)}` },
-    { ok: true, t: "Bank balance agrees with the statement", d: `Opening balance plus every statement line = ${money(n.bankBal)}` },
-    { ok: negative.length === 0, t: "Stock never goes below zero", d: negative.length ? `${negative.map((i) => i.name).join(", ")} sold more than was in stock` : "Every sale had stock to cover it" },
-    { ok: unmatched.length === 0, warn: true, t: "Every bank line is accounted for", d: unmatched.length ? `${unmatched.length} bank line${unmatched.length > 1 ? "s" : ""} still to match` : "All statement lines are matched" },
-    { ok: drafts.length === 0, warn: true, t: "No forgotten drafts", d: drafts.length ? `${drafts.length} draft invoice${drafts.length > 1 ? "s" : ""} not sent yet` : "Nothing waiting in draft" },
-  ];
-  return { checks, problems: checks.filter((c) => !c.ok && !c.warn).length, todo: checks.filter((c) => !c.ok && c.warn).length, low };
-}
-
-// ---------------------------------------------------------------- UI shell
-const NAV = [["Overview"], ["dash", "Dashboard", "dash"], ["health", "Books health", "shield"], ["Sales"], ["invoices", "Invoices", "inv"], ["customers", "Customers", "users"], ["Purchases"], ["bills", "Bills & receipts", "bill"], ["Money"], ["banking", "Banking", "bank"], ["Operations"], ["stock", "Products & stock", "box"], ["Books"], ["vat", "VAT201", "vat"], ["reports", "Reports", "rep"]];
-let route = (location.hash.slice(2) || "dash"), filter = "all", sideOpen = false;
-window.addEventListener("hashchange", () => { route = location.hash.slice(2) || "dash"; sideOpen = false; render(); window.scrollTo(0, 0); });
-const go = (r) => (location.hash = "/" + r);
-
-function shell(body) {
-  const h = health();
-  return `<div class="topbar"><button class="btn sec sm" onclick="toggleSide()" aria-label="Menu">${I("menu")}</button><img src="nexus-logo.png" alt="Nexus"><b style="font-size:14px">${esc(S.org)}</b></div>
-  ${sideOpen ? '<div class="scrim" onclick="toggleSide()"></div>' : ""}
-  <div class="app"><aside class="side ${sideOpen ? "open" : ""}"><div class="logo"><img src="nexus-logo.png" alt="Nexus Ledger"></div>
-    <div class="co"><div class="av">KC</div><div style="min-width:0"><b>${esc(S.org)}</b><small>Demo company</small></div></div>
-    <nav class="nav">${NAV.map((n) => n.length === 1 ? `<div class="grp">${n[0]}</div>` : `<a href="#/${n[0]}" class="${route === n[0] ? "on" : ""}">${I(n[2])}${n[1]}${n[0] === "health" && (h.problems || h.todo) ? `<span style="margin-left:auto" class="pill ${h.problems ? "p-overdue" : "p-low"}">${h.problems + h.todo}</span>` : ""}</a>`).join("")}</nav></aside>
-  <main class="main"><div class="demo">${I("spark")}<span><b>Interactive demo.</b> These are sample books for a coffee roaster. Try anything: changes stay in your browser, nothing is sent or paid.</span><span class="sp"></span>${installBtn()}<button onclick="resetDemo()">${I("reset", 14)} Reset demo</button><a class="btnw" href="https://github.com/JBWeb1/Nexus" target="_blank" rel="noopener">About Nexus</a></div>${body}</main></div>`;
-}
-// Install the demo as an app: a button where the browser offers it (Chrome, Edge), instructions on iPhone and iPad.
-let installEvt = null; const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; render(); });
-window.addEventListener("appinstalled", () => { installEvt = null; render(); });
-if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
-function installBtn() { return standalone() ? "" : installEvt || isIOS() ? `<button onclick="installApp()">${I("down", 14)} Install app</button>` : ""; }
-async function installApp() {
-  if (installEvt) { installEvt.prompt(); await installEvt.userChoice; installEvt = null; render(); return; }
-  modal("Install the demo on your iPhone or iPad", `<ol style="padding-left:20px;line-height:1.9"><li>Open this page in <b>Safari</b>.</li><li>Tap <b>Share</b> (the square with an arrow).</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol><p class="muted" style="margin-top:10px">The demo then opens from your home screen like an app, even without internet.</p>`, `<button class="btn" onclick="closeModal()">Got it</button>`);
-}
-function toggleSide() { sideOpen = !sideOpen; render(); }
-
-// ---------------------------------------------------------------- screens
-const screens = {
-  dash() {
-    const n = numbers(), h = health();
-    const months = [...Array(6)].map((_, k) => { const d = new Date(TODAY); d.setDate(1); d.setMonth(d.getMonth() - (5 - k)); return d.toISOString().slice(0, 7); });
-    const series = months.map((m) => ({ m, inc: S.invoices.filter((i) => live(i) && monthKey(i.date) === m).reduce((s, i) => s + invTotals(i).sub, 0), exp: S.bills.filter((b) => monthKey(b.date) === m && !isStock(b)).reduce((s, b) => s + billNet(b), 0) + cogs(S.invoices.filter((i) => live(i) && monthKey(i.date) === m)) }));
-    const max = Math.max(1, ...series.flatMap((s) => [s.inc, s.exp]));
-    const recent = [...S.invoices].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
-    return `<div class="head"><div><h1>Dashboard</h1><div class="sub">Good to see you, Thandi. Here's where ${esc(S.org)} stands today.</div></div><span class="sp"></span><button class="btn sec" onclick="go('bills');setTimeout(snapReceipt,50)">${I("cam")} Snap a receipt</button><button class="btn" onclick="newInvoice()">${I("plus")} New invoice</button></div>
-    ${healthBar(h)}
-    <div class="grid4">
-      ${stat("Bank balance", money(n.bankBal), "bank", "var(--blue-soft)", "var(--blue)", "FNB Business Cheque")}
-      ${stat("Owed to you", money(n.owed), "dn", "var(--green-soft)", "var(--green)", n.overdue.length ? `<span style="color:var(--red);font-weight:700">${n.overdue.length} overdue</span>` : "Nothing overdue", "var(--green)")}
-      ${stat("You owe", money(n.youOwe), "up", "var(--red-soft)", "var(--red)", `${S.bills.filter((b) => !b.paid).length} unpaid bills`, "var(--red)")}
-      ${stat("Profit, last 30 days", money(n.profitM), "trend", "var(--green-soft)", "var(--green)", `Income ${money(n.salesM)} · Costs ${money(n.costM)}`, n.profitM >= 0 ? "var(--green)" : "var(--red)")}
+<!-- 3. PINNED PHONE STORY -->
+<section class="story" id="how" data-scroll data-steps="4">
+  <div class="stick wrap">
+    <div>
+      <div class="steps">
+        <div class="step"><span class="n">01 · INVOICE</span><h2>Send a proper tax invoice in seconds.</h2><p>Pick the customer and the product. Nexus fills in the price, works out the 15% VAT and sends a PDF that SARS would be happy to see.</p></div>
+        <div class="step"><span class="n">02 · GET PAID</span><h2>Customers pay with one tap.</h2><p>Every invoice has a pay link. Friendly reminders go out on email or WhatsApp when payment is late, so you never have to chase.</p></div>
+        <div class="step"><span class="n">03 · BANK</span><h2>The bank matches itself.</h2><p>Import your statement and Nexus pairs each line with the invoice or bill it belongs to. Rules handle the rest, like bank fees and rent.</p></div>
+        <div class="step"><span class="n">04 · VAT201</span><h2>VAT201 ready before you are.</h2><p>Output VAT, input VAT and what you owe, worked out from the books and locked once you file. No spreadsheet, no surprises.</p></div>
+      </div>
+      <div class="dots"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
     </div>
-    <div class="grid2" style="margin-top:14px">
-      <div class="card"><div class="pad" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)"><b>Recent invoices</b><a href="#/invoices">View all</a></div><div class="tw"><table>${recent.map(invRow).join("")}</table></div></div>
-      <div class="card pad"><b>Last six months</b><div class="chart">${series.map((s) => `<div class="m"><div class="bars"><div style="height:${(s.inc / max) * 140}px;background:var(--blue)" title="Income ${money(s.inc)}"></div><div style="height:${(s.exp / max) * 140}px;background:#cbd5e1" title="Costs ${money(s.exp)}"></div></div><small>${new Date(s.m + "-01T00:00:00").toLocaleDateString("en-ZA", { month: "short" })}</small></div>`).join("")}</div>
-      <div class="legend"><span style="--c:var(--blue)">Income</span><span style="--c:#cbd5e1">Costs</span></div></div>
-    </div>`;
-  },
-  health() {
-    const h = health();
-    return `<div class="head"><div><h1>Books health</h1><div class="sub">Nexus checks the books every time you open them. These checks run live on the demo data: try selling more stock than you have.</div></div></div>
-    ${healthBar(h, true)}<div class="card pad">${h.checks.map((c) => `<div class="check"><div class="dot" style="background:${c.ok ? "var(--green-soft)" : c.warn ? "var(--amber-soft)" : "var(--red-soft)"};color:${c.ok ? "var(--green)" : c.warn ? "var(--amber)" : "var(--red)"}">${I(c.ok ? "check" : "warn")}</div><div><b>${c.t}</b><small>${esc(c.d)}</small></div></div>`).join("")}</div>`;
-  },
-  invoices() {
-    const list = [...S.invoices].sort((a, b) => (a.number < b.number ? 1 : -1)).filter((i) => filter === "all" || invState(i) === filter);
-    const n = numbers();
-    return `<div class="head"><div><h1>Invoices</h1><div class="sub">Still owing ${money(n.owed)} · overdue ${money(n.overdue.reduce((s, i) => s + invBalance(i), 0))}</div></div><span class="sp"></span><button class="btn sec" onclick="exportInvoices()">${I("down")} Export</button><button class="btn" onclick="newInvoice()">${I("plus")} New invoice</button></div>
-    <div class="chips">${["all", "draft", "sent", "overdue", "paid"].map((f) => `<button class="chip ${filter === f ? "on" : ""}" onclick="setFilter('${f}')">${f[0].toUpperCase() + f.slice(1)}</button>`).join("")}</div>
-    <div class="card tw"><table><tr><th>Number</th><th>Customer</th><th>Date</th><th>Due</th><th class="r">Total</th><th class="r">Owing</th><th>Status</th><th></th></tr>
-    ${list.map((i) => { const st = invState(i); return `<tr><td><a href="javascript:viewInvoice('${i.id}')">${i.number}</a></td><td>${esc(i.customer)}</td><td class="muted">${fmtDate(i.date)}</td><td style="color:${st === "overdue" ? "var(--red)" : "var(--soft)"}">${fmtDate(i.due)}</td><td class="r fig">${money(invTotals(i).total)}</td><td class="r fig">${money(invBalance(i))}</td><td>${statusPill(st)}</td>
-      <td class="r" style="white-space:nowrap">${st === "draft" ? `<button class="btn sm" onclick="sendInv('${i.id}')">${I("mail", 14)} Send</button>` : st !== "paid" ? `<button class="btn sm sec" onclick="remind('${i.id}')">${I("mail", 14)} Remind</button> <button class="btn sm green" onclick="payInv('${i.id}')">Mark paid</button>` : ""}</td></tr>`; }).join("") || `<tr><td colspan="8" class="empty">No invoices here.</td></tr>`}</table></div>`;
-  },
-  customers() {
-    const rows = S.customers.map((c) => { const inv = S.invoices.filter((i) => i.customer === c && live(i)); return { c, owing: r2(inv.reduce((s, i) => s + invBalance(i), 0)), over: inv.filter((i) => invState(i) === "overdue").length, sales: r2(inv.reduce((s, i) => s + invTotals(i).sub, 0)) }; });
-    return `<div class="head"><div><h1>Customers</h1><div class="sub">Each customer gets a private page to see their statement and pay online.</div></div></div>
-    <div class="card tw"><table><tr><th>Customer</th><th class="r">Sales (excl. VAT)</th><th class="r">Owing</th><th></th><th></th></tr>${rows.map((r) => `<tr><td><b>${esc(r.c)}</b></td><td class="r fig">${money(r.sales)}</td><td class="r fig">${money(r.owing)}</td><td>${r.over ? `<span class="pill p-overdue">${r.over} overdue</span>` : r.owing ? '<span class="pill p-sent">On time</span>' : '<span class="pill p-paid">Settled</span>'}</td><td class="r"><button class="btn sm sec" onclick="portal('${esc(r.c)}')">${I("link", 14)} Customer page</button></td></tr>`).join("")}</table></div>`;
-  },
-  bills() {
-    const list = [...S.bills].sort((a, b) => (a.date < b.date ? 1 : -1));
-    return `<div class="head"><div><h1>Bills & receipts</h1><div class="sub">You owe ${money(numbers().youOwe)} on ${list.filter((b) => !b.paid).length} bills.</div></div><span class="sp"></span><button class="btn" onclick="snapReceipt()">${I("cam")} Snap a receipt</button></div>
-    <div class="tip">${I("spark")}<span>Take a photo of a till slip and Nexus reads the supplier, date, total and VAT for you. Try it with the sample slip.</span></div>
-    <div class="card tw"><table><tr><th>Supplier</th><th>What</th><th>Date</th><th class="r">Amount</th><th class="r">VAT</th><th>Status</th><th></th></tr>
-    ${list.map((b) => `<tr><td><b>${esc(b.supplier)}</b><div class="muted" style="font-size:12px">${esc(b.number)}</div></td><td>${esc(b.desc)}<div class="muted" style="font-size:12px">${esc(b.account)}</div></td><td class="muted">${fmtDate(b.date)}</td><td class="r fig">${money(b.amount)}</td><td class="r fig muted">${money(billVat(b))}</td><td>${b.paid ? '<span class="pill p-paid">Paid</span>' : b.due < day(0) ? '<span class="pill p-overdue">Overdue</span>' : '<span class="pill p-sent">To pay</span>'}</td><td class="r">${b.paid ? "" : `<button class="btn sm green" onclick="payBill('${b.id}')">Pay</button>`}</td></tr>`).join("")}</table></div>`;
-  },
-  banking() {
-    const n = numbers(), un = S.bank.filter((t) => !t.match).length;
-    return `<div class="head"><div><h1>Banking</h1><div class="sub">FNB Business Cheque · balance <b class="fig" style="color:var(--ink)">${money(n.bankBal)}</b></div></div></div>
-    ${un ? `<div class="tip">${I("spark")}<span><b>${un} line${un > 1 ? "s" : ""} to match.</b> Nexus suggests a match for each one, or a rule files it for you. Click <b>Match</b> to try it.</span></div>` : `<div class="health ok">${I("check")}Every bank line is matched. Every rand is accounted for.</div>`}
-    <div class="card tw"><table><tr><th>Date</th><th>Description</th><th class="r">Amount</th><th>Status</th><th></th></tr>
-    ${S.bank.map((t) => `<tr${t.match ? "" : ' style="background:#fffbeb"'}><td class="muted">${fmtDate(t.date)}</td><td>${esc(t.desc)}</td><td class="r fig" style="color:${t.amount < 0 ? "var(--red)" : "var(--green)"}">${money(t.amount)}</td><td>${t.match ? `<span class="pill p-paid">${t.match.type === "rule" ? esc(t.match.label) : "Matched"}</span>` : '<span class="pill p-low">To match</span>'}</td><td class="r">${t.match ? "" : `<button class="btn sm" onclick="matchLine('${t.id}')">Match</button>`}</td></tr>`).join("")}</table></div>`;
-  },
-  stock() {
-    const value = r2(S.items.filter((i) => i.stocked).reduce((s, i) => s + Math.max(0, i.onHand) * i.cost, 0)), low = S.items.filter((i) => i.stocked && i.onHand < 8);
-    return `<div class="head"><div><h1>Products & stock</h1><div class="sub">Stock goes down as you invoice, at average cost.</div></div></div>
-    <div class="grid4" style="margin-bottom:14px">${stat("Stock on hand at cost", money(value), "box", "var(--blue-soft)", "var(--blue)", "Agrees with the stock account")}${stat("Stocked products", String(S.items.filter((i) => i.stocked).length), "box", "var(--green-soft)", "var(--green)", "Plus 1 service")}${stat("Low on stock", String(low.length), "warn", "var(--amber-soft)", "var(--amber)", low.map((i) => i.name).join(", ") || "Nothing low", low.length ? "var(--amber)" : undefined)}</div>
-    <div class="card tw"><table><tr><th>Code</th><th>Name</th><th class="r">Selling price</th><th class="r">On hand</th><th class="r">Average cost</th><th class="r">Stock value</th></tr>
-    ${S.items.map((i) => `<tr><td><a>${i.code}</a></td><td>${esc(i.name)}${i.stocked ? "" : ' <span class="muted" style="font-size:12px">· service</span>'}</td><td class="r fig">${money(i.price)}</td><td class="r fig">${i.stocked ? `${i.onHand < 0 ? `<span class="pill p-overdue">${i.onHand}</span>` : i.onHand < 8 ? `<span class="pill p-low">${i.onHand} · low</span>` : i.onHand}` : "—"}</td><td class="r fig">${i.stocked ? money(i.cost) : "—"}</td><td class="r fig">${i.stocked ? money(Math.max(0, i.onHand) * i.cost) : "—"}</td></tr>`).join("")}</table></div>`;
-  },
-  vat() {
-    const from = (() => { const d = new Date(TODAY); d.setDate(1); d.setMonth(d.getMonth() - 1); return d.toISOString().slice(0, 10); })(), to = day(0);
-    const inv = S.invoices.filter((i) => live(i) && i.date >= from && i.date <= to), bills = S.bills.filter((b) => b.date >= from && b.date <= to);
-    const sales = r2(inv.reduce((s, i) => s + invTotals(i).sub, 0)), out = r2(inv.reduce((s, i) => s + invTotals(i).vat, 0));
-    const purch = r2(bills.filter((b) => b.vat).reduce((s, b) => s + billNet(b), 0)), inp = r2(bills.reduce((s, b) => s + billVat(b), 0)), pay = r2(out - inp);
-    const row = (t, v, c) => `<tr><td>${t}</td><td class="r fig" style="${c ? `color:${c};font-weight:700` : ""}">${money(v)}</td></tr>`;
-    return `<div class="head"><div><h1>VAT201</h1><div class="sub">${fmtDate(from)} to ${fmtDate(to)} · worked out straight from your invoices and bills.</div></div></div>
-    <div class="card tw" style="max-width:720px"><table>${row("Standard-rated sales (excl. VAT)", sales)}${row("Output VAT", out, "var(--green)")}${row("Standard-rated purchases (excl. VAT)", purch)}${row("Input VAT", inp, "var(--red)")}
-    <tr><td style="border-top:2px solid var(--ink)"><b>${pay >= 0 ? "VAT payable to SARS" : "VAT refund due from SARS"}</b></td><td class="r fig" style="border-top:2px solid var(--ink);font-size:18px;font-weight:800">${money(Math.abs(pay))}</td></tr></table></div>
-    <p class="muted" style="margin-top:12px;font-size:13px;max-width:720px">Create or pay an invoice, or snap a receipt, and come back: the VAT201 updates. In Nexus you review it, then finalise the period before filing on SARS eFiling.</p>`;
-  },
-  reports() {
-    const inv = S.invoices.filter(live), sales = r2(inv.reduce((s, i) => s + invTotals(i).sub, 0)), cos = cogs(inv);
-    const byAcc = {}; S.bills.filter((b) => !isStock(b)).forEach((b) => (byAcc[b.account] = r2((byAcc[b.account] || 0) + billNet(b))));
-    S.bank.filter((t) => t.match && t.match.type === "rule").forEach((t) => (byAcc[t.match.label] = r2((byAcc[t.match.label] || 0) - t.amount)));
-    const costOfSalesBills = byAcc["Cost of sales"] || 0; delete byAcc["Cost of sales"];
-    const exp = r2(Object.values(byAcc).reduce((s, v) => s + v, 0)), gross = r2(sales - cos - costOfSalesBills), net = r2(gross - exp);
-    window.__pl = [["Sales", sales], ["Cost of sales (stock sold)", -cos], ["Cost of sales (purchases)", -costOfSalesBills], ["Gross profit", gross], ...Object.entries(byAcc).map(([k, v]) => [k, -v]), ["Net profit", net]];
-    return `<div class="head"><div><h1>Reports</h1><div class="sub">Profit and loss for the quarter, always up to date.</div></div><span class="sp"></span><button class="btn" onclick="exportPL()">${I("down")} Export to Excel (CSV)</button></div>
-    <div class="card tw" style="max-width:760px"><table><tr><th>Revenue</th><th></th></tr><tr><td>Sales</td><td class="r fig">${money(sales)}</td></tr>
-    <tr><td>Cost of sales: stock sold</td><td class="r fig">${money(-cos)}</td></tr><tr><td>Cost of sales: purchases</td><td class="r fig">${money(-costOfSalesBills)}</td></tr>
-    <tr><td><b>Gross profit</b></td><td class="r fig"><b>${money(gross)}</b></td></tr><tr><th>Expenses</th><th></th></tr>
-    ${Object.entries(byAcc).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="r fig">${money(-v)}</td></tr>`).join("")}
-    <tr><td style="border-top:2px solid var(--ink)"><b>Net profit</b></td><td class="r fig" style="border-top:2px solid var(--ink);font-size:18px;font-weight:800;color:${net >= 0 ? "var(--green)" : "var(--red)"}">${money(net)}</td></tr></table></div>`;
-  },
-};
-const stat = (t, v, ic, bg, fg, foot, color) => `<div class="card pad stat"><div class="t">${t}<span class="ico" style="background:${bg};color:${fg}">${I(ic)}</span></div><div class="v fig" style="${color ? `color:${color}` : ""}">${v}</div><div class="f">${foot}</div></div>`;
-const statusPill = (st) => `<span class="pill p-${st}">${st[0].toUpperCase() + st.slice(1)}</span>`;
-const invRow = (i) => `<tr><td><a href="javascript:viewInvoice('${i.id}')">${i.number}</a></td><td>${esc(i.customer)}</td><td class="r fig">${money(invTotals(i).total)}</td><td class="r">${statusPill(invState(i))}</td></tr>`;
-function healthBar(h, full) {
-  const ok = !h.problems; const msg = ok ? (h.todo ? `Books check out · ${h.todo} thing${h.todo > 1 ? "s" : ""} to tidy up` : "Books check out · every check passed") : `${h.problems} problem${h.problems > 1 ? "s" : ""} found in the books`;
-  return `<div class="health ${ok && !h.todo ? "ok" : "warn"}">${I(ok ? "shield" : "warn")}<span>${msg}</span><span class="sp"></span>${full ? "" : '<a href="#/health" style="color:inherit;text-decoration:underline">See the checks</a>'}</div>`;
-}
+    <div class="phone"><div class="notch"></div>
+      <div class="screen"><div class="muted">Invoices › New</div><h4>INV-0044</h4>
+        <div class="card"><div class="muted">Customer</div><b>Bean There Cafe</b></div>
+        <div class="card"><div class="line"><span>House Blend 1kg × 10</span><span class="fig">R 2 600,00</span></div><div class="line"><span>Espresso Pods × 4</span><span class="fig">R 400,00</span></div><div class="line muted"><span>VAT 15%</span><span class="fig">R 450,00</span></div><div class="line"><b>Total</b><b class="fig">R 3 450,00</b></div></div>
+        <div class="card" style="background:var(--blue);border-color:var(--blue);color:#fff;text-align:center;font-weight:800">Send invoice</div></div>
+      <div class="screen"><div class="toast">✓ Bean There Cafe paid R 3 450,00</div><div class="muted" style="margin-top:56px">Owed to you</div><div class="big fig">R 20 800,00</div>
+        <div class="card" style="margin-top:12px"><div class="line"><span>INV-0044</span><span class="pill p-paid">Paid</span></div><div class="line"><span>INV-0043</span><span class="pill p-sent">Reminder sent</span></div><div class="line"><span>INV-0039</span><span class="pill p-over">8 days late</span></div></div>
+        <div class="card"><div class="muted">WhatsApp reminder</div><div style="margin-top:6px">Hi Durban Brew Bar, a friendly reminder that INV-0043 for R 8 200,00 is due. Pay here: nexus.link/p/…</div></div></div>
+      <div class="screen"><div class="muted">Banking · FNB Cheque</div><h4>4 lines matched</h4>
+        <div class="card"><div class="match"><span class="tick">✓</span><span style="flex:1">EFT BEAN THERE</span><span class="fig ok">+3 450,00</span></div><div class="match"><span class="tick">✓</span><span style="flex:1">HIGHVELD BEANS</span><span class="fig">−12 800,00</span></div><div class="match"><span class="tick">✓</span><span style="flex:1">FNB SERVICE FEE</span><span class="fig">−85,00</span></div><div class="match"><span class="tick">✓</span><span style="flex:1">RENT NOV</span><span class="fig">−9 500,00</span></div></div>
+        <div class="card"><div class="muted">Bank and books agree</div><div class="big fig ok">R 65 459,05</div></div></div>
+      <div class="screen"><div class="muted">VAT201 · Sep–Oct 2026</div><h4>Ready to file</h4>
+        <div class="card"><div class="line"><span>Output VAT</span><span class="fig">R 14 820,60</span></div><div class="bar"><b style="--w:100%"></b></div></div>
+        <div class="card"><div class="line"><span>Input VAT</span><span class="fig">R 5 908,20</span></div><div class="bar"><b style="--w:40%"></b></div></div>
+        <div class="card"><div class="muted">Payable to SARS</div><div class="big fig">R 8 912,40</div><div class="muted" style="margin-top:4px">Due 25 December</div></div></div>
+    </div>
+  </div>
+</section>
 
-// ---------------------------------------------------------------- actions
-function render() { document.getElementById("app").innerHTML = shell((screens[route] || screens.dash)()) + (modalHtml || ""); }
-let modalHtml = "";
-function modal(title, body, foot) { modalHtml = `<div class="modal" onclick="if(event.target===this)closeModal()"><div class="dlg"><div class="dh"><h2>${title}</h2><button class="x" onclick="closeModal()" aria-label="Close">×</button></div><div class="db">${body}</div>${foot ? `<div class="df">${foot}</div>` : ""}</div></div>`; render(); }
-function closeModal() { modalHtml = ""; render(); }
-function toast(msg) { const t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
-function commit(msg) { save(); modalHtml = ""; render(); if (msg) toast(msg); }
-function setFilter(f) { filter = f; render(); }
-function resetDemo() { if (!confirm("Start the demo over with fresh sample books?")) return; S = sampleBooks(); filter = "all"; commit("Demo reset: fresh sample books loaded."); }
+<!-- 4. SIDEWAYS FEATURES -->
+<section class="hscroll" id="features" data-scroll data-track>
+  <div class="stick">
+    <div class="wrap head"><div class="kicker">Everything in one place</div><h2>One app instead of six.</h2></div>
+    <div class="track">
+      <div class="feat"><span class="num">01</span><div class="glow" style="background:#2f6bff"></div><div class="ic">📸</div><h3>Snap a receipt</h3><p>Take a photo of a slip. Nexus reads the supplier, date, amounts and VAT, and files it as a bill.</p></div>
+      <div class="feat"><span class="num">02</span><div class="glow" style="background:#10b981"></div><div class="ic">📦</div><h3>Stock that counts itself</h3><p>Buying adds stock, selling takes it out, and cost of sales posts on its own, so profit is right every month.</p></div>
+      <div class="feat"><span class="num">03</span><div class="glow" style="background:#f59e0b"></div><div class="ic">🗂️</div><h3>Projects and hours</h3><p>Log time, invoice billable hours in one click and see the profit on every job.</p></div>
+      <div class="feat"><span class="num">04</span><div class="glow" style="background:#ef4444"></div><div class="ic">🗺️</div><h3>Customers on a map</h3><p>See who is where and who owes what. Overdue customers turn red.</p></div>
+      <div class="feat"><span class="num">05</span><div class="glow" style="background:#a855f7"></div><div class="ic">👥</div><h3>Bring your accountant</h3><p>Invite your bookkeeper or accountant with the right access. Practices run all their clients from one login.</p></div>
+      <div class="feat"><span class="num">06</span><div class="glow" style="background:#22d3ee"></div><div class="ic">🔑</div><h3>Sign in with your face</h3><p>Passkeys and two-factor sign-in keep the books locked to you. No password to steal.</p></div>
+      <div class="feat"><span class="num">07</span><div class="glow" style="background:#2f6bff"></div><div class="ic">🔌</div><h3>Connect your shop</h3><p>An open API sends sales from your online shop or till straight into the books.</p></div>
+      <div class="feat"><span class="num">08</span><div class="glow" style="background:#10b981"></div><div class="ic">📱</div><h3>On every device</h3><p>Install it on your phone, tablet, PC or Mac. Everything stays in sync.</p></div>
+    </div>
+  </div>
+</section>
 
-// New invoice
-let draft = null;
-function newInvoice() { draft = { customer: S.customers[0], date: day(0), lines: [{ code: "HB-1KG", qty: 5, price: 260 }] }; invoiceModal(); }
-function invoiceModal() {
-  const t = invTotals(draft);
-  const stockWarn = draft.lines.map((l) => { const it = S.items.find((i) => i.code === l.code); return it && it.stocked && l.qty > it.onHand ? `Only ${it.onHand} × ${it.name} in stock.` : ""; }).filter(Boolean);
-  modal(`New invoice · KCR-${String(S.next).padStart(4, "0")}`, `<div class="row" style="grid-template-columns:2fr 1fr;margin-bottom:14px"><div><label>Customer</label><select class="field" onchange="draft.customer=this.value">${S.customers.map((c) => `<option ${c === draft.customer ? "selected" : ""}>${esc(c)}</option>`).join("")}</select></div><div><label>Date</label><input class="field" type="date" value="${draft.date}" onchange="draft.date=this.value"></div></div>
-    <label>Line items</label>${draft.lines.map((l, k) => `<div class="lines"><select class="field" onchange="setLine(${k},'code',this.value)">${S.items.map((i) => `<option value="${i.code}" ${i.code === l.code ? "selected" : ""}>${i.code} · ${esc(i.name)}</option>`).join("")}</select>
-      <input class="field fig" type="number" min="1" value="${l.qty}" oninput="setLine(${k},'qty',this.value)" aria-label="Quantity"><input class="field fig" type="number" min="0" step="0.01" value="${l.price}" oninput="setLine(${k},'price',this.value)" aria-label="Price">
-      <div class="r fig lt">${money(l.qty * l.price)}</div><button class="x rm" onclick="draft.lines.splice(${k},1);invoiceModal()" aria-label="Remove line">×</button></div>`).join("")}
-    <button class="btn sm sec" onclick="draft.lines.push({code:'ESP-1KG',qty:1,price:290});invoiceModal()">${I("plus", 14)} Add line</button>
-    ${stockWarn.length ? `<div class="tip" style="background:var(--amber-soft);color:#92400e;margin-top:12px">${I("warn")}<span>${stockWarn.join(" ")} You can still save it: then watch Books health.</span></div>` : ""}
-    <div class="totals" id="tot"><div><span>Subtotal</span><span class="fig">${money(t.sub)}</span></div><div><span>VAT 15%</span><span class="fig">${money(t.vat)}</span></div><div class="tt"><span>Total</span><span class="fig">${money(t.total)}</span></div></div>`,
-    `<button class="btn sec" onclick="saveInvoice('draft')">Save as draft</button><button class="btn" onclick="saveInvoice('sent')">${I("mail")} Save and send</button>`);
-}
-function setLine(k, f, v) { const l = draft.lines[k]; if (f === "code") { l.code = v; l.price = S.items.find((i) => i.code === v).price; invoiceModal(); return; } l[f] = Math.max(0, Number(v) || 0); const t = invTotals(draft); const el = document.getElementById("tot"); if (el) el.innerHTML = `<div><span>Subtotal</span><span class="fig">${money(t.sub)}</span></div><div><span>VAT 15%</span><span class="fig">${money(t.vat)}</span></div><div class="tt"><span>Total</span><span class="fig">${money(t.total)}</span></div>`; const lt = document.querySelectorAll(".lines .lt")[k]; if (lt) lt.textContent = money(l.qty * l.price); }
-function saveInvoice(status) {
-  draft.lines = draft.lines.filter((l) => l.qty > 0); if (!draft.lines.length) return toast("Add at least one line.");
-  const due = new Date(draft.date + "T00:00:00"); due.setDate(due.getDate() + 30);
-  const inv = { id: uid(), number: `KCR-${String(S.next++).padStart(4, "0")}`, customer: draft.customer, date: draft.date, due: due.toISOString().slice(0, 10), lines: draft.lines, status, paid: 0 };
-  if (status === "sent") takeStock(inv);
-  S.invoices.push(inv); commit(status === "sent" ? `${inv.number} saved and sent (demo: emailed to ${inv.customer} with the PDF and a pay link).` : `${inv.number} saved as a draft.`);
-}
-function takeStock(inv) { inv.lines.forEach((l) => { const it = S.items.find((i) => i.code === l.code); if (it && it.stocked) it.onHand -= l.qty; }); }
-function sendInv(id) { const i = S.invoices.find((x) => x.id === id); i.status = "sent"; takeStock(i); commit(`${i.number} sent to ${i.customer} (demo: nothing really sent).`); }
-function remind(id) { const i = S.invoices.find((x) => x.id === id); toast(`Reminder for ${i.number} sent by email and WhatsApp (demo). Nexus does this automatically on the days you choose.`); }
-function payInv(id) { const i = S.invoices.find((x) => x.id === id); const amt = invBalance(i); i.paid = r2(i.paid + amt); S.bank.unshift({ id: uid(), date: day(0), desc: `EFT ${i.customer.toUpperCase()}`, amount: amt, match: { type: "invoice", id: i.id } }); commit(`${i.number} paid: ${money(amt)} received and matched in the bank.`); }
-function payBill(id) { const b = S.bills.find((x) => x.id === id); b.paid = true; S.bank.unshift({ id: uid(), date: day(0), desc: b.supplier.toUpperCase(), amount: -b.amount, match: { type: "bill", id: b.id } }); commit(`Paid ${b.supplier}: ${money(b.amount)}.`); }
-function viewInvoice(id) {
-  const i = S.invoices.find((x) => x.id === id), t = invTotals(i), st = invState(i);
-  modal(`${i.number} · ${statusPill(st)}`, `<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px"><div><div class="muted" style="font-size:12px">Bill to</div><b>${esc(i.customer)}</b></div><div class="r"><div class="muted" style="font-size:12px">Date · Due</div><b>${fmtDate(i.date)} · ${fmtDate(i.due)}</b></div></div>
-    <div class="tw"><table><tr><th>Item</th><th class="r">Qty</th><th class="r">Price</th><th class="r">Amount</th></tr>${i.lines.map((l) => { const it = S.items.find((x) => x.code === l.code); return `<tr><td>${esc(it ? it.name : l.code)}</td><td class="r fig">${l.qty}</td><td class="r fig">${money(l.price)}</td><td class="r fig">${money(l.qty * l.price)}</td></tr>`; }).join("")}</table></div>
-    <div class="totals"><div><span>Subtotal</span><span class="fig">${money(t.sub)}</span></div><div><span>VAT 15%</span><span class="fig">${money(t.vat)}</span></div><div class="tt"><span>Total</span><span class="fig">${money(t.total)}</span></div>${i.paid ? `<div><span>Paid</span><span class="fig">${money(-i.paid)}</span></div><div style="font-weight:800"><span>Owing</span><span class="fig">${money(invBalance(i))}</span></div>` : ""}</div>`,
-    st === "draft" ? `<button class="btn" onclick="sendInv('${i.id}')">${I("mail")} Send</button>` : st !== "paid" ? `<button class="btn sec" onclick="portal('${esc(i.customer)}')">${I("link")} Customer's pay page</button><button class="btn green" onclick="payInv('${i.id}')">Mark paid</button>` : `<button class="btn sec" onclick="closeModal()">Close</button>`);
-}
-function portal(c) {
-  const inv = S.invoices.filter((i) => i.customer === c && live(i) && invBalance(i) > 0), owe = r2(inv.reduce((s, i) => s + invBalance(i), 0));
-  modal(`${esc(c)}'s private page`, `<p class="muted" style="margin-bottom:14px">This is what ${esc(c)} sees from the link in their invoice email: what they owe, and a button to pay by card.</p>
-    <div class="card pad" style="max-width:420px;margin:auto;background:#f8fafc"><div class="muted" style="font-size:13px">Account with ${esc(S.org)}</div><div style="font-size:30px;font-weight:800;margin:4px 0 12px" class="fig">${money(owe)}</div>
-    ${inv.map((i) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)"><div><b>${i.number}</b><div style="font-size:12px;color:${invState(i) === "overdue" ? "var(--red)" : "var(--soft)"}">${invState(i) === "overdue" ? `${daysAgo(i.due)} days overdue` : `Due ${fmtDate(i.due)}`}</div></div><span class="fig">${money(invBalance(i))}</span><button class="btn sm" onclick="payInv('${i.id}')">Pay now</button></div>`).join("") || '<div class="empty">Nothing owing. Thank you!</div>'}</div>`);
-}
+<!-- 5. COUNTERS -->
+<section class="sec"><div class="wrap">
+  <div class="kicker rv">In numbers</div>
+  <h2 class="rv d1">Small price. Big difference.</h2>
+  <div class="stats">
+    <div class="stat rv d1"><b data-count="15" data-suffix="%">0%</b><span>VAT worked out on every line</span></div>
+    <div class="stat rv d2"><b data-count="14" data-suffix=" days">0 days</b><span>free trial, no card needed</span></div>
+    <div class="stat rv d3"><b data-count="250" data-prefix="R">R0</b><span>a month for one company</span></div>
+    <div class="stat rv d3"><b data-count="6">0</b><span>health checks run on your books every day</span></div>
+  </div>
+</div></section>
 
-// Receipts: the sample slip is "read" with a scan, the fields fill in, then it saves as a bill.
-function snapReceipt() {
-  modal("Snap a receipt", `<div class="row" style="grid-template-columns:240px 1fr;align-items:start" id="rc"><div class="slip scan" id="slip"><div class="c"><b>SASOL PAARL</b></div><div class="c">Main Road, Paarl 7646</div><div class="c">VAT No 4730112233</div><div class="c"><b>TAX INVOICE</b></div><hr><div><span id="s-date">Date: ${new Date().toLocaleDateString("en-ZA")}</span></div><hr><div style="display:flex;justify-content:space-between"><span>DIESEL 50ppm 33.4 L</span><span>565.22</span></div><hr><div style="display:flex;justify-content:space-between"><b id="s-total">TOTAL R 650.00</b></div><div style="display:flex;justify-content:space-between" id="s-vat"><span>VAT 15% incl</span><span>84.78</span></div><div>CARD **** 4417</div></div>
-    <div><div class="tip" id="rmsg">${I("spark")}<span>Reading the slip…</span></div><div class="row" style="grid-template-columns:1fr 1fr">
-      <div><label>Supplier</label><input class="field" id="f-sup" placeholder="…"></div><div><label>Date</label><input class="field" id="f-date" placeholder="…"></div>
-      <div><label>Total (incl. VAT)</label><input class="field fig" id="f-tot" placeholder="…"></div><div><label>VAT on the slip</label><input class="field fig" id="f-vat" placeholder="…"></div>
-      <div style="grid-column:span 2"><label>Expense account</label><select class="field" id="f-acc"><option>Fuel & travel</option><option>Office supplies</option><option>Cost of sales</option></select></div></div></div></div>`,
-    `<button class="btn" id="savebill" disabled onclick="saveReceipt()">${I("check")} Save as bill</button>`);
-  const steps = [["f-sup", "Sasol Paarl", "SASOL PAARL"], ["f-date", fmtDate(day(0)), "s-date"], ["f-tot", "650.00", "s-total"], ["f-vat", "84.78", "s-vat"]];
-  steps.forEach(([id, v, hl], k) => setTimeout(() => { const el = document.getElementById(id); if (!el) return; el.value = v; el.style.borderColor = "var(--green)"; document.querySelectorAll(".hl").forEach((h) => h.classList.remove("hl")); const t = document.getElementById(hl); if (t) t.classList.add("hl"); }, 500 + k * 450));
-  setTimeout(() => { const s = document.getElementById("slip"); if (!s) return; s.classList.remove("scan"); document.querySelectorAll(".hl").forEach((h) => h.classList.remove("hl")); document.getElementById("rmsg").innerHTML = `${I("check")}<span><b>Read clearly.</b> Check the figures, then save.</span>`; document.getElementById("rmsg").style.cssText = "background:var(--green-soft);color:#065f46"; document.getElementById("savebill").disabled = false; }, 500 + 4 * 450 + 200);
-}
-function saveReceipt() { const acc = document.getElementById("f-acc").value; const b = { id: uid(), number: "SLIP-" + Math.floor(Math.random() * 900 + 100), supplier: "Sasol Paarl", date: day(0), due: day(0), desc: "Diesel for delivery van", account: acc, amount: 650, vat: true, paid: true };
-  S.bills.push(b); S.bank.unshift({ id: uid(), date: day(0), desc: "SASOL PAARL CARD", amount: -650, match: { type: "bill", id: b.id } }); commit("Saved as a bill. R 84.78 input VAT is now on your VAT201."); }
+<!-- 6. STACKING CARDS -->
+<section class="wrap stack" id="why">
+  <div class="kicker rv">Why Nexus</div>
+  <h2 class="rv d1" style="font-size:clamp(32px,4.6vw,58px);letter-spacing:-.04em;line-height:1.04;margin-bottom:60px">Made for how business works here.</h2>
+  <div class="scard c1" style="--i:0"><div><h3>Built for SARS, not adapted for it.</h3><p>15% VAT, VAT201 periods, tax invoices with your VAT number and rand amounts everywhere. South African from the first line of code.</p></div><div class="vis"><span class="chip">🇿🇦 ZAR and 15% VAT</span><span class="chip">📄 Tax invoices</span><span class="chip">🧾 VAT201 preview</span><span class="chip">🔒 Locked once filed</span></div></div>
+  <div class="scard c2" style="--i:1"><div><h3>Your books check themselves.</h3><p>Every day Nexus checks that debits equal credits, the bank agrees and nothing was posted twice, and tells you in plain English when something is off.</p></div><div class="vis"><span class="chip">✅ Double entry balances</span><span class="chip">✅ Bank agrees</span><span class="chip">✅ Stock agrees</span><span class="chip">⚠️ 1 item to look at</span></div></div>
+  <div class="scard c3" style="--i:2"><div><h3>Your data stays yours.</h3><p>Every company is sealed off from every other. Download everything whenever you like. Written for POPIA from the start.</p></div><div class="vis"><span class="chip">🛡️ Each company kept apart</span><span class="chip">⬇️ Download all your data</span><span class="chip">🔑 Passkeys and 2FA</span></div></div>
+  <div class="scard c4" style="--i:3"><div><h3>Plain language, not jargon.</h3><p>“Owed to you” instead of “accounts receivable”. Guided lessons for every screen. You do not need to be an accountant to keep good books.</p></div><div class="vis"><span class="chip">💬 Owed to you</span><span class="chip">💬 You owe</span><span class="chip">🎓 Guided lessons</span></div></div>
+</section>
 
-// Banking: suggest a match (an invoice with the same amount), or a rule for regular costs.
-function matchLine(id) {
-  const t = S.bank.find((x) => x.id === id);
-  const cand = t.amount > 0 ? S.invoices.filter((i) => live(i) && Math.abs(invBalance(i) - t.amount) < 0.01) : S.bills.filter((b) => !b.paid && Math.abs(b.amount + t.amount) < 0.01);
-  const opts = cand.map((c) => `<button class="btn" style="width:100%;justify-content:space-between;margin-bottom:8px" onclick="doMatch('${t.id}','${t.amount > 0 ? "invoice" : "bill"}','${c.id}')"><span>${t.amount > 0 ? `${c.number} · ${esc(c.customer)}` : `${esc(c.supplier)} · ${c.number}`}</span><span class="fig">${money(t.amount > 0 ? invBalance(c) : c.amount)}</span></button>`).join("");
-  const rule = t.rule ? `<button class="btn sec" style="width:100%;justify-content:space-between" onclick="doMatch('${t.id}','rule','${esc(t.rule)}')"><span>${I("spark", 15)} Rule: "${esc(t.desc)}" → ${esc(t.rule)}</span><span class="fig">${money(t.amount)}</span></button>` : "";
-  modal("Match bank line", `<div class="card pad" style="margin-bottom:14px;display:flex;justify-content:space-between;gap:10px"><div><b>${esc(t.desc)}</b><div class="muted" style="font-size:13px">${fmtDate(t.date)}</div></div><b class="fig" style="color:${t.amount < 0 ? "var(--red)" : "var(--green)"}">${money(t.amount)}</b></div>
-    <label>${opts ? "Suggested match" : rule ? "Suggested rule" : "No match found"}</label>${opts}${rule}${!opts && !rule ? '<p class="muted">Nothing with this amount. In Nexus you would add it as a new transaction.</p>' : ""}`);
-}
-function doMatch(tid, type, ref) {
-  const t = S.bank.find((x) => x.id === tid);
-  if (type === "invoice") { const i = S.invoices.find((x) => x.id === ref); i.paid = r2(i.paid + t.amount); t.match = { type, id: ref }; commit(`Matched to ${i.number}. ${i.customer}'s invoice is now ${invBalance(i) <= 0 ? "paid" : "part-paid"}.`); }
-  else if (type === "bill") { const b = S.bills.find((x) => x.id === ref); b.paid = true; t.match = { type, id: ref }; commit(`Matched to ${b.supplier}.`); }
-  else { t.match = { type: "rule", label: ref }; commit(`Filed under ${ref}. Next time this happens on its own.`); }
-}
+<!-- 7. FINALE -->
+<section class="finale" id="start" data-scroll>
+  <div class="stick"><div class="disc"></div>
+    <div class="inner"><h2>Start today.<br>Sorted by Friday.</h2><p>Click around a real company's books in the demo. No sign-up, nothing to install.</p>
+      <a class="btn pri" href="demo/">Open the live demo &rarr;</a><br><span class="price">From R250 a month after a 14-day free trial</span></div>
+  </div>
+</section>
 
-// Exports: real files.
-function download(name, rows) { const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n"); const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
-function exportPL() { screens.reports(); download("karoo-profit-and-loss.csv", [["Line", "Amount (R)"], ...window.__pl.map(([k, v]) => [k, v.toFixed(2)])]); toast("Profit and loss downloaded. It opens in Excel."); }
-function exportInvoices() { download("karoo-invoices.csv", [["Number", "Customer", "Date", "Due", "Subtotal", "VAT", "Total", "Owing", "Status"], ...S.invoices.map((i) => { const t = invTotals(i); return [i.number, i.customer, i.date, i.due, t.sub.toFixed(2), t.vat.toFixed(2), t.total.toFixed(2), invBalance(i).toFixed(2), invState(i)]; })]); toast("Invoices downloaded. They open in Excel."); }
+<footer><div class="wrap"><img src="nexus-logo.png" alt="Nexus Ledger"><span>Accounting for South African businesses and their accountants.</span><span class="sp"></span><a href="demo/">Demo</a><a href="https://github.com/JBWeb1/Nexus">About the project</a></div></footer>
 
-// First visit: a short welcome.
-function welcome() {
-  modalHtml = `<div class="modal welcome" onclick="if(event.target===this)closeModal()"><div class="dlg"><div class="dh"><h2>Welcome to the Nexus Ledger demo</h2><button class="x" onclick="closeModal()" aria-label="Close">×</button></div><div class="db">
-  <p class="muted">You're looking at the books of <b style="color:var(--ink)">Karoo Coffee Roasters</b>, a sample South African coffee roaster. Everything works: try these.</p>
-  <ul><li><span>${I("inv")}</span>Create an invoice and watch the VAT work itself out</li><li><span>${I("cam")}</span>Snap a receipt and see it read the slip</li><li><span>${I("bank")}</span>Match the bank lines waiting on the Banking page</li><li><span>${I("shield")}</span>Sell more stock than you have, then check Books health</li></ul></div>
-  <div class="df"><button class="btn" onclick="closeModal()">Start exploring</button></div></div></div>`;
-}
-try { if (!localStorage.getItem(KEY + "-seen")) { welcome(); localStorage.setItem(KEY + "-seen", "1"); } } catch (e) { welcome(); }
-render();
+<script>
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = (s, r = document) => [...r.querySelectorAll(s)];
+  const clamp = (v) => Math.max(0, Math.min(1, v));
+
+  // Split headline into words that rise in one after another.
+  $("[data-words]").forEach((h) => {
+    let i = 0;
+    const wrap = (node) => [...node.childNodes].forEach((n) => {
+      if (n.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach((t) => {
+          if (!t) return; if (/^\s+$/.test(t)) { frag.append(t); return; }
+          const s = document.createElement("span"); s.className = "w"; s.textContent = t; s.style.transitionDelay = (i++ * 0.07) + "s"; frag.append(s);
+        });
+        n.replaceWith(frag);
+      } else wrap(n);
+    });
+    wrap(h);
+  });
+  requestAnimationFrame(() => setTimeout(() => $(".hero").forEach((h) => h.classList.add("ready")), 60));
+
+  // Split the statement into words that light up with scroll.
+  const hlWords = /^(VAT|bank|late|payers|add|pays\.?)$/i;
+  $("[data-light]").forEach((p) => { p.innerHTML = p.textContent.trim().split(/\s+/).map((w) => `<span${hlWords.test(w.replace(/[.,]/g, "")) ? ' data-hl' : ""}>${w}</span>`).join(" "); });
+
+  // Reveal on entering the screen, and count numbers up.
+  const count = (el) => {
+    const to = +el.dataset.count, pre = el.dataset.prefix || "", suf = el.dataset.suffix || "", t0 = performance.now(), dur = 1400;
+    const tick = (t) => { const k = clamp((t - t0) / dur), v = Math.round(to * (1 - Math.pow(1 - k, 3))); el.textContent = pre + v + suf; if (k < 1) requestAnimationFrame(tick); };
+    reduce ? (el.textContent = pre + to + suf) : requestAnimationFrame(tick);
+  };
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (!e.isIntersecting) return; e.target.classList.add("in"); $("[data-count]", e.target).forEach(count); if (e.target.dataset.count) count(e.target); io.unobserve(e.target); }), { threshold: 0.2 });
+  $(".rv").forEach((el) => io.observe(el));
+
+  const sections = $("[data-scroll]"), nav = document.getElementById("nav"), bar = document.getElementById("progress"), cards = $(".scard");
+  const track = document.querySelector(".track");
+  const measure = () => { if (track) track.parentElement.parentElement.style.setProperty("--dist", Math.max(0, track.scrollWidth - innerWidth + 40) + "px"); };
+  measure(); addEventListener("resize", measure);
+
+  let ticking = false;
+  function frame() {
+    ticking = false;
+    const vh = innerHeight, y = scrollY;
+    bar.style.setProperty("--sp", clamp(y / (document.documentElement.scrollHeight - vh)));
+    nav.classList.toggle("solid", y > 40);
+    for (const s of sections) {
+      const r = s.getBoundingClientRect(); const p = clamp(-r.top / Math.max(1, r.height - vh));
+      s.style.setProperty("--p", p.toFixed(4));
+      if (s.querySelector("[data-light]")) {
+        const words = $("[data-light] span", s), lit = Math.floor(clamp(p * 1.25) * words.length);
+        words.forEach((w, i) => { w.classList.toggle("lit", i < lit); w.classList.toggle("hl", i < lit && w.hasAttribute("data-hl")); });
+      }
+      if (s.dataset.steps) {
+        const n = +s.dataset.steps, pos = p * n, cur = Math.min(n - 1, Math.floor(pos));
+        $(".step", s).forEach((el, i) => { el.classList.toggle("on", i === cur); el.classList.toggle("past", i < cur); });
+        $(".screen", s).forEach((el, i) => el.classList.toggle("on", i === cur));
+        $(".dots b", s).forEach((b, i) => b.style.transform = `scaleX(${clamp(pos - i)})`);
+      }
+    }
+    // Each stacked card shrinks a little as the next one slides over it.
+    cards.forEach((c, i) => { const next = cards[i + 1]; if (!next) return; const a = c.getBoundingClientRect(), b = next.getBoundingClientRect(); c.style.setProperty("--shrink", clamp(1 - (b.top - a.top) / a.height).toFixed(3)); });
+  }
+  const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(frame); } };
+  addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll); frame();
+})();
 </script>
 </body>
 </html>
