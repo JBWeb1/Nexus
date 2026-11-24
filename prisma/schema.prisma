@@ -64,6 +64,23 @@ model ActivityLog {
   @@map("activity_log")
 }
 
+model ApiKey {
+  id String @id @default(dbgenerated("gen_id('key'::text)"))
+  organizationId String @map("organization_id")
+  name String
+  prefix String
+  keyHash String @map("key_hash")
+  access String
+  createdBy String @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdByRel User @relation("api_keys_created_by", fields: [createdBy], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  organizationRel Organization @relation("api_keys_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([keyHash])
+  @@map("api_keys")
+}
+
 model Attachment {
   id String @id @default(dbgenerated("gen_id('att'::text)"))
   organizationId String @map("organization_id")
@@ -79,6 +96,16 @@ model Attachment {
   organizationRel Organization @relation("attachments_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   @@unique([storageKey])
   @@map("attachments")
+}
+
+model AuthChallenge {
+  id String @id @default(dbgenerated("gen_id('ch'::text)"))
+  challenge String
+  purpose String
+  userId String? @map("user_id")
+  expiresAt DateTime @default(dbgenerated("(now() + '00:05:00'::interval)")) @map("expires_at") @db.Timestamptz(6)
+  userRel User? @relation("auth_challenges_user_id", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@map("auth_challenges")
 }
 
 model BankAccount {
@@ -185,6 +212,10 @@ model Contact {
   type String @default("CUSTOMER")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   remindersPaused Boolean @default(false) @map("reminders_paused")
+  latitude Decimal? @db.Decimal(9, 6)
+  longitude Decimal? @db.Decimal(9, 6)
+  locationSource String? @map("location_source")
+  locatedAt DateTime? @map("located_at") @db.Timestamptz(6)
   organizationRel Organization @relation("contacts_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   billsByContactId Bill[] @relation("bills_contact_id")
   creditNotesByContactId CreditNote[] @relation("credit_notes_contact_id")
@@ -490,6 +521,7 @@ model Organization {
   purchaseOrderPrefix String @default("PO") @map("purchase_order_prefix")
   accountsByOrganizationId Account[] @relation("accounts_organization_id")
   activityLogByOrganizationId ActivityLog[] @relation("activity_log_organization_id")
+  apiKeysByOrganizationId ApiKey[] @relation("api_keys_organization_id")
   attachmentsByOrganizationId Attachment[] @relation("attachments_organization_id")
   bankAccountsByOrganizationId BankAccount[] @relation("bank_accounts_organization_id")
   bankRulesByOrganizationId BankRule[] @relation("bank_rules_organization_id")
@@ -520,6 +552,21 @@ model Organization {
   usersByOrganizationId User[] @relation("users_organization_id")
   vatPeriodsByOrganizationId VatPeriod[] @relation("vat_periods_organization_id")
   @@map("organizations")
+}
+
+model Passkey {
+  id String @id @default(dbgenerated("gen_id('pk'::text)"))
+  userId String @map("user_id")
+  credentialId String @map("credential_id")
+  publicKey Unsupported("bytea") @map("public_key")
+  counter BigInt @default(0)
+  transports Unsupported("_text") @default(dbgenerated("'{}'::text[]"))
+  name String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamptz(6)
+  userRel User @relation("passkeys_user_id", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@unique([credentialId])
+  @@map("passkeys")
 }
 
 model PasswordReset {
@@ -843,8 +890,11 @@ model User {
   totpEnabled Boolean @default(false) @map("totp_enabled")
   passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(6)
   organizationRel Organization @relation("users_organization_id", fields: [organizationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  apiKeysByCreatedBy ApiKey[] @relation("api_keys_created_by")
+  authChallengesByUserId AuthChallenge[] @relation("auth_challenges_user_id")
   invitationsByInvitedBy Invitation[] @relation("invitations_invited_by")
   membershipsByUserId Membership[] @relation("memberships_user_id")
+  passkeysByUserId Passkey[] @relation("passkeys_user_id")
   passwordResetsByUserId PasswordReset[] @relation("password_resets_user_id")
   tasksByAssigneeId Task[] @relation("tasks_assignee_id")
   @@unique([email])

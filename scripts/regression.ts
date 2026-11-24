@@ -450,6 +450,52 @@ const near = (a, b) => Math.abs(a - b) < 0.005;
     ok('a quote keeps its product and project on the invoice', qi.lines[0].itemId === svc.id && qi.lines[0].projectId === prj.id, JSON.stringify(qi.lines));
   }
 
+  console.log('API keys');
+  {
+    const mk = (access, tok = ta, name = `${access} key`) => call('POST', '/api/api-keys', tok, { name, access });
+    const rk = await mk('READ'), wk = await mk('WRITE', ta, 'Online shop');
+    ok('owner creates read and write keys; the key is shown once', rk.status === 201 && /^nxs_/.test(rk.body.key) && wk.status === 201 && !('keyHash' in wk.body.apiKey) && !('key_hash' in wk.body.apiKey), JSON.stringify(rk.body));
+    const kr = rk.body.key, kw = wk.body.key;
+    const listed = (await call('GET', '/api/api-keys', ta)).body.apiKeys;
+    ok('key list shows the prefix but never the key', listed.length >= 2 && !JSON.stringify(listed).includes(kr) && listed.some((k) => kr.startsWith(k.prefix)), JSON.stringify(listed));
+    const [h] = (await authPool.query('SELECT key_hash FROM api_keys WHERE id=$1', [rk.body.apiKey.id])).rows;
+    ok('only a SHA-256 hash of the key is stored', h.key_hash === crypto.createHash('sha256').update(kr).digest('hex'));
+    ok('accountant cannot create API keys', (await mk('WRITE', tAcc)).status === 403);
+    ok('invalid access level rejected', (await mk('ADMIN')).status === 400);
+    ok('read key reads invoices and reports', (await call('GET', '/api/invoices', kr)).status === 200 && (await call('GET', '/api/reports/trial-balance', kr)).body.balanced === true);
+    const rw = await call('POST', '/api/contacts', kr, { name: 'Should fail', type: 'CUSTOMER' });
+    ok('read key cannot write', rw.status === 403 && /read-only/i.test(rw.body.error), JSON.stringify(rw.body));
+    const wc = await call('POST', '/api/contacts', kw, { name: 'From the shop', type: 'CUSTOMER' });
+    ok('write key adds a contact', wc.status === 201, JSON.stringify(wc.body));
+    ok('write key cannot reach team, billing, keys or company switching', (await call('GET', '/api/team', kw)).status === 403 && (await call('GET', '/api/billing', kw)).status === 403 && (await mk('WRITE', kw)).status === 403 && (await call('GET', '/api/companies', kw)).status === 403);
+    ok('a key only sees its own company', (await call('GET', `/api/invoices/${iv.id}`, kw)).status === 200 && (await call('GET', '/api/contacts', kw)).body.contacts.every((c) => c.id !== undefined) && (await call('GET', `/api/contacts/${wc.body.contact.id}`, tb)).status === 404);
+    const act = (await call('GET', '/api/activity', ta)).body.activity;
+    ok('activity log names the key that made a change', act.some((x) => /API key: Online shop/.test(x.userName)), JSON.stringify(act.slice(0, 2)));
+    ok('a made-up key is refused', (await call('GET', '/api/invoices', 'nxs_' + 'x'.repeat(32))).status === 401);
+    ok('revoking a key works', (await call('DELETE', `/api/api-keys/${rk.body.apiKey.id}`, ta)).status === 200);
+    ok('a revoked key stops working at once', (await call('GET', '/api/invoices', kr)).status === 401);
+    ok('revoking twice -> 404', (await call('DELETE', `/api/api-keys/${rk.body.apiKey.id}`, ta)).status === 404);
+    ok('another company cannot revoke this key', (await call('DELETE', `/api/api-keys/${wk.body.apiKey.id}`, tb)).status === 404 && (await call('GET', '/api/invoices', kw)).status === 200);
+    const spec = await call('GET', '/api/openapi.json');
+    ok('the API map is public OpenAPI 3.1', spec.status === 200 && spec.body.openapi === '3.1.0' && !!spec.body.paths['/invoices'].post);
+  }
+
+  console.log('Passkeys');
+  {
+    const o = await call('POST', '/api/auth/passkey/options');
+    ok('passkey sign-in starts without an email and requires the device to check the person', o.status === 200 && !!o.body.challengeId && o.body.options.userVerification === 'required' && !o.body.options.allowCredentials?.length, JSON.stringify(o.body));
+    const fake = { id: 'bm90LWEtcmVhbC1rZXk', rawId: 'bm90LWEtcmVhbC1rZXk', type: 'public-key', response: {} };
+    ok('an unregistered passkey is refused', (await call('POST', '/api/auth/passkey/verify', null, { challengeId: o.body.challengeId, response: fake })).status === 401);
+    ok('a challenge works only once', (await call('POST', '/api/auth/passkey/verify', null, { challengeId: o.body.challengeId, response: fake })).status === 400);
+    await authPool.query("INSERT INTO auth_challenges (id, challenge, purpose, expires_at) VALUES ($1, 'old', 'LOGIN', now() - interval '1 minute')", [`ch_old_${stamp}`]);
+    ok('an expired challenge is refused', (await call('POST', '/api/auth/passkey/verify', null, { challengeId: `ch_old_${stamp}`, response: fake })).status === 400);
+    ok('your passkey list starts empty', (await call('GET', '/api/auth/passkeys', ta)).body.passkeys.length === 0);
+    const ro = await call('POST', '/api/auth/passkeys/options', ta);
+    ok('adding a passkey asks for a discoverable key tied to this site', ro.status === 200 && ro.body.options.rp.id === new URL(process.env.APP_URL || BASE).hostname && ro.body.options.authenticatorSelection.residentKey === 'required', JSON.stringify(ro.body.options?.rp));
+    ok("another person's challenge cannot be used to add a passkey", (await call('POST', '/api/auth/passkeys', tb, { challengeId: ro.body.challengeId, response: fake })).status === 400);
+    ok('passkey management needs a signed-in person', (await call('GET', '/api/auth/passkeys')).status === 401);
+  }
+
   console.log('Webhook');
   ok('unsigned paystack webhook -> 401', (await call('POST', '/webhooks/paystack', null, { event: 'charge.success' })).status === 401);
   ok('no token -> 401', (await call('GET', '/api/invoices')).status === 401);

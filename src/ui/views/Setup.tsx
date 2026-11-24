@@ -2,6 +2,7 @@
 import { PageSkeleton } from "../components/ui/skeleton";
 import TeamPanel from "../components/TeamPanel";
 import SecurityPanel from "../components/SecurityPanel";
+import ApiKeysPanel from "../components/ApiKeysPanel";
 import UpdatesPanel from "../components/UpdatesPanel";
 import RemindersPanel from "../components/RemindersPanel";
 import InstallApp from "../components/InstallApp";
@@ -60,6 +61,7 @@ export default function Setup() {
     <RemindersPanel />
     <TeamPanel />
     <SecurityPanel />
+    <ApiKeysPanel />
     <UpdatesPanel />
     <InstallApp /></div>);
 }

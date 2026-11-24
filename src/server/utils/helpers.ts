@@ -57,7 +57,7 @@ async function logActivity(client, req, res) {
   try {
     await client.query('SAVEPOINT act');
     const u = (await client.query('SELECT name FROM users WHERE id=$1', [req.user.userId])).rows[0];
-    await client.query('INSERT INTO activity_log (organization_id, user_id, user_name, action, method, path) VALUES ($1,$2,$3,$4,$5,$6)', [req.user.orgId, req.user.userId, u?.name || 'User', hit ? hit[2] : `${req.method} ${path}`, req.method, path.slice(0, 200)]);
+    await client.query('INSERT INTO activity_log (organization_id, user_id, user_name, action, method, path) VALUES ($1,$2,$3,$4,$5,$6)', [req.user.orgId, req.user.userId, (u?.name || 'User') + (req.user.apiKey ? ` (API key: ${req.user.apiKey.name})` : ''), hit ? hit[2] : `${req.method} ${path}`, req.method, path.slice(0, 200)]);
     await client.query('RELEASE SAVEPOINT act');
   } catch { await client.query('ROLLBACK TO SAVEPOINT act').catch(() => {}); }
 }

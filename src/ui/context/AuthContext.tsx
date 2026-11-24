@@ -2,12 +2,14 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { signIn, signOut } from "next-auth/react";
 import { api } from "../api/client";
+import { startAuthentication } from "@simplewebauthn/browser";
 
 type User = { id: string; name: string; email: string; role: string; twoFactorEnabled?: boolean };
 type Org = { id: string; name: string; currency: string; subscription?: any; [k: string]: any };
 type Auth = {
   user: User | null; org: Org | null; loading: boolean; offline: boolean;
   login: (email: string, password: string, code?: string) => Promise<{ needs2fa?: boolean }>;
+  loginWithPasskey: () => Promise<void>;
   register: (form: Record<string, any>) => Promise<void>; logout: () => Promise<void>; refreshOrg: () => Promise<void>;
   switchCompany: (id: string) => Promise<void>; createCompany: (form: Record<string, any>) => Promise<void>;
 };
@@ -36,8 +38,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (form: Record<string, any>) => { await apply(await api.post("/auth/register", form)); }, [apply]);
   // Signing in, signing out and switching company all change who the server thinks you are, so each one ends with a full page load.
   // That keeps the session cookie, the cached pages and this context in step.
+  // The device shows the passkeys it holds for this site; the person picks one and unlocks it with a fingerprint, face or PIN.
+  const loginWithPasskey = useCallback(async () => { const { options, challengeId } = await api.post("/auth/passkey/options"); const response = await startAuthentication(options); await apply(await api.post("/auth/passkey/verify", { challengeId, response })); }, [apply]);
   const logout = useCallback(async () => { await signOut({ redirect: false }).catch(() => {}); window.location.assign("/login"); }, []);
   const switchCompany = useCallback(async (id: string) => { await apply(await api.post(`/companies/${id}/switch`)); window.location.assign("/"); }, [apply]);
   const createCompany = useCallback(async (form: Record<string, any>) => { await apply(await api.post("/companies", form)); window.location.assign("/setup"); }, [apply]);
-  return <Ctx.Provider value={{ user, org, loading, offline, login, register, logout, refreshOrg, switchCompany, createCompany }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, org, loading, offline, login, loginWithPasskey, register, logout, refreshOrg, switchCompany, createCompany }}>{children}</Ctx.Provider>;
 }
