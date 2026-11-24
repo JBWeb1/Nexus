@@ -23,6 +23,13 @@ Each version's section becomes its release notes, which owners see under Setting
 - Pin a contact from its address (looked up on OpenStreetMap, one address at a time; only the address is sent) or by
   clicking the map. Contacts now have a street address field.
 
+### New: get the app on any device
+- A public **/download** page (linked from the sign-in screen as "Get the app") installs Nexus on Windows, Mac, Android,
+  iPhone and iPad. It puts the visitor's own device first and offers a one-click install where the browser supports it.
+- New Mac app (.dmg) next to the Windows installer. A manual run of the build workflows publishes the Windows, Mac and
+  Android files to a fixed download address that the page links to.
+- The GitHub Pages demo can be installed as an app and works offline.
+
 ### Going live
 - `npm run secrets` makes the secrets and database passwords needed to go live. KEYS.md lists every key, what it does
   and where it comes from.

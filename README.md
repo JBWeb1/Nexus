@@ -59,9 +59,10 @@ password. Map (under Sales) shows customers and suppliers by address, with what 
 
 ## Install as an app
 
-Installable from the browser on Android, iPhone, Windows and Mac (Settings > Install the app), as an Android APK
-built by `.github/workflows/android.yml` from the `android/` folder, and as a Windows installer (.exe) built by
-`.github/workflows/windows.yml` from the `desktop/` folder. See "Installing Nexus as an app" in DEPLOY.md.
+People install Nexus from **/download** on your site: a one-click install in Chrome and Edge, Safari steps on iPhone and
+iPad, and download buttons for the Windows installer (.exe), the Mac app (.dmg) and the Android app (APK). GitHub builds
+those files from `desktop/` and `android/` (`.github/workflows/windows.yml` and `android.yml`) and publishes them to the
+`apps` release. The GitHub Pages demo installs as an app too. See "Installing Nexus as an app" in DEPLOY.md.
 
 ## Updates
 

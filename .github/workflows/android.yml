@@ -1,7 +1,8 @@
 name: Android app
 
 # Builds the Nexus Android app (APK) that opens your hosted Nexus site full-screen.
-# Run it from Actions > Android app > Run workflow, with the address of your live site.
+# Run it from Actions > Android app > Run workflow, with the address of your live site. A manual run also publishes the
+# APK to the "apps" release, which your site's /download page links to.
 # Signing: add repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and
 # ANDROID_KEY_PASSWORD (see DEPLOY.md). Without them a test build is made with a temporary key.
 on:
@@ -11,8 +12,15 @@ on:
         description: 'Address of your live Nexus site, e.g. https://books.example.co.za'
         required: true
         default: 'https://nexus-ledger.vercel.app'
+      publish:
+        description: 'Put the file on the public download page (the "apps" release)'
+        type: boolean
+        default: true
   push:
     paths: ['android/**', '.github/workflows/android.yml']
+
+permissions:
+  contents: write
 
 jobs:
   apk:
@@ -60,3 +68,16 @@ jobs:
           name: nexus-ledger-apk
           path: dist/*.apk
           if-no-files-found: error
+      - name: Publish to the download page
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One release, "apps", holds the latest installers under fixed names, so download links never change.
+          # It is a pre-release, so it never counts as the newest Nexus version in Settings > Updates.
+          gh release view apps --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create apps --repo "$GITHUB_REPOSITORY" \
+            --title "Nexus Ledger apps" --prerelease --latest=false \
+            --notes "The Nexus Ledger apps for Windows, Mac and Android. Each one opens your live Nexus site. Download them from your site's /download page."
+          cp dist/*.apk "$RUNNER_TEMP/Nexus-Ledger.apk"
+          gh release upload apps "$RUNNER_TEMP/Nexus-Ledger.apk#Android app (APK)" --clobber --repo "$GITHUB_REPOSITORY"
+          echo "Published: https://github.com/$GITHUB_REPOSITORY/releases/download/apps/Nexus-Ledger.apk" >> "$GITHUB_STEP_SUMMARY"

@@ -7,6 +7,7 @@ import { parseExpenseSpreadsheet, parseSigned } from '../src/server/services/imp
 import { readReceipt, normaliseReading } from '../src/server/services/receiptService';
 import { receiptLines } from '../src/server/controllers/receiptsController';
 import { dueStage, reminderText } from '../src/server/services/reminderService';
+import { appFiles, clearAppFilesCache, downloadsRepo } from '../src/server/services/appDownloads';
 import { geocode } from '../src/server/services/geocodeService';
 import { jwtSecret, weakSecret } from '../src/server/utils/auth';
 import { hashKey, newKey, keyRole, isApiKey, KEY_BLOCKED } from '../src/server/services/apiKeyService';
@@ -122,6 +123,18 @@ const throws = (f: () => void) => { try { f(); return false; } catch (e: any) { 
     ok('geocode returns null when nothing matches', (await geocode('Nowhere Road', fake([]))) === null);
     let threw = ''; try { await geocode('Some Road', fake({}, 503)); } catch (e: any) { threw = e.message; } ok('geocode explains when the service is down', /not answering/.test(threw), threw);
     const t0 = Date.now(); await geocode('A Road', fake([])); await geocode('B Road', fake([])); ok('geocode waits a second between lookups (OpenStreetMap policy)', Date.now() - t0 >= 990, Date.now() - t0);
+  }
+
+  console.log('App downloads');
+  {
+    let asked = ''; const rel = (assets: any[], status = 200) => (async (u: any) => { asked = String(u); return new Response(JSON.stringify({ assets }), { status }); }) as any;
+    const a = (name: string, state = 'uploaded') => ({ name, state, size: 104857600, updated_at: '2026-11-24T10:00:00Z', browser_download_url: `https://github.com/x/y/releases/download/apps/${name}` });
+    clearAppFilesCache(); const files = await appFiles(rel([a('Nexus-Ledger-Setup.exe'), a('Nexus-Ledger-Mac.dmg', 'starter'), a('Nexus-Ledger.apk'), a('notes.txt')]));
+    ok('download page lists only finished installers it knows', files.map((f) => f.kind).join() === 'windows,android' && files[0].sizeMb === 100, files);
+    ok('download page asks the "apps" release of the update repository', asked === `https://api.github.com/repos/${downloadsRepo()}/releases/tags/apps` && downloadsRepo() === 'JBWeb1/Nexus', asked);
+    clearAppFilesCache(); ok('no apps release yet: the page still works, with browser install only', (await appFiles(rel([], 404))).length === 0);
+    clearAppFilesCache(); ok('GitHub unreachable: no crash', (await appFiles((async () => { throw new Error('offline'); }) as any)).length === 0);
+    clearAppFilesCache();
   }
 
   console.log('Secrets and API keys');

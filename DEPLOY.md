@@ -92,17 +92,29 @@ Options: `--yes` (no question asked), `--channel=main` (follow the latest commit
 
 ## Installing Nexus as an app
 
-Nexus is a web app, so every installed copy opens your live site and stays in sync. Deploy it first (above), then:
+Nexus is a web app, so every installed copy opens your live site and stays in sync. Deploy it first (above), then send
+people to **your-site/download**. That page puts their own device first, shows a one-click **Install** button where the
+browser offers one, and links to the Windows, Mac and Android files once you have published them (below). The sign-in
+page links to it ("Get the app"), and so does Settings > Install the app.
 
 | Device | How |
 |---|---|
 | Android | Chrome menu (⋮) > **Install app**, or the Android APK below |
-| iPhone / iPad | Open in **Safari** > Share > **Add to Home Screen** |
+| iPhone / iPad | Open in **Safari** > Share > **Add to Home Screen** (Apple only allows home-screen apps or the App Store) |
 | Windows | The Windows installer below, or in **Chrome** or **Edge** the install icon in the address bar |
-| Mac, Linux | In **Chrome** or **Edge**, the install icon in the address bar, or Settings > Install the app. On a Mac with Safari: File > Add to Dock |
+| Mac | The Mac app below, or Safari > File > **Add to Dock**, or the install icon in Chrome |
 
-Settings > **Install the app** shows the right steps for each device, with a one-click button where the browser offers one.
 Without a connection the app shows "You're offline" and reconnects by itself; financial data is never stored on the device.
+
+**Publishing the files.** When you run the **Android app** or **Desktop apps** workflow by hand (Actions > workflow >
+Run workflow, with your site address and "Put the file on the public download page" ticked), the files are uploaded to
+a GitHub release named `apps` under fixed names: `Nexus-Ledger-Setup.exe`, `Nexus-Ledger-Mac.dmg` and `Nexus-Ledger.apk`.
+The /download page checks that release every ten minutes and shows a download button for each file it finds. The
+release is marked as a pre-release, so it never shows up as a Nexus update. Set `APP_DOWNLOADS_REPO` (owner/repo) if your
+code lives in another repository, or `APP_DOWNLOADS=off` to show only the browser install steps.
+
+**The GitHub Pages demo** (`docs/`) installs too: open it and press **Install app** in the demo banner (on iPhone it shows
+the Safari steps). It works offline, because the demo keeps its sample books in the browser.
 
 ### Android app (APK)
 
@@ -126,19 +138,23 @@ runs it, so everything works as on the web). GitHub builds it:
 Without the secrets the workflow still builds, with a temporary key: fine for trying it out, but each build is signed
 differently, so phones cannot update from one to the next.
 
-### Windows installer (.exe)
+### Windows and Mac apps
 
-The `desktop/` folder is a small Windows app (Electron) that opens your Nexus site in its own window, with a desktop
+The `desktop/` folder is a small desktop app (Electron) that opens your Nexus site in its own window, with a desktop
 and Start-menu icon. Pages from your site stay in the app; payment and other outside links open in the browser.
 Without a connection it shows "You're offline" with a Try again button. GitHub builds the installer:
 
-1. Actions > **Windows app** > **Run workflow**, and enter your site address (for example `https://books.example.co.za`).
-2. When the run finishes (about 5 minutes), download **nexus-ledger-windows** from the run's **Artifacts** and unzip
-   it: inside is `Nexus-Ledger-Setup-2.2.0.exe`.
-3. Run it on the PC. It installs for the current user (no administrator needed) and you can choose the folder.
+1. Actions > **Desktop apps** > **Run workflow**, and enter your site address (for example `https://books.example.co.za`).
+2. When the run finishes (about 5 to 10 minutes) both files are on the /download page. They are also under the run's
+   **Artifacts**: **nexus-ledger-windows** (`Nexus-Ledger-Setup-<version>.exe`) and **nexus-ledger-mac** (a `.dmg`
+   that runs on both Apple-silicon and Intel Macs).
+3. Windows: run the .exe. It installs for the current user (no administrator needed) and you can choose the folder.
+   Mac: open the .dmg and drag Nexus Ledger into Applications.
 
 The installer is not code-signed unless you add a certificate, so Windows SmartScreen says "Windows protected your PC":
 click **More info** > **Run anyway**. To remove that warning, buy a code-signing certificate (.pfx) and add the
 repository secrets `WINDOWS_CERT_BASE64` (`base64 -w0 cert.pfx`) and `WINDOWS_CERT_PASSWORD`; the next build is signed.
+The Mac app is not signed by Apple (that needs a paid Apple Developer account, about $99 a year, and notarisation),
+so the first time it opens the Mac refuses: open System Settings > Privacy & Security and click **Open Anyway**.
 Because the app shows your live site, updates to Nexus reach it straight away; rebuild the installer only to change
 the site address or the app itself. To try it locally: `cd desktop && npm install && npm start`.

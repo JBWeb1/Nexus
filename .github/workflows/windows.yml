@@ -1,8 +1,9 @@
-name: Windows app
+name: Desktop apps
 
-# Builds the Nexus Ledger Windows installer (Nexus-Ledger-Setup-x.y.z.exe) that opens your hosted Nexus site in its own window.
-# Run it from Actions > Windows app > Run workflow, with the address of your live site, then download the installer
-# from the run's Artifacts. Optional code signing (removes the SmartScreen warning): add repository secrets
+# Builds the Nexus Ledger desktop apps that open your hosted Nexus site in their own window: a Windows installer (.exe)
+# and a Mac disk image (.dmg). Run it from Actions > Desktop apps > Run workflow, with the address of your live site.
+# A manual run also publishes both to the "apps" release, which your site's /download page links to; every run keeps
+# them under the run's Artifacts too. Optional code signing (removes the SmartScreen warning): add repository secrets
 # WINDOWS_CERT_BASE64 (a .pfx code-signing certificate) and WINDOWS_CERT_PASSWORD.
 on:
   workflow_dispatch:
@@ -11,8 +12,15 @@ on:
         description: 'Address of your live Nexus site, e.g. https://books.example.co.za'
         required: true
         default: 'https://nexus-ledger.vercel.app'
+      publish:
+        description: 'Put the file on the public download page (the "apps" release)'
+        type: boolean
+        default: true
   push:
     paths: ['desktop/**', '.github/workflows/windows.yml']
+
+permissions:
+  contents: write
 
 jobs:
   installer:
@@ -65,3 +73,67 @@ jobs:
           name: nexus-ledger-windows
           path: desktop/dist/*.exe
           if-no-files-found: error
+      - name: Publish to the download page
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One release, "apps", holds the latest installers under fixed names, so download links never change.
+          # It is a pre-release, so it never counts as the newest Nexus version in Settings > Updates.
+          gh release view apps --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create apps --repo "$GITHUB_REPOSITORY" \
+            --title "Nexus Ledger apps" --prerelease --latest=false \
+            --notes "The Nexus Ledger apps for Windows, Mac and Android. Each one opens your live Nexus site. Download them from your site's /download page."
+          cp dist/*.exe "$RUNNER_TEMP/Nexus-Ledger-Setup.exe"
+          gh release upload apps "$RUNNER_TEMP/Nexus-Ledger-Setup.exe#Windows installer (.exe)" --clobber --repo "$GITHUB_REPOSITORY"
+          echo "Published: https://github.com/$GITHUB_REPOSITORY/releases/download/apps/Nexus-Ledger-Setup.exe" >> "$GITHUB_STEP_SUMMARY"
+
+  mac:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Site address and version
+        env:
+          APP_URL: ${{ inputs.app_url || 'https://nexus-ledger.vercel.app' }}
+        run: |
+          case "$APP_URL" in https://*) ;; *) echo "::error::The site address must start with https://"; exit 1;; esac
+          VERSION=$(node -p "require('../package.json').version")
+          node -e "require('fs').writeFileSync('app/app-config.json', JSON.stringify({ appUrl: process.argv[1] }, null, 2))" "$APP_URL"
+          npm pkg set version="$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Build (not signed by Apple)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          echo "::warning::The Mac app is not signed or notarised by Apple, so the first time it opens the Mac asks for permission (see DEPLOY.md)."
+          npx electron-builder --mac dmg --universal --publish never -c.mac.identity=-
+          ls -la dist/*.dmg
+          echo "### Nexus Ledger $VERSION for Mac" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nexus-ledger-mac
+          path: desktop/dist/*.dmg
+          if-no-files-found: error
+      - name: Publish to the download page
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # One release, "apps", holds the latest installers under fixed names, so download links never change.
+          # It is a pre-release, so it never counts as the newest Nexus version in Settings > Updates.
+          gh release view apps --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create apps --repo "$GITHUB_REPOSITORY" \
+            --title "Nexus Ledger apps" --prerelease --latest=false \
+            --notes "The Nexus Ledger apps for Windows, Mac and Android. Each one opens your live Nexus site. Download them from your site's /download page."
+          cp dist/*.dmg "$RUNNER_TEMP/Nexus-Ledger-Mac.dmg"
+          gh release upload apps "$RUNNER_TEMP/Nexus-Ledger-Mac.dmg#Mac app (.dmg)" --clobber --repo "$GITHUB_REPOSITORY"
+          echo "Published: https://github.com/$GITHUB_REPOSITORY/releases/download/apps/Nexus-Ledger-Mac.dmg" >> "$GITHUB_STEP_SUMMARY"

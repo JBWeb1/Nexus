@@ -1,15 +1,16 @@
 {
   "name": "nexus-ledger-desktop",
   "productName": "Nexus Ledger",
-  "version": "2.3.0",
-  "description": "Nexus Ledger for Windows: opens your Nexus Ledger site in its own window.",
+  "version": "2.4.0",
+  "description": "Nexus Ledger for Windows and Mac: opens your Nexus Ledger site in its own window.",
   "author": "Nexus Ledger",
   "license": "UNLICENSED",
   "private": true,
   "main": "app/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis --publish never"
+    "dist": "electron-builder --win nsis --publish never",
+    "dist:mac": "electron-builder --mac dmg --publish never"
   },
   "devDependencies": {
     "electron": "44.9.1",
@@ -18,9 +19,20 @@
   "build": {
     "appId": "za.co.nexusledger.desktop",
     "productName": "Nexus Ledger",
-    "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["app/**/*", "package.json"],
-    "win": { "target": ["nsis"], "icon": "build/icon.ico" },
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
@@ -29,6 +41,23 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Nexus Ledger",
       "artifactName": "Nexus-Ledger-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.finance",
+      "artifactName": "Nexus-Ledger-${version}-mac.${ext}",
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Nexus Ledger"
     }
   }
 }

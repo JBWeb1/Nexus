@@ -9,6 +9,11 @@
 <meta property="og:description" content="Accounting software built for South Africa. Click around a working demo, no sign-up.">
 <meta property="og:image" content="social-preview.png">
 <link rel="icon" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1220">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nexus demo">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -279,7 +284,18 @@ function shell(body) {
   <div class="app"><aside class="side ${sideOpen ? "open" : ""}"><div class="logo"><img src="nexus-logo.png" alt="Nexus Ledger"></div>
     <div class="co"><div class="av">KC</div><div style="min-width:0"><b>${esc(S.org)}</b><small>Demo company</small></div></div>
     <nav class="nav">${NAV.map((n) => n.length === 1 ? `<div class="grp">${n[0]}</div>` : `<a href="#/${n[0]}" class="${route === n[0] ? "on" : ""}">${I(n[2])}${n[1]}${n[0] === "health" && (h.problems || h.todo) ? `<span style="margin-left:auto" class="pill ${h.problems ? "p-overdue" : "p-low"}">${h.problems + h.todo}</span>` : ""}</a>`).join("")}</nav></aside>
-  <main class="main"><div class="demo">${I("spark")}<span><b>Interactive demo.</b> These are sample books for a coffee roaster. Try anything: changes stay in your browser, nothing is sent or paid.</span><span class="sp"></span><button onclick="resetDemo()">${I("reset", 14)} Reset demo</button><a class="btnw" href="https://github.com/JBWeb1/Nexus" target="_blank" rel="noopener">About Nexus</a></div>${body}</main></div>`;
+  <main class="main"><div class="demo">${I("spark")}<span><b>Interactive demo.</b> These are sample books for a coffee roaster. Try anything: changes stay in your browser, nothing is sent or paid.</span><span class="sp"></span>${installBtn()}<button onclick="resetDemo()">${I("reset", 14)} Reset demo</button><a class="btnw" href="https://github.com/JBWeb1/Nexus" target="_blank" rel="noopener">About Nexus</a></div>${body}</main></div>`;
+}
+// Install the demo as an app: a button where the browser offers it (Chrome, Edge), instructions on iPhone and iPad.
+let installEvt = null; const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; render(); });
+window.addEventListener("appinstalled", () => { installEvt = null; render(); });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js").catch(() => {});
+function installBtn() { return standalone() ? "" : installEvt || isIOS() ? `<button onclick="installApp()">${I("down", 14)} Install app</button>` : ""; }
+async function installApp() {
+  if (installEvt) { installEvt.prompt(); await installEvt.userChoice; installEvt = null; render(); return; }
+  modal("Install the demo on your iPhone or iPad", `<ol style="padding-left:20px;line-height:1.9"><li>Open this page in <b>Safari</b>.</li><li>Tap <b>Share</b> (the square with an arrow).</li><li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol><p class="muted" style="margin-top:10px">The demo then opens from your home screen like an app, even without internet.</p>`, `<button class="btn" onclick="closeModal()">Got it</button>`);
 }
 function toggleSide() { sideOpen = !sideOpen; render(); }
 

@@ -1,6 +1,6 @@
 /**
- * Nexus Ledger for Windows: a window onto the Nexus Ledger site set in app-config.json (written by the build).
- * The site does all the work; this keeps it in its own window with a Start-menu icon, and shows an offline page
+ * Nexus Ledger for Windows and Mac: a window onto the Nexus Ledger site set in app-config.json (written by the build).
+ * The site does all the work; this keeps it in its own window with a Start-menu or Dock icon, and shows an offline page
  * instead of a browser error when there is no internet.
  */
 const { app, BrowserWindow, Menu, shell } = require('electron');
@@ -41,11 +41,15 @@ function createWindow() {
   win.loadURL(APP.href);
 }
 
+const isMac = process.platform === 'darwin';
 Menu.setApplicationMenu(Menu.buildFromTemplate([
-  { label: 'File', submenu: [{ role: 'reload' }, { role: 'togglefullscreen' }, { type: 'separator' }, { role: 'quit' }] },
+  ...(isMac ? [{ role: 'appMenu' }] : []),
+  { label: 'File', submenu: [{ role: 'reload' }, { role: 'togglefullscreen' }, ...(isMac ? [{ role: 'close' }] : [{ type: 'separator' }, { role: 'quit' }])] },
   { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
-  { label: 'View', submenu: [{ role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'resetZoom' }, { type: 'separator' }, { label: 'Back', accelerator: 'Alt+Left', click: () => win?.webContents.navigationHistory.goBack() }] },
+  { label: 'View', submenu: [{ role: 'zoomIn' }, { role: 'zoomOut' }, { role: 'resetZoom' }, { type: 'separator' }, { label: 'Back', accelerator: isMac ? 'Cmd+[' : 'Alt+Left', click: () => win?.webContents.navigationHistory.goBack() }] },
 ]));
 
 app.whenReady().then(createWindow);
-app.on('window-all-closed', () => app.quit());
+// On a Mac the app stays in the Dock when its window closes, and clicking the Dock icon opens it again.
+app.on('window-all-closed', () => { if (!isMac) app.quit(); });
+app.on('activate', () => { if (!win) createWindow(); });

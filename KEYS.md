@@ -72,6 +72,7 @@ shorter than 32 characters.
 | `GEOCODER_USER_AGENT` | Public | `NexusLedger/2 (…)` | OpenStreetMap's policy asks you to name your app and give a contact, for example `NexusLedger/2 (support@your-domain.co.za)`. |
 | `GEOCODER_COUNTRY` | Public | `za` | Limits address lookups to one country. Leave it empty to search everywhere. |
 | `NEXT_PUBLIC_MAP_TILE_URL` | Public | OpenStreetMap tiles | The map background. Set it before you build, because it is built into the page. |
+| `APP_DOWNLOADS_REPO` | Public | the update-check repository | Where the /download page looks for the `apps` release (owner/repo). `APP_DOWNLOADS=off` hides the file downloads. |
 | `NEXT_PUBLIC_MAP_ATTRIBUTION` | Public | `© OpenStreetMap contributors` | Credit for the map. Required by every tile provider. |
 
 **OpenStreetMap's free services are for light use.** Nexus looks up one address at a time, only when someone presses
