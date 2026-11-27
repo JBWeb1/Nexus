@@ -1,0 +1,4 @@
+# Rendered videos, stills and audio (rebuild with the commands in README.md)
+out/
+sounds/
+music_dl/

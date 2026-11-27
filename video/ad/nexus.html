@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Nexus Ledger ad</title>
+<style>
+  @font-face { font-family: M; src: url("a/manrope.woff2"); font-weight: 200 800; }
+  html,body{margin:0;background:#000;height:100%} body{display:flex;align-items:center;justify-content:center} canvas{width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;display:block}
+</style></head><body><canvas id="c"></canvas>
+<script src="gl3d.js"></script>
+<script>
+// Nexus Ledger, 19.5-second product ad. Real app screens as panels in 3D, one camera per scene, each scene handing over
+// to the next through a shape that grows to fill the frame. Page contract: renderAt(t), TOTAL, ready, EVENTS, ?t=, ?scale=.
+
+// ── Every beat in one place (seconds) ───────────────────────────────────────────────────────────────
+const B = {
+  iconIn: [0, 1.5], sweep1: [0.85, 1.55], squash: [1.5, 1.7], flood1: [1.68, 2.45],
+  head2: 2.45, head2Out: 3.75, tilt: [2.05, 5.0], push: [4.4, 7.05],
+  hlVat: 5.25, hlTotal: 5.75, head3: 5.15, head3Out: 6.55, btnIn: 6.05, btnPulse: 6.45, squash2: [6.78, 6.95], flood2: [6.92, 7.7],
+  pill: 7.85, bankIn: [7.55, 9.0], ticks: [8.55, 9.75], head4: 8.2, head4Out: 9.75, slide: [9.55, 11.45],
+  head5: 10.95, head5Out: 12.6, count: [11.05, 12.15], pull: [12.35, 15.3], tilesIn: [12.5, 13.9],
+  head6: 13.15, head6Out: 14.65, fold: [14.85, 15.85], logo: 15.75, sweep2: [16.25, 16.95], box: 16.55, type: [16.85, 17.95],
+  tag: 18.0, END: 19.5,
+};
+const q = new URLSearchParams(location.search), VERT = q.get('ar') === '9x16';   // ?ar=9x16 for Reels and TikTok
+const END = B.END, W = VERT ? 1080 : 1920, H = VERT ? 1920 : 1080, SCALE = parseFloat(q.get('scale') || '1');
+const FOV = VERT ? 50 : 36, DK = VERT ? 1.3 : 1, TXT = VERT ? 0.8 : 1, Y = (land, vert) => VERT ? vert : land;
+const adj = c => { if (!VERT) return c; const e = c.eye.map((v, i) => c.target[i] + (v - c.target[i]) * DK); return { ...c, eye: e, fov: FOV, focus: c.focus * DK }; };
+const NAVY = '#070b14', BLUE = '#2f6bff', BTN = '#2563eb', GREEN = '#0f9f6e';
+const BANK_ROWS = [585, 659, 733, 807, 881, 955, 1029, 1103, 1177, 1251, 1325, 1399, 1473, 1547, 1621, 1695, 1769];   // "Matched" rows, screenshot px
+const AMOUNT = 'jbweb1.github.io/Nexus';
+
+const cv = document.getElementById('c'); cv.width = W * SCALE; cv.height = H * SCALE; const MAIN = cv.getContext('2d'); let ctx = MAIN;
+const mk = () => { const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height; return c; };
+const BG = mk(), TMP = mk(), ACC = mk(), S3 = GL3D.create(W * SCALE, H * SCALE);
+const clamp01 = v => Math.max(0, Math.min(1, v)), lerp = (a, b, k) => a + (b - a) * k, prog = (t, a, b) => clamp01((t - a) / (b - a));
+const outExpo = k => (k = clamp01(k)) >= 1 ? 1 : 1 - Math.pow(2, -10 * k), outCubic = k => 1 - Math.pow(1 - clamp01(k), 3), inCubic = k => Math.pow(clamp01(k), 3);
+const inOutCubic = k => { k = clamp01(k); return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; };
+const sine = k => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(k)), L3 = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+const mix = (a, b, k) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), C = p(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, C[i], clamp01(k)))).join(',')})`; };
+
+// ── Assets ──────────────────────────────────────────────────────────────────────────────────────────
+const IMG = {}; const NAMES = ['dashboard', 'invoice-new', 'banking', 'vat201', 'invoices', 'reports', 'products', 'projects', 'insights', 'mark'];
+const loadImg = n => new Promise(r => { const i = new Image(); i.onload = () => { IMG[n] = i; r(); }; i.onerror = () => r(); i.src = `a/${n}.png`; });
+
+const TS = 2;
+function panel(w, h, pad, draw) {
+  const c = document.createElement('canvas'); c.width = (w + pad * 2) * TS; c.height = (h + pad * 2) * TS; const p = { c, w: w + pad * 2, h: h + pad * 2, tex: null, key: null };
+  p.redraw = (...a) => { const key = JSON.stringify(a); if (key === p.key && p.tex) return p; p.key = key; const g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
+    g.setTransform(TS, 0, 0, TS, pad * TS, pad * TS); const keep = ctx; ctx = g; draw(...a); ctx = keep; if (p.tex) p.tex.update(); else p.tex = S3.texture(c); return p; };
+  return p;
+}
+// A real app screen: screenshot px are 2× panel units (1440 × 900), rounded corners and a soft frame.
+function screen(name, extra) {
+  return panel(1440, 900, 0, (...a) => { ctx.save(); ctx.beginPath(); ctx.roundRect(0, 0, 1440, 900, 22); ctx.clip(); ctx.drawImage(IMG[name], 0, 0, 1440, 900);
+    if (extra) { ctx.save(); ctx.scale(0.5, 0.5); extra(...a); ctx.restore(); } ctx.restore();
+    ctx.beginPath(); ctx.roundRect(1, 1, 1438, 898, 22); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.stroke(); });
+}
+function tick(x, y, s) {   // a green tick badge, drawn in screenshot px
+  if (s <= 0) return; ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.beginPath(); ctx.arc(0, 0, 17, 0, 7); ctx.fillStyle = '#10b981'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-2.5, 6); ctx.lineTo(8.5, -6); ctx.lineWidth = 4.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#fff'; ctx.stroke(); ctx.restore();
+}
+const rand = (n, s = 0) => (k => k - Math.floor(k))(Math.sin(n * 91.7 + s * 13.3) * 43758.5);
+const rands = rd => (rd = Math.round(rd * 100) / 100, 'R ' + Math.floor(rd).toLocaleString('en-US') + '.' + String(Math.round((rd % 1) * 100)).padStart(2, '0'));
+
+const T = {};
+function build() {
+  T.invoice = screen('invoice-new').redraw();
+  T.bank = screen('banking', n => { BANK_ROWS.forEach((y, i) => tick(2665, y, outBack(clamp01(n - i)))); });
+  T.vat = screen('vat201', v => { ctx.fillStyle = '#fff'; ctx.fillRect(1880, 1116, 212, 66); ctx.font = '500 41px M'; ctx.textAlign = 'right'; ctx.fillStyle = 'rgb(10,113,78)'; ctx.fillText(rands(v), 2087, 1166); });
+  for (const n of ['dashboard', 'invoices', 'reports', 'products', 'projects', 'insights']) T[n] = screen(n).redraw();
+  T.bank.redraw(0); T.vat.redraw(6263.67);
+  T.hl = panel(340, 90, 0, (k) => { ctx.beginPath(); ctx.roundRect(2, 2, 336, 86, 12); ctx.fillStyle = `rgba(47,107,255,${0.07 * k})`; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = `rgba(47,107,255,${k})`; ctx.stroke(); }).redraw(1);
+  T.btn = panel(250, 64, 30, (glow) => { ctx.save(); ctx.shadowColor = `rgba(37,99,235,${0.35 + 0.45 * glow})`; ctx.shadowBlur = 24 + 30 * glow; ctx.shadowOffsetY = 8; ctx.beginPath(); ctx.roundRect(0, 0, 250, 64, 14); ctx.fillStyle = BTN; ctx.fill(); ctx.restore();
+    ctx.font = '700 25px M'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Send invoice', 125, 33); }).redraw(0);
+  T.pill = panel(470, 86, 30, () => { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10; ctx.beginPath(); ctx.roundRect(0, 0, 470, 86, 43); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+    ctx.translate(52, 43); ctx.beginPath(); ctx.moveTo(-12, 0); ctx.lineTo(-4, 9); ctx.lineTo(13, -9); ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#059669'; ctx.stroke();
+    ctx.font = '800 38px M'; ctx.fillStyle = '#047857'; ctx.textBaseline = 'middle'; ctx.fillText('Paid R 4 002,00', 34, 2); }).redraw();
+  T.green = panel(64, 40, 0, () => { ctx.fillStyle = GREEN; ctx.fillRect(0, 0, 64, 40); }).redraw();   // tiny texture, stretched (WebGL caps texture size)
+}
+const outBack = k => { const c1 = 1.5, c3 = c1 + 1; k = clamp01(k); return k <= 0 ? 0 : 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+
+// ── 2D helpers (headlines, glow, shapes) ────────────────────────────────────────────────────────────
+function glow(x, y, r, col, a) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col.replace('A', a)); g.addColorStop(1, col.replace('A', 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+// Words fade up from blurred to sharp with a small rise, one after another, and leave the same way (upwards).
+function words(t, parts, y, size, tin, tout, opts = {}) {
+  size *= TXT; ctx.save(); ctx.font = `800 ${size}px M`; ctx.textBaseline = 'alphabetic'; const sp = size * 0.26;
+  const list = []; parts.forEach(([txt, grad]) => txt.split(' ').forEach(w => list.push([w, grad])));
+  const widths = list.map(([w]) => ctx.measureText(w).width); const total = widths.reduce((a, b) => a + b, 0) + sp * (list.length - 1);
+  let x = W / 2 - total / 2;
+  list.forEach(([w, grad], i) => {
+    const kin = outCubic(prog(t, tin + i * 0.075, tin + i * 0.075 + 0.6)), kout = tout ? inCubic(prog(t, tout + i * 0.04, tout + i * 0.04 + 0.42)) : 0;
+    const a = kin * (1 - kout); if (a > 0.003) {
+      ctx.globalAlpha = a; ctx.filter = `blur(${((1 - kin) * 14 + kout * 12) * SCALE}px)`;
+      const yy = y + (1 - kin) * size * 0.32 - kout * size * 0.4;
+      let fill; if (grad) { fill = ctx.createLinearGradient(x, 0, x + widths[i], 0); fill.addColorStop(0, '#6f9bff'); fill.addColorStop(1, '#2fd8f0'); }
+      else { fill = ctx.createLinearGradient(0, yy - size * 0.75, 0, yy + size * 0.05); fill.addColorStop(0, '#ffffff'); fill.addColorStop(0.5, '#ffffff'); fill.addColorStop(1, opts.dim || '#aeb9d3'); }
+      if (opts.shadow) { ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 40 * SCALE; }
+      ctx.fillStyle = fill; ctx.fillText(w, x, yy); ctx.shadowBlur = 0;
+    }
+    x += widths[i] + sp;
+  });
+  ctx.restore();
+}
+function icon(cx, cy, size, rot = 0, sx = 1, sy = 1, sweepK = -1, alpha = 1) {   // the app icon: black rounded square with the N
+  if (!IMG.mark || size < 1) return; ctx.save(); ctx.globalAlpha = alpha; ctx.translate(cx, cy); ctx.rotate(rot); ctx.scale(sx, sy);
+  ctx.save(); ctx.shadowColor = 'rgba(47,107,255,0.55)'; ctx.shadowBlur = size * 0.45 * SCALE; ctx.beginPath(); ctx.roundRect(-size / 2, -size / 2, size, size, size * 0.225); ctx.fillStyle = '#000'; ctx.fill(); ctx.restore();
+  ctx.beginPath(); ctx.roundRect(-size / 2, -size / 2, size, size, size * 0.225); ctx.clip(); ctx.drawImage(IMG.mark, -size / 2, -size / 2, size, size);
+  if (sweepK >= 0 && sweepK <= 1) { const x = lerp(-size * 1.2, size * 1.2, sweepK); const g = ctx.createLinearGradient(x - size * 0.3, -size / 2, x + size * 0.3, size / 2);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.22)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(-size / 2, -size / 2, size, size); }
+  ctx.restore();
+}
+
+// ── Scenes ──────────────────────────────────────────────────────────────────────────────────────────
+// Scene B/C: the invoice. One camera: rises with the screen as it tilts up, then keeps pushing in to the totals.
+const BTN_POS = [480, -350, 6];
+function camInvoice(t) {
+  const k = 0.5 * outCubic(prog(t, B.tilt[0], B.tilt[1])) + 0.5 * inOutCubic(prog(t, B.push[0], B.push[1]));
+  const eye = k < 0.5 ? L3([0, 330, 2600], [0, 0, 1500], k / 0.5) : L3([0, 0, 1500], [BTN_POS[0] - 40, BTN_POS[1] + 40, 640], (k - 0.5) / 0.5);
+  const tg = k < 0.5 ? L3([0, -260, 0], [0, 0, 0], k / 0.5) : L3([0, 0, 0], [BTN_POS[0] - 30, BTN_POS[1] + 30, 0], (k - 0.5) / 0.5);
+  return { eye, target: tg, fov: 36, focus: Math.hypot(eye[0] - tg[0], eye[1] - tg[1], eye[2] - tg[2]), aperture: 0.15, fog: { near: 5000, far: 9000, color: [0.027, 0.043, 0.078] } };
+}
+function sceneInvoice(t) {
+  const kt = outCubic(prog(t, B.tilt[0], B.tilt[1])), rx = lerp(-1.22, 0, kt), y = lerp(-470, 0, sine(prog(t, B.tilt[0] + 0.3, B.tilt[1])));
+  const out = [{ tex: T.invoice.tex, w: T.invoice.w, h: T.invoice.h, pos: [0, y, 0], rot: [rx, 0, 0], sheen: 0.12, sheenPos: lerp(-0.3, 1.3, prog(t, 3, 5.5)) }];
+  // highlights on the VAT and total rows (screenshot px → panel units: x/2 − 720, 450 − y/2)
+  const hv = outCubic(prog(t, B.hlVat, B.hlVat + 0.5)), ht = outCubic(prog(t, B.hlTotal, B.hlTotal + 0.5));
+  if (hv > 0) out.push({ tex: T.hl.tex, w: 340, h: 34, pos: [1139 - 720, 450 - 1437 / 2, 2], rot: [0, 0, 0], alpha: hv * (1 - ht * 0.6), bias: 30 });
+  if (ht > 0) out.push({ tex: T.hl.tex, w: 340, h: 40, pos: [1139 - 720, 450 - 1503 / 2, 2], rot: [0, 0, 0], alpha: ht, bias: 30 });
+  const kb = outCubic(prog(t, B.btnIn, B.btnIn + 0.55));
+  if (kb > 0) { const pulse = Math.sin(Math.PI * prog(t, B.btnPulse, B.btnPulse + 0.35)); T.btn.redraw(Math.round(pulse * 20) / 20);
+    const sq = prog(t, B.squash2[0], B.squash2[1]); const s = 1 - 0.08 * Math.sin(Math.PI * Math.min(sq, 1)) * (t < B.squash2[1] ? 1 : 0);
+    out.push({ tex: T.btn.tex, w: T.btn.w, h: T.btn.h, pos: [BTN_POS[0], BTN_POS[1] - (1 - kb) * 24, BTN_POS[2]], rot: [0, 0, 0], alpha: kb, scale: s, bias: 60 }); }
+  return out;
+}
+// Scene D/E: a row of screens on a green wall. Banking swings in, ticks land, then the camera slides right to VAT201.
+const ROW = 1680;
+function camRow(t) {
+  const k = 0.1 * sine(prog(t, B.bankIn[0], B.slide[0] + 0.3)) + 0.9 * inOutCubic(prog(t, B.slide[0], B.slide[1]));
+  const kp = inOutCubic(prog(t, B.pull[0], B.pull[1]));   // the pull-back continues the same rightward drift
+  const x = lerp(-120, ROW, k) + 520 * kp, y = 40 + 760 * kp, z = lerp(2250, 2080, k) + 3500 * kp;
+  const eye = [x, y, z], tg = [ROW * (k > 0.999 ? 1 : k) + 140 * kp, 40 * (1 - kp) - 60 * kp, 0];
+  const d = Math.hypot(eye[0] - tg[0], eye[1] - tg[1], eye[2] - tg[2]);
+  return { eye, target: tg, fov: 36, focus: d, aperture: 0.25 + 0.5 * kp, fog: { near: 6000, far: 12000, color: [0.027, 0.043, 0.078] } };
+}
+const GRID = [['dashboard', -1, 1], ['invoices', 0, 1], ['products', 1, 1], ['banking', -1, 0], ['vat', 0, 0], ['reports', 1, 0], ['projects', -1, -1], ['insights', 0, -1], ['invoice', 1, -1]];
+function sceneRow(t, cam) {
+  const out = [], camX = cam.eye[0];
+  // the green wall behind banking: it belongs to that screen, so it slides away with it as the camera moves on
+  const gw = 1 - sine(prog(t, B.slide[0] + 0.1, B.slide[0] + 1.3)); if (gw > 0.003) out.push({ tex: T.green.tex, w: 7000, h: 4400, pos: [-600, 0, -1400], rot: [0, 0, 0], alpha: gw, bias: -9000 });
+  const kin = outCubic(prog(t, B.bankIn[0], B.bankIn[1])); T.bank.redraw(Math.round(lerp(0, BANK_ROWS.length + 1, prog(t, B.ticks[0], B.ticks[1])) * 8) / 8);
+  T.vat.redraw(Math.round(lerp(0, 6263.67, outCubic(prog(t, B.count[0], B.count[1]))) * 100) / 100);
+  const kTiles = outCubic(prog(t, B.tilesIn[0], B.tilesIn[1])), kf = inOutCubic(prog(t, B.fold[0], B.fold[1]));
+  GRID.forEach(([name, gx, gy], i) => {
+    const tex = { vat: T.vat, invoice: T.invoice, banking: T.bank }[name] || T[name];
+    let pos = [ROW + gx * ROW, gy * 1080, 0], alpha = 1, rot = [0, 0, 0], blur = 0, scale = 1;
+    if (name === 'banking') { pos = [lerp(760, 0, kin), 0, lerp(-500, 0, kin)]; rot = [0, lerp(-0.95, -0.0, kin), 0]; alpha = clamp01(kin * 3); }
+    else if (name === 'reports' || name === 'vat') { alpha = 1; }
+    else { const k = clamp01(kTiles * 1.15 - rand(i) * 0.15), dir = [gx, gy]; pos = [pos[0] + dir[0] * 1100 * (1 - k), pos[1] + dir[1] * 900 * (1 - k), -700 * (1 - k)]; alpha = k; }
+    if (name !== 'vat') blur = clamp01(Math.abs(pos[0] - camX) / 1300) * 2.2 * (1 - prog(t, B.pull[0], B.pull[0] + 1.2) * 0.4);
+    if (kf > 0) { pos = L3(pos, [ROW, 0, 400], kf); scale = lerp(1, 0.04, kf); alpha *= 1 - prog(t, B.fold[0] + 0.7, B.fold[1]); }
+    if (alpha > 0.002) out.push({ tex: tex.tex, w: tex.w, h: tex.h, pos, rot, alpha, blur, scale, sheen: 0.08, sheenPos: lerp(-0.4, 1.4, prog(t, 9.8 + i * 0.2, 12 + i * 0.2)) });
+  });
+  const kp = outCubic(prog(t, B.pill, B.pill + 0.7));
+  if (kp > 0) out.push({ tex: T.pill.tex, w: T.pill.w, h: T.pill.h, pos: [lerp(760, 0, kin), 530 + (1 - kp) * 30, 90], rot: [0, 0, 0], alpha: kp * (1 - kf), bias: 400 });
+  return out;
+}
+
+// ── The frame ───────────────────────────────────────────────────────────────────────────────────────
+const SUB = +(q.get('sub') || 10), SHUTTER = 0.5 / 25;
+let built = false;
+function threeD(t, camFn, sceneFn, bgFn) {
+  const A = ACC.getContext('2d'); A.setTransform(1, 0, 0, 1, 0, 0); A.globalAlpha = 1; A.clearRect(0, 0, ACC.width, ACC.height);
+  for (let i = 0; i < SUB; i++) {
+    const ts = Math.max(0, Math.min(END, t + (SUB > 1 ? (i / (SUB - 1) - 0.5) * SHUTTER : 0))), cam = adj(camFn(ts));
+    ctx = BG.getContext('2d'); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); bgFn(ts);
+    ctx = TMP.getContext('2d'); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.drawImage(BG, 0, 0); ctx.drawImage(S3.render(sceneFn(ts, cam), cam), 0, 0);
+    A.globalAlpha = 1 / (i + 1); A.drawImage(TMP, 0, 0);
+  }
+  ctx = MAIN; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none'; ctx.drawImage(ACC, 0, 0); ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+}
+const navyBg = (gx = 0.3, gy = 0.2, a = 0.5) => { ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, H); glow(W * gx, H * gy, 900, 'rgba(29,78,216,A)', a); glow(W * (1 - gx * 0.6), H * 0.9, 800, 'rgba(14,116,144,A)', a * 0.6); };
+
+function render(t) {
+  if (!built) { build(); built = true; }
+  ctx = MAIN; ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.globalAlpha = 1; ctx.filter = 'none';
+  if (t < B.flood1[1]) {
+    // 1 · the icon flies in, a light sweeps across it, it squashes, then grows to fill the frame
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    const k = 1 - Math.pow(1 - prog(t, B.iconIn[0], B.iconIn[1]), 4); glow(W / 2, H / 2, 700, 'rgba(37,99,235,A)', 0.42 * k);
+    const sq = prog(t, B.squash[0], B.squash[1]), squash = t > B.squash[0] && t < B.squash[1] ? Math.sin(Math.PI * sq) : 0;
+    const kf = inOutCubic(prog(t, B.flood1[0], B.flood1[1]));
+    const size = lerp(24, 300, k) * (1 - 0.04 * squash) + kf * 2400;
+    ctx.save(); if (kf > 0) { ctx.beginPath(); ctx.roundRect(W / 2 - size / 2, H / 2 - size / 2, size, size, size * lerp(0.225, 0.02, kf)); ctx.fillStyle = mix('#000000', NAVY, kf); ctx.fill(); }
+    ctx.restore();
+    icon(W / 2, H / 2, kf > 0 ? 300 + kf * 300 : size, lerp(-0.35, 0, k), 1 + 0.06 * squash, 1 - 0.08 * squash, prog(t, B.sweep1[0], B.sweep1[1]), 1 - clamp01(kf * 2.2));
+  } else if (t < B.flood2[1]) {
+    // 2–3 · the invoice tilts up, the camera pushes in on the totals, the Send button grows into green
+    threeD(t, camInvoice, sceneInvoice, ts => navyBg(0.5, 0.25, 0.55 * prog(ts, B.flood1[1] - 0.2, B.flood1[1] + 0.6)));
+    const e = outCubic(prog(t, B.flood1[1] - 0.05, B.flood1[1] + 0.5)); if (e < 1) { ctx.globalAlpha = 1 - e; ctx.fillStyle = NAVY; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    words(t, [['Your books,'], ['sorted.', 1]], Y(215, 520), 104, B.head2, B.head2Out);
+    if (t > B.head3) { ctx.save(); const ka = clamp01(prog(t, B.head3, B.head3 + 0.4)) * (1 - prog(t, B.head3Out, B.head3Out + 0.5)); const g = ctx.createLinearGradient(0, H * (VERT ? 0.7 : 0.62), 0, H); g.addColorStop(0, 'rgba(7,11,20,0)'); g.addColorStop(1, `rgba(7,11,20,${0.85 * ka})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    words(t, [['Invoice in'], ['seconds.', 1]], Y(960, 1560), 84, B.head3, B.head3Out, { shadow: 1 });
+    const kf = inOutCubic(prog(t, B.flood2[0], B.flood2[1]));
+    if (kf > 0) {   // the button's pill grows into the next scene's green, moving to the centre as it goes
+      const cam = adj(camInvoice(t)), [px, py] = S3.project([BTN_POS[0], BTN_POS[1], BTN_POS[2]], cam), sc = 1 / SCALE;
+      const cx = lerp(px * sc, W / 2, kf), cy = lerp(py * sc, H / 2, kf), d = Math.hypot(cam.eye[0] - BTN_POS[0], cam.eye[1] - BTN_POS[1], cam.eye[2] - BTN_POS[2]);
+      const pxPerUnit = (H / 2) / (d * Math.tan(FOV / 2 * Math.PI / 180)); const w0 = 250 * pxPerUnit, h0 = 64 * pxPerUnit;
+      const w = lerp(w0, W * 1.25, kf), h = lerp(h0, H * 1.3, Math.pow(kf, 0.8)), r = lerp(h0 * 0.22, 0, kf);
+      ctx.beginPath(); ctx.roundRect(cx - w / 2, cy - h / 2, w, h, r); ctx.fillStyle = mix(BTN, GREEN, Math.min(1, kf * 1.6)); ctx.fill();
+    }
+  } else if (t < B.fold[1] - 0.05) {
+    // 4–6 · banking on green, slide right to VAT201, pull back to the wall of screens, fold into the icon
+    threeD(t, camRow, sceneRow, () => navyBg(0.55, 0.3, 0.5));
+    const e = outCubic(prog(t, B.flood2[1] - 0.02, B.flood2[1] + 0.35)); if (e < 1) { ctx.globalAlpha = 1 - e; ctx.fillStyle = GREEN; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+    words(t, [['The bank matches itself.']], Y(1000, 1500), 70, B.head4, B.head4Out, { shadow: 1, dim: '#d8f5e8' });
+    words(t, [['VAT201,'], ['ready.', 1]], Y(128, 500), 88, B.head5, B.head5Out, { shadow: 1 });
+    if (t > B.head6 - 0.3) { const ka = prog(t, B.head6 - 0.3, B.head6 + 0.3) * (1 - prog(t, B.head6Out, B.head6Out + 0.5)); ctx.save(); const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, 760); g.addColorStop(0, `rgba(7,11,20,${0.82 * ka})`); g.addColorStop(1, 'rgba(7,11,20,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+    words(t, [['One place for'], ['all of it.', 1]], H / 2 + 34, 100, B.head6, B.head6Out, { shadow: 1 });
+    const ki = outCubic(prog(t, B.fold[0] + 0.35, B.fold[1])); if (ki > 0) icon(W / 2, H / 2, 300 * ki, 0, 1, 1, -1, ki);
+  } else {
+    // 7 · end card: the icon lands, a light sweeps across it, the address types itself
+    navyBg(0.5, 0.42, 0.55); const lift = outCubic(prog(t, B.box - 0.2, B.box + 0.9));
+    const pulse = Math.exp(-6 * Math.max(0, t - B.logo)) * (t > B.logo ? 1 : 0); glow(W / 2, H / 2 - 60 * lift, 520, 'rgba(59,130,246,A)', 0.35 * pulse);
+    icon(W / 2, H / 2 - 95 * lift, 300 - 40 * lift, 0, 1, 1, prog(t, B.sweep2[0], B.sweep2[1]));
+    const kb = outCubic(prog(t, B.box, B.box + 0.6));
+    if (kb > 0) {
+      ctx.save(); ctx.globalAlpha = kb; ctx.filter = `blur(${(1 - kb) * 10 * SCALE}px)`; const bw = 660, bh = 82, bx = W / 2 - bw / 2, by = H / 2 + 150 + (1 - kb) * 20;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, bh / 2); ctx.fillStyle = '#101a2f'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(111,155,255,0.45)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(bx + 50, by + bh / 2 - 3, 12, 0, 7); ctx.moveTo(bx + 59, by + bh / 2 + 6); ctx.lineTo(bx + 68, by + bh / 2 + 15); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#8fb0ff'; ctx.stroke();
+      const n = Math.floor(AMOUNT.length * prog(t, B.type[0], B.type[1])), txt = AMOUNT.slice(0, n); ctx.filter = 'none';
+      ctx.font = '600 33px M'; ctx.fillStyle = '#e8efff'; ctx.textBaseline = 'middle'; ctx.fillText(txt, bx + 92, by + bh / 2 + 1);
+      const cw = ctx.measureText(txt).width; if (Math.floor(t * 2.2) % 2 === 0 || (t > B.type[0] && t < B.type[1])) { ctx.fillStyle = '#6f9bff'; ctx.fillRect(bx + 96 + cw, by + 22, 3, bh - 44); }
+      ctx.restore();
+    }
+    words(t, [['Try the free demo. No sign-up.']], H / 2 + 320, 34, B.tag, 0, { dim: '#9fb0d4' });
+  }
+}
+
+// Beats for sound design (dumped with render.mjs events).
+const EVENTS = [
+  { name: 'icon.whoosh', t: 0.05 }, { name: 'icon.land', t: 1.05 }, { name: 'icon.sweep', t: B.sweep1[0] + 0.2 }, { name: 'flood1', t: B.flood1[0] },
+  { name: 'head2', t: B.head2 }, { name: 'tilt', t: B.tilt[0] + 0.1 }, { name: 'push', t: B.push[0] }, { name: 'hl.vat', t: B.hlVat }, { name: 'hl.total', t: B.hlTotal },
+  { name: 'head3', t: B.head3 }, { name: 'btn.in', t: B.btnIn }, { name: 'btn.pulse', t: B.btnPulse }, { name: 'btn.press', t: B.squash2[0] + 0.08 }, { name: 'flood2', t: B.flood2[0] },
+  { name: 'pill', t: B.pill }, { name: 'bank.swing', t: B.bankIn[0] }, ...BANK_ROWS.slice(0, 11).map((_, i) => ({ name: `tick.${i}`, t: B.ticks[0] + (i + 0.35) * (B.ticks[1] - B.ticks[0]) / (BANK_ROWS.length + 1) })),
+  { name: 'head4', t: B.head4 }, { name: 'slide', t: B.slide[0] }, { name: 'head5', t: B.head5 }, { name: 'count.start', t: B.count[0] }, { name: 'count.end', t: B.count[1] },
+  { name: 'pull', t: B.pull[0] }, { name: 'tiles', t: B.tilesIn[0] }, { name: 'head6', t: B.head6 }, { name: 'fold', t: B.fold[0] }, { name: 'fold.land', t: B.fold[1] - 0.1 },
+  { name: 'logo', t: B.logo }, { name: 'sweep2', t: B.sweep2[0] }, { name: 'box', t: B.box }, { name: 'type.start', t: B.type[0] }, { name: 'tag', t: B.tag }, { name: 'end', t: END },
+];
+window.EVENTS = EVENTS; window.TOTAL = END; window.renderAt = t => render(t);
+window.ready = Promise.all([document.fonts.load('800 50px M'), document.fonts.load('500 41px M'), document.fonts.load('600 33px M'), ...NAMES.map(loadImg)]).catch(() => {})
+  .then(() => { if (q.has('t')) render(parseFloat(q.get('t'))); else (function loop(n) { render((n / 1000) % END); requestAnimationFrame(loop); })(0); return true; });
+</script></body></html>
